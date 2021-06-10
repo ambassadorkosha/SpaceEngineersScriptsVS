@@ -12,10 +12,12 @@ using VRage.Collections;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Game.ModAPI.Ingame;
 using SpaceEngineers.Game.ModAPI.Ingame;
-namespace ScriptNav
+
+
+namespace IsysInventoryManager
 {
-    public sealed class Program : MyGridProgram
-    {
+	public sealed class Program : MyGridProgram
+	{
 		//------------BEGIN--------------
 
 		// Isy's Inventory Manager
@@ -362,18 +364,18 @@ namespace ScriptNav
 		int ɥ = 0;
 		int ɤ = 0;
 		int ɣ = 0;
-		int ɢ = 0; 
-		int ɨ = 0; 
-		int ɡ = 0; 
-		int ɟ = 0; 
-		string ɞ = ""; 
-		string[] ɝ = { "/", "-", "\\", "|" }; 
-		int ɜ = 0; 
+		int ɢ = 0;
+		int ɨ = 0;
+		int ɡ = 0;
+		int ɟ = 0;
+		string ɞ = "";
+		string[] ɝ = { "/", "-", "\\", "|" };
+		int ɜ = 0;
 		List<IMyTerminalBlock> ɛ = new List<IMyTerminalBlock>();
 		List<IMyTerminalBlock> ɚ = new List<IMyTerminalBlock>();
-		List<IMyTerminalBlock> ɠ = new List<IMyTerminalBlock>(); 
-		List<IMyTerminalBlock> ə = new List<IMyTerminalBlock>(); 
-		StringBuilder ɪ = new StringBuilder(); 
+		List<IMyTerminalBlock> ɠ = new List<IMyTerminalBlock>();
+		List<IMyTerminalBlock> ə = new List<IMyTerminalBlock>();
+		StringBuilder ɪ = new StringBuilder();
 		string[] Ǒ = {
 			"showHeading=true",
 			"showWarnings=true",
@@ -383,24 +385,24 @@ namespace ScriptNav
 			"scrollTextIfNeeded=true"
 		};
 		string[] ɹ = {
-			"showHeading=true", 
+			"showHeading=true",
 			"scrollTextIfNeeded=true"
 		};
 		string Ŀ;
-		int ɸ = 0; 
-		string ɷ = ""; 
-		bool ɶ = false; 
-		bool ɵ = false; 
-		bool ɴ = false; 
-		HashSet<string> ɳ = new HashSet<string>(); 
-		HashSet<string> ɲ = new HashSet<string>(); 
-		int ɱ = 0; 
-		int ɰ = 0; 
-		int ɯ = 0; 
-		bool ɮ = true; 
-		bool ɭ = false; 
-		int ɬ = 0; 
-		string ɫ = "itemID;blueprintID"; 
+		int ɸ = 0;
+		string ɷ = "";
+		bool ɶ = false;
+		bool ɵ = false;
+		bool ɴ = false;
+		HashSet<string> ɳ = new HashSet<string>();
+		HashSet<string> ɲ = new HashSet<string>();
+		int ɱ = 0;
+		int ɰ = 0;
+		int ɯ = 0;
+		bool ɮ = true;
+		bool ɭ = false;
+		int ɬ = 0;
+		string ɫ = "itemID;blueprintID";
 		Dictionary<string, string> ɩ = new Dictionary<string, string>()
 		{
 			{"oreContainer",oreContainerKeyword},
@@ -471,11 +473,11 @@ namespace ScriptNav
 		SortedSet<string> Ȥ = new SortedSet<string>();
 		SortedSet<string> ȣ = new SortedSet<string>();
 		SortedSet<string> Ȣ = new SortedSet<string>();
-		SortedSet<string> ȡ = new SortedSet<string>(); 
-		SortedSet<string> Ƞ = new SortedSet<string>(); 
-		SortedSet<string> ȟ = new SortedSet<string>(); 
-		SortedSet<string> Ȟ = new SortedSet<string>(); 
-		SortedSet<string> ȝ = new SortedSet<string>(); 
+		SortedSet<string> ȡ = new SortedSet<string>();
+		SortedSet<string> Ƞ = new SortedSet<string>();
+		SortedSet<string> ȟ = new SortedSet<string>();
+		SortedSet<string> Ȟ = new SortedSet<string>();
+		SortedSet<string> ȝ = new SortedSet<string>();
 		Dictionary<MyDefinitionId, double> Ȝ = new Dictionary<MyDefinitionId, double>();
 		Dictionary<MyDefinitionId, double> ț = new Dictionary<MyDefinitionId, double>();
 		Dictionary<MyDefinitionId, double> Ȉ = new Dictionary<MyDefinitionId, double>();
@@ -570,7 +572,8 @@ namespace ScriptNav
 							}
 						}
 					}
-					if (ɯ >= 6) {
+					if (ɯ >= 6)
+					{
 						Echo("Checking type containers..");
 						if (ɯ == 6) ɔ();
 						if (ɯ == 6) ɍ();
@@ -2183,10 +2186,10 @@ RemoveWhere(Ĳ => Ĳ == ""); List<string> Ĭ = Į.ToList(); for (int H = ɣ; H <
 			{
 				if (Ǔ()) return; ɣ++; var ī = Ň.Where(Ī => Ī.Value.Contains(Ĭ[H])
 ); var ĩ = from pair in ī
-orderby System.Text.RegularExpressions.Regex.Match(pair.Value, inventoryLCDKeyword + @":\w+").Value
-ascending
-select pair; IMyTextSurface Ĩ = ĩ.ElementAt(0).Key; string ħ = ĩ.ElementAt(0).Value; StringBuilder º = ķ(Ĩ, ħ); if (!ħ.ToLower().
-			Contains("noscroll")) { int Ħ = 0; foreach (var Ĵ in ĩ) { Ħ += Ĵ.Key.Ŏ(); } º = Ĩ.Ř(º, 0, true, Ħ); }
+		   orderby System.Text.RegularExpressions.Regex.Match(pair.Value, inventoryLCDKeyword + @":\w+").Value
+		   ascending
+		   select pair; IMyTextSurface Ĩ = ĩ.ElementAt(0).Key; string ħ = ĩ.ElementAt(0).Value; StringBuilder º = ķ(Ĩ, ħ); if (!ħ.ToLower().
+					   Contains("noscroll")) { int Ħ = 0; foreach (var Ĵ in ĩ) { Ħ += Ĵ.Key.Ŏ(); } º = Ĩ.Ř(º, 0, true, Ħ); }
 				var Ľ = º.ToString().Split('\n'); int Ļ = Ľ.Length
 ; int ĺ = 0; int Ĺ, ĸ; foreach (var Ĵ in ĩ)
 				{
@@ -3028,8 +3031,8 @@ this double ƃ, double ē)
 		{ double Ƃ = Math.Round(ƃ / ē * 100, 1); if (ē == 0) { return "0%"; } else { return Ƃ + "%"; } }
 		public static string Ƅ(this
 float ƃ, float ē)
-		{ double Ƃ = Math.Round(ƃ / ē * 100, 1); if (ē == 0) { return "0%"; } else { return Ƃ + "%"; } }        
-		
+		{ double Ƃ = Math.Round(ƃ / ē * 100, 1); if (ē == 0) { return "0%"; } else { return Ƃ + "%"; } }
+
 		//------------END--------------
 	}
 }

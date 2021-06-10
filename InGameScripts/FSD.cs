@@ -15,105 +15,262 @@ using SpaceEngineers.Game.ModAPI.Ingame;
 using VRage.Game.GUI.TextPanel;
 using System.Linq;
 
-namespace ScriptFSD
+namespace FSD
 {
     public sealed class Program : MyGridProgram
     {
         //------------BEGIN--------------
-        //  ****************************************************************************************************************************************
-        string ver = "FSD Version 31u";
+        /*
+         *  Extensions are written behind the block- or group name (same line) with a seperator: "," or ":" (both work)
+         *  --------------------------------------------------------------------------------------------------------------------------------------------
+         *  WideBar           Large bar instead of an icon for each single block               -> Syntax: GroupOrBlockName,Widebar
+         *  SmallBar          Small bar instead of an icon for each single block               -> Syntax: GroupOrBlockName,SmallBar
+         *  NoIcon              Only a small headline without any graphics                         -> Syntax: GroupOrBlockName,noIcon
+         *  (The 'WideBar' 'SmallBar' and 'NoIcon' extensions are mutually exclusive)
+         *  --------------------------------------------------------------------------------------------------------------------------------------------
+         *  nolinebreak       Each group will occupy only one line, no matter it's size   -> Syntax: GroupOrBlockName,nolinebreak
+         *  noscrolling        Headline does not scroll                                                       -> Syntax: GroupOrBlockName,noscrolling
+         *  noheadline        Headline not shown                                                              -> Syntax: GroupOrBlockName,noheadline
+         *  nosubgrids        Blocks or groups on other subgrids will be ignored            -> Syntax: GroupOrBlockName,nosubgrids
+         *  nosubgridLCDs  Reads all blocks on subgrids, but doesn't write to lcds'    -> Syntax: GroupOrBlockName,nosubgridLCDs
+         *  optional             switch between e.g. power or inventory                              -> Syntax: GroupOrBlockName,optional
+         *  ""         Searches for exact name instead of blocks containing the name     -> Syntax: "GroupOrBlockName"
+         *  left                     Left aligned text (standard)                                                   -> Syntax: GroupOrBlockName,left
+         *  center                Center aligned text                                                                -> Syntax: GroupOrBlockName,center
+         *  right                   Right aligned text                                                                  -> Syntax: GroupOrBlockName,right
+         *  noIcons              Text (headline) only - no icons or bars                                 -> Syntax: GroupOrBlockName,noIcons
+         *  #                        Shows only 1 icon per #-symbol                                           -> Syntax: GroupOrBlockName###
+         *  (Missing Blocks will be replaced with a placeholder ico. Works not with 'LargeBar, 'SmallBar' or 'noIcons'.)
+         *  --------------------------------------------------------------------------------------------------------------------------------------------
+         *  Text:           Write custom text in front of the headline,             -> Syntax: GroupOrBlockName,Text:CustomText
+         *                    or combine it with noheadline,                                -> Syntax: GroupOrBlockName,noheadline,Text:CustomText
+         *                    or use without GroupOrBlockName                         -> Syntax: ,Text:CustomText
+         *  (The 'Text:' Extension must be the last one in line since everthing between it and the line end will be shown as text)
+         *  --------------------------------------------------------------------------------------------------------------------------------------------
+         *  Position(x,y)     Choose the draw position yourself                   -> Syntax: GroupOrBlockName,Position(x,y)
+         *  (The next item in the display list will be located on the left screen border again.)
+         *   --------------------------------------------------------------------------------------------------------------------------------------------
+         *  gfxStart(x,y,fontsize)     Insert own monospace graphic, fontsize is optional and 0.1 by default
+         *  gfxEnd
+         *  -> Syntax: 
+         *  ,gfxStart(x,y,0.2)
+         *  [MonospaceGraphic]
+         *  gfxEnd         
+         *  --------------------------------------------------------------------------------------------------------------------------------------------
+         *  Different extensions can be combined in the same line.    Example: GroupOrBlockName,Position(x,y) Widebar optional noscrolling text:Exampletext
+         *  --------------------------------------------------------------------------------------------------------------------------------------------
+         *  You can combine differnt group- or blocknames by using the seperator: "+"     -> Syntax: GroupOrBlockName1 + GroupOrBlockName2 + GroupOrBlockName3
+         *  You can separate these differnt groups or blocks by using 'Gap' with a number specifying the with of the gap.
+         *  Gap               Insert a gap before/after drawn object(s)                   -> Syntax: Gap 20 + GroupOrBlockName1 + Gap 30 + GroupOrBlockName2
+         *  --------------------------------------------------------------------------------------------------------------------------------------------
+         *  You can combine this also with WideBar or SmallBar in consecutive lines       -> Syntax: GroupOrBlockName 1, Widebar
+         *                                                                                           + Gap 30 + GroupOrBlockName2, Widebar
+         *  (Combining SmallBar and WideBar in a single line is not possible.)
+         *  
+         *  ********************************************************************************************************************************************
+         *  Overide options
+         *  ********************************************************************************************************************************************
+         *  You can overide individual LCD/Cockpit screen settings by using a special keyword line starting with 'FSD options:' in the Custom Data field 
+         *  of the Programmable block itself.
+         *  All keywords for this override options must be in a single line and this line must be located above an optional 'ShowStats' line or else the 
+         *  used keywords affect only the LCD panels of the Programmable block.
+         *  Avaible overide option keywords
+         *  nolinebreak         applying the noLinebreak option on all controlled LCD screens                   -> Syntax: FSD options:nolinebreak
+         *  noscrolling          applying the noScrolling option on all controlled LCD screens                    -> Syntax: FSD options:noscrolling
+         *  noheadline          applying the noHeadline option on all controlled LCD screens                     -> Syntax: FSD options:noheadline
+         *  nosubgrids          applying the noSubgrid option on all controlled LCD screens                      -> Syntax: FSD options:nosubgrids
+         *  optional               applying the optional option on all controlled LCD screens                          -> Syntax: FSD options:optional
+         *  verbatim              Searches exact name instead of blocks containing the name                     -> Syntax: FSD options:verbatim
+         *  nosubgridLCDs   only LCD Screens on the same subgrid as the PB will be contolled            -> Syntax: FSD options:nosubgridLCDs
+         *  
+         *  Options can be combined.  Example: FSD options:optional noheadline nolinebreak noscrolling nosubgrids nosubgridLCDs verbatim
+         *  (Only 'FSD options:' is case sensitive. All other keywords for the overide options are not case sensitive.)
+         *  
+         *  ********************************************************************************************************************************************
+         *  Example for a cockpit with multiple screens
+         *  ********************************************************************************************************************************************
+         *  ShowStats
+         *  Panel 0
+         *  Battery,optional,WideBar
+         *  Hydrogen:WideBar
+         *  Panel 3
+         *  Cargo
+         *  Panel 1
+         *  Drill + Gap 20 + Connector
+         *  Connector
+         *  ********************************************************************************************************************************************
+         *  Example for a normal screen
+         *  ********************************************************************************************************************************************
+         *  ShowStats
+         *  Battery,SmallBar,Position(150,150)
+         *  Hydrogen Engine
+         *  Cargo 2
+         *  ********************************************************************************************************************************************
+         *  Arguments - Run the pb with the following arguments
+         *  ********************************************************************************************************************************************
+         *  The Programmable block can be controlled by running it with one of these arguments: (not case sensitive)
+         *  shutdown        Turns all screens black/off
+         *  powerup          Turns all screens back online
+         *  refresh             Refreshes all screens - workaround for multiplayer, needs further testing
+         *  ********************************************************************************************************************************************
+         *  Examples for you to copy to the color-config
+         *  ********************************************************************************************************************************************
+         *  Color frameColorFunctional = Color.Cyan;          //color if block is not damaged
+         *  Color frameColorNotFunctional = Color.Red;      //color if block is damaged
+         *  Color frameColorWideBar = Color.White;           //color wide bar
+         *  Color headlineColor = Color.White;                    //headline for single blocks
+         *  Color headlineColorWideBar = Color.White;      //headline for wide bar
+         *  Color pictogramColor = Color.White;                  //symols on single blocks
+         *  Color percentDisplayColor = Color.White;         //fillstate percentvalue on single blocks
+         *  Color ChargeColorLoaded = Color.Lime;            //color of chargebar 100 to 91% - inverted on cargo with ChargeColorEmpty
+         *  Color ChargeColorNormal = Color.Cyan;            //color of chargebar 90 to 26%
+         *  Color ChargeColorEmpty = Color.Red;               //color of chargebar 25 to 0% - inverted on cargo with ChargeColorLoaded
+         *  
+         *  // Colors you could use:
+         *  Color.AliceBlue,Color.AntiqueWhite,Color.Aqua,Color.Aquamarine,Color.Azure,Color.Beige,Color.Bisque,
+         *  Color.Black,Color.BlanchedAlmond,Color.Blue,Color.BlueViolet,Color.Brown,Color.BurlyWood,Color.CadetBlue,Color.Chartreuse,
+         *  Color.Chocolate,Color.Coral,Color.CornflowerBlue,Color.Cornsilk,Color.Crimson,Color.Cyan,Color.DarkBlue,Color.DarkCyan,
+         *  Color.DarkGoldenrod,Color.DarkGray,Color.DarkGreen,Color.DarkKhaki,Color.DarkMagenta,Color.DarkOliveGreen,Color.DarkOrange,
+         *  Color.DarkOrchid,Color.DarkRed,Color.DarkSalmon,Color.DarkSeaGreen,Color.DarkSlateBlue,Color.DarkSlateGray,
+         *  Color.DarkTurquoise,Color.DarkViolet,Color.DeepPink,Color.DeepSkyBlue,Color.DimGray,Color.DodgerBlue,Color.Firebrick,
+         *  Color.FloralWhite,Color.ForestGreen,Color.Fuchsia,Color.Gainsboro,Color.GhostWhite,Color.Gold,Color.Goldenrod,Color.Gray,
+         *  Color.Green,Color.GreenYellow,Color.Honeydew,Color.HotPink,Color.IndianRed,Color.Indigo,Color.Ivory,Color.Khaki,Color.Lavender,
+         *  Color.LavenderBlush,Color.LawnGreen,Color.LemonChiffon,Color.LightBlue,Color.LightCoral,Color.LightCyan,
+         *  Color.LightGoldenrodYellow,Color.LightGray,Color.LightGreen,Color.LightPink,Color.LightSalmon,Color.LightSeaGreen,
+         *  Color.LightSkyBlue,Color.LightSlateGray,Color.LightSteelBlue,Color.LightYellow,Color.Lime,Color.LimeGreen,Color.Linen,
+         *  Color.Magenta,Color.Maroon,Color.MediumAquamarine,Color.MediumBlue,Color.MediumOrchid,Color.MediumPurple,
+         *  Color.MediumSeaGreen,Color.MediumSlateBlue,Color.MediumSpringGreen,Color.MediumTurquoise,Color.MediumVioletRed,
+         *  Color.MidnightBlue,Color.MintCream,Color.MistyRose,Color.Moccasin,Color.NavajoWhite,Color.Navy,Color.OldLace,Color.Olive,
+         *  Color.OliveDrab,Color.Orange,Color.OrangeRed,Color.Orchid,Color.PaleGoldenrod,Color.PaleGreen,Color.PaleTurquoise,
+         *  Color.PaleVioletRed,Color.PapayaWhip,Color.PeachPuff,Color.Peru,Color.Pink,Color.Plum,Color.PowderBlue,Color.Purple,
+         *  Color.Red,Color.RosyBrown,Color.RoyalBlue,Color.SaddleBrown,Color.Salmon,Color.SandyBrown,Color.SeaGreen,Color.SeaShell,
+         *  Color.Sienna,Color.Silver,Color.SkyBlue,Color.SlateBlue,Color.SlateGray,Color.Snow,Color.SpringGreen,Color.SteelBlue,Color.Tan,
+         *  Color.Teal,Color.Thistle,Color.Tomato,Color.Transparent,Color.Turquoise,Color.Violet,Color.Wheat,Color.White,Color.WhiteSmoke,
+         *  Color.Yellow,Color.YellowGreen,
+         */
+
         //  ****************************************************************************************************************************************
         //  Config
         //  ****************************************************************************************************************************************
+        // Tag the script reacts to - write it to the custom data of your screen/cockpit
+        const string lcdtag = "ShowStats";
 
-        const string lcdtag = "ShowStats";       // Tag the script reacts to - write it to the custom data of your screen/cockpit
-        const string endtag = "EndStats";          // Tag to end the command list (optional)
-        const string def_tag = "FSD options:";    // Tag to switch the default options in the CustomData of the programming block
-        const string FpM_tag = "framerate=";       // Tag to set the frame rate in the CustomData of the programming block
-        const string LpM_tag = "layoutrate=";       // Tag to set the layout change rate in the CustomData of the programming block
-        const string sequ_tag = "sequence";         // Tag define the screen layout sequence in the CustomData of the programming block
-        const string fast_tag = "fastmode";          // Tag to activate the fastmode in the CustomData of the programming block
-        const string panel_tag = "Panel ";               // Tag to switch the default options in the CustomData of the programming block
-        const string nostatustag = "NoStatus";          // Tag to not to display FSD status on the PB
-        const string gfxStart = "gfxStart";             //Tag to indicate the start of a graphic sprite
-        const string gfxEnd = "gfxEnd";              //Tag to indicate the end of a graphic sprite
-        const string widebartag = "WideBar";            // Tag to display a large chargebar instead of each block individually
-        const string smallbartag = "SmallBar";           // Tag to display a small chargebar instead of each block individually
-        const string singleicontag = "SingleIcon";        // Tag to display only a single icon instead of each block individually
-        const string noicontag = "noIcons";            //Tag to display only the headlines without any graphics
-        const string gaptag = "Gap";                   // Tag to display a gap between two blocks
-        const string positiontag = "Position";            // Tag to position the next blocks
-        const string texttag = "Text:";                  //Tag to display a custom text
-        const string nosubgridLCDtag = "nosubgridLCDs"; // Tag to exclude subgrid LCDs
-        const string verbatimtag = "verbatim";            // Tag to require exact Name match
+        // Tag to end the command list (optional)
+        const string endtag = "EndStats";
 
-        string[] PaintTag = {
-  "IconColor",       // Tag to repaint the icon
-  "TextColor",       // Tag to repaint the texts
-  "PercentColor", // Tag to repaint the percent number
-  "FrameColor",   // Tag to repaint the frame
-  "BarColor"         // Tag to repaint the fill level bar
-};
+        // Tag to display either power or inventory if a block has both (in case of battery it's load percentage or input/output)
+        const string optionaltag = "optional";
 
-        string[] aligntag = {
-  "left",      // Tag to display text left aligned
-  "center", // Tag to display text center aligned
-  "right"     // Tag to display text right aligned
-};
+        // Tag to display the blocks without headline
+        const string noheadlinetag = "noheadline";
 
-        string[] opt_tag = {
-  "optional",       // Tag to display either power or inventory if a block has both (in case of battery it's load percentage or input/output)
-  "addinfo",        // Tag to display additional informations
-  "addsize",       // Tag to display size informations
-  "health",          // Tag to display additional healthbar
-  "noheadline",  // Tag to display the blocks without headline
-  "nosubgrids",  // Tag to exclude subgrids
-  "nogroups",     //] Tag to skip groups in the detection
-  "nolinebreak", // Tag to prevent linebreaks
-  "noscrolling",  // Tag to prevent scrolling
-  "noNames"      // Tag to display only the headlines without the names
-};
+        //Tag to exclude subgrids
+        const string nosubgridtag = "nosubgrids";
 
-        // The Separators. Used to indicate where the option keyword part begins
-        char[] seperators = { '\n', ',', ':' };
+        //Tag to exclude subgrid LCDs
+        const string nosubgridLCDtag = "nosubgridLCDs";
 
-        int FpM = 60; //How often the displays will be updated (In frames per minute)
-        int LpM = 12;  //How often the display layouts switch  (In changes per minute)
+        //Tag to require exact Name match
+        const string verbatimtag = "verbatim";
 
-        // The Default COLORS. Any RGB-Color could be used from Black new Color(0, 0, 0) to White new Color(255, 255, 255)
-        Color frameColorIsNotThere = new Color(30, 30, 30); //color if block is not there
-        Color frameColorIsUnfunctional = Color.DarkRed;       //color if block is not funktional
-        Color frameColorIsFunctional = new Color(0, 70, 70);        //color if block is funktional but not working
-        Color frameColorIsWorking = Color.Cyan;          //color if block is working
-        Color frameColorWideBar = Color.Gray;      //color wide bar
-        Color headlineColor = Color.White;      //headline color
-        Color pictogramColor = Color.White;      //symols on single blocks
-        Color optioncolor = Color.Silver;      //optional information on single blocks
-        Color percentDisplayColor = Color.White;      //fillstate percentvalue on single blocks
+        //Tag to skip groups in the detection
+        const string nogrouptag = "nogroups";
+
+        // Tag to display a large chargebar instead of each block individually
+        const string widebartag = "WideBar";
+
+        // Tag to display a small chargebar instead of each block individually
+        const string smallbartag = "SmallBar";
+
+        // Tag to display a gap between two blocks
+        const string gaptag = "Gap";
+
+        // Tag to position the next blocks
+        const string positiontag = "Position";
+
+        // Tag to prevent linebreaks
+        const string nolinebreaktag = "nolinebreak";
+
+        // Tag to display a custom text
+        const string texttag = "Text:";
+
+        // Tag to display text left aligned
+        const string lefttag = "left";
+
+        // Tag to display text center aligned
+        const string centertag = "center";
+
+        // Tag to display text right aligned
+        const string righttag = "right";
+
+        // no scrolling
+        const string noscrolltag = "noscrolling";
+
+        //Tag to display only the headlines without any graphics
+        const string noicontag = "noIcons";
+
+        //Tag to display only the headlines without the names
+        const string nonametag = "noNames";
+
+        //Tag to indicate the start of a graphic sprite
+        const string gfxStart = "gfxStart";
+
+        //Tag to indicate the end of a graphic sprite
+        const string gfxEnd = "gfxEnd";
+
+        // How often the script is updating
+        const int scriptUpdatesPerMinute = 60;
+
+        // The fancy stuff - color section
+        // Any RGB-Color could be used from Black new Color(0, 0, 0) to White new Color(255, 255, 255)
+
+        Color frameColorFunctional = Color.Cyan;          //color if block is not damaged
+        Color frameColorNotFunctional = Color.Red;      //color if block is damaged
+        Color frameColorWideBar = Color.White;           //color wide bar
+        Color headlineColor = Color.White;                    //headline for single blocks
+        Color headlineColorWideBar = Color.White;      //headline for wide bar
+        Color pictogramColor = Color.White;                  //symols on single blocks
+        Color percentDisplayColor = Color.White;         //fillstate percentvalue on single blocks
+        Color ChargeColorLoaded = Color.Lime;            //color of chargebar 100 to 91% - inverted on cargo with ChargeColorEmpty
+        Color ChargeColorNormal = Color.Cyan;            //color of chargebar 90 to 26%
+        Color ChargeColorEmpty = Color.Red;               //color of chargebar 25 to 0% - inverted on cargo with ChargeColorLoaded
 
         //  ****************************************************************************************************************************************
         //  Config  End - Do not change anything below
         //  ****************************************************************************************************************************************
-        int execCounter1 = 0, execCounter2 = 0, bsize, rotatecount = 0, containertype, Layout = 0, LayoutCount = 0, LayoutIndex = 0, TpM = 60, screenIndex, headlineIndex, placehlds, fillLevelLoopcount, chargeBarOffset, sumBlock;
-        int[] Layouts;
+
+        int execCounter = 1, containertype, screenIndex, headlineIndex, placehlds, fillLevelLoopcount;
         int[,] scrollpositions = new int[50, 20];
-        string[] sArgs, lines, sections;
-        string argument, pattern, icon, drawpercent, optionchoice, Displayname, oldCustomData = "", eShieldInput = "", added_txt = "", temp_txt, iconAssembler, iconBlock, iconBullet, iconCargo, iconCollector, iconConnector, iconCockpit, iconDoor, iconDrill, iconEjector, iconEngine, iconGrinder, iconIce, iconJumpdrive, iconPara, iconProjector, iconReactor, iconRefinery, iconRocket, iconShield, iconSolar, iconSorter, iconThruster, iconVent, iconWelder, iconWindmill, patternAssembler, patternBattery, patternCargo, patternConnector, patternGasgen, patternJumpdrive, patternNone, patternProjector, patternReactor, patternRefinery, patternShield, patternSmallBar, patternSolar, patternTank, patternThruster, patternTool, patternTurret, patternVent, patternWideBar, patternWindmill, Background, StartTag, StartSep = "[ ", SepStart = "[ ", StopSep = " ]", SepStop = " ]";
+        string[] sArgs;
+        string argument, pattern, chargeBar, icon, drawpercent, Displayname, eShieldInput = "", added_txt = "", patternBattery, patternCargo, patternTank, patternConnector, patternTool, patternJumpdrive, patternGasgen, patternShield, patternTurret, patternThruster, patternReactor, patternSolar, patternWindmill, patternNone, patternWideBar, patternSmallBar, patternRefinery, patternAssembler, patternProjector, iconProjector, iconIce, iconReactor, iconWindmill, iconSolar, iconThruster, iconCollector, iconEjector, iconCargo, iconConnector, iconDrill, iconWelder, iconGrinder, iconJumpdrive, iconShield, iconBullet, iconRocket, iconRefinery, iconAssembler, chargebarSC, chargebarWide, chargebarSmall, Background, StartSep = "[ ", SepStart = "[ ", StopSep = " ]", SepStop = " ]";
         StringBuilder gfxSprite = new StringBuilder();
-        bool[] opt_def = new bool[10], opt_chc = new bool[10], paints = new bool[5];
-        bool get_sprite, invertColor, verbatim, verbatimdefault, nosubgridLCDs, nostatus;
-        TextAlignment textpos = L_align, textposdefault = L_align;
-        Color integrityLevelColor;
-        Color[] Colors = new Color[6];
-        float[] sumBat = new float[3], sumJdrives = new float[3], sumCargo = new float[3], sumCockpit = new float[3], sumPara = new float[3], sumSorter = new float[3], sumHydro = new float[3], sumOxy = new float[3], sumDoor = new float[2], sumVent = new float[2], sumCollectors = new float[3], sumConnectors = new float[3], sumEjectors = new float[3], sumDrills = new float[3], sumGrinder = new float[3], sumWelder = new float[3], sumGasgen = new float[3], sumShield = new float[3], sumGatling = new float[3], sumMissileTurret = new float[3], sumGatlingTurret = new float[3], sumMissileLauncher = new float[3], sumThrust = new float[3], sumReactor = new float[3], sumSolar = new float[3], sumWindmill = new float[3], sumO2Gen = new float[3], sumRefinery = new float[3], sumAssembler = new float[3], sumProjector = new float[3], sumEShield = new float[2], sumAll = new float[2];
+        bool get_sprite, invertColor, optionalView, noheadline, noname, nolinebreak, noscrolling, verbatim, nosubgrids, nogroups, optionalViewDefault, noheadlineDefault, nonameDefault, nolinebreakDefault, noscrollingDefault, verbatimdefault, nosubgridDefault, nogroupsDefault, nosubgridLCDs;
+        TextAlignment textpos = TextAlignment.LEFT, textposdefault = TextAlignment.LEFT;
+        Color fillLevelColor = new Color(), frameColor = new Color();
+        //Arrays for sumXY[0](blockcount),sumXY[1](percent), sumXY[2](loadvalue)
+        float[] sumBat = new float[3], sumJdrives = new float[3], sumCargo = new float[3], sumHydro = new float[3], sumOxy = new float[3], sumCollectors = new float[3], sumConnectors = new float[3], sumEjectors = new float[3], sumDrills = new float[3], sumGrinder = new float[3], sumWelder = new float[3], sumGasgen = new float[3], sumShield = new float[3], sumGatling = new float[3], sumMissileTurret = new float[3], sumGatlingTurret = new float[3], sumMissileLauncher = new float[3], sumThrust = new float[3], sumReactor = new float[3], sumSolar = new float[3], sumWindmill = new float[3], sumO2Gen = new float[3], sumRefinery = new float[3], sumAssembler = new float[3], sumProjector = new float[3], sumEShield = new float[2], sumAll = new float[2];
         HashSet<IMyCubeGrid> ignoredGrids = new HashSet<IMyCubeGrid>();
         List<IMyTerminalBlock> surfaceProviders = new List<IMyTerminalBlock>(), Group = new List<IMyTerminalBlock>(), subgroup = new List<IMyTerminalBlock>();
         IMyTextSurface surface;
         RectangleF viewport;
-        UpdateFrequency speed = UpdateFrequency.Update100;
         MySpriteDrawFrame frame = new MySpriteDrawFrame();
-        Vector2 chargeBarSize, chargeBarInitialOffset, LineStartpos, pos, tempvector;
+        Vector2 chargeBarInitialOffset, chargeBarOffset, LineStartpos, pos;
 
+        public class GasGen
+        {
+            public static float MaxVolume(IMyTerminalBlock block)
+            {
+                float val;
+                float.TryParse(getBetween(block.DetailedInfo, "L/", "L)"), out val);
+                return val;
+            }
+            public static float CurrentVolume(IMyTerminalBlock block)
+            {
+                float val;
+                float.TryParse(getBetween(block.DetailedInfo, " (", "L/"), out val);
+                return val;
+            }
+        }
         public class EnergyShield
         {
             public static float CurrentHitpoints(IMyTerminalBlock block)
@@ -133,75 +290,39 @@ namespace ScriptFSD
                 return getBetween(block.DetailedInfo, "\nRequired Input: ", "\n");
             }
         }
-
         Program()
         {
             GeneratePatterns();
             if (!Me.CustomName.EndsWith("[FSD]")) { Me.CustomName += " [FSD]"; }
-            Runtime.UpdateFrequency = speed;
+            Runtime.UpdateFrequency = UpdateFrequency.Update100;
         }
         void Save() { }
-
         void Main(string preargument, UpdateType updateType)
         {
-            if (Storage == "offline" && preargument == "") { argument = "shutdown"; } else { argument = preargument.ToLower(); }
-            if (FpM < 1) { FpM = 1; }
-            execCounter1++;
-            if (execCounter1 >= TpM / FpM) { execCounter1 = 0; }
-            switch (argument)
-            {
-                case "layout+":
-                    layoutswitch(+1);
-                    break;
-                case "layout-":
-                    layoutswitch(-1);
-                    break;
-                default:
-                    if ((LayoutCount > 1) && (LpM > 0))
-                    {
-                        execCounter2++;
-                        if (execCounter2 >= TpM / LpM) { layoutswitch(+1); }
-                    }
-                    break;
-            }
-            if ((argument == "") && (execCounter1 != 0)) { return; }
+            if (Storage == "offline" && preargument == "") { argument = "shutdown"; }
+            else { argument = preargument; }
+            if (execCounter <= 60 / scriptUpdatesPerMinute) { execCounter = 1; } else { execCounter++; return; }
+            argument = argument.ToLower();
             int surfaceIndex;
             screenIndex = 0;
-            temp_txt = "";
-            if ((oldCustomData != Me.CustomData) && (Me.CustomData.Contains(def_tag)))
+            string temp_txt = "";
+            if (Me.CustomData.Contains("FSD options:"))
             {
-                ClearArray(opt_chc);
-                LayoutCount = 0;
-                temp_txt = getBetween((Me.CustomData + "\n"), def_tag, "\n").ToLower() + " ";
-                nosubgridLCDs = temp_txt.Contains(nosubgridLCDtag.ToLower());
-                verbatimdefault = temp_txt.Contains(verbatimtag.ToLower());
-                opt_def = wordparse(opt_tag, opt_chc, temp_txt);
-                nostatus = temp_txt.Contains(nostatustag.ToLower()) || Me.CustomData.Contains(lcdtag);
-                textposdefault = get_align(temp_txt, L_align);
-                if (temp_txt.Contains(FpM_tag.ToLower())) { int.TryParse(getBetween(temp_txt, FpM_tag, " "), out FpM); }
-                if (temp_txt.Contains(LpM_tag.ToLower())) { int.TryParse(getBetween(temp_txt, LpM_tag, " "), out LpM); }
-                if (temp_txt.Contains(fast_tag.ToLower()))
-                {
-                    TpM = 600;
-                    speed = UpdateFrequency.Update10;
-                }
-                else
-                {
-                    TpM = 60;
-                    speed = UpdateFrequency.Update100;
-                }
-                if (temp_txt.Contains(sequ_tag + "("))
-                {
-                    lines = getBetween(temp_txt, sequ_tag + "(", ")").Split(new[] { ' ', ',', '.', ':', '/' }, StringSplitOptions.RemoveEmptyEntries);
-                    Layouts = new int[lines.Length];
-                    for (int i = 0; i < lines.Length; i++)
-                    {
-                        if (int.TryParse(lines[i], out Layouts[LayoutCount])) { LayoutCount++; };
-                    }
-                }
-                Runtime.UpdateFrequency = speed;
-                oldCustomData = Me.CustomData;
+                temp_txt = getBetween((Me.CustomData + "\n"), "FSD options:", "\n").ToLower();
             }
+            optionalViewDefault = temp_txt.Contains(optionaltag.ToLower());
+            noheadlineDefault = temp_txt.Contains(noheadlinetag.ToLower());
+            nonameDefault = temp_txt.Contains(nonametag.ToLower());
+            nolinebreakDefault = temp_txt.Contains(nolinebreaktag.ToLower());
+            noscrollingDefault = temp_txt.Contains(noscrolltag.ToLower());
+            verbatimdefault = temp_txt.Contains(verbatimtag.ToLower());
+            nosubgridDefault = temp_txt.Contains(nosubgridtag.ToLower());
+            nogroupsDefault = temp_txt.Contains(nogrouptag.ToLower());
+            nosubgridLCDs = temp_txt.Contains(nosubgridLCDtag.ToLower());
+            if (temp_txt.Contains(righttag.ToLower())) { textposdefault = TextAlignment.RIGHT; }
+            else if (temp_txt.Contains(centertag.ToLower())) { textposdefault = TextAlignment.CENTER; }
+            else { textposdefault = TextAlignment.LEFT; }
+
             if (nosubgridLCDs)
             {
                 ignoredGrids.Clear();
@@ -216,105 +337,65 @@ namespace ScriptFSD
             {
                 bool skipBlock = false;
                 foreach (var grid in ignoredGrids) { if (block.CubeGrid == grid) { skipBlock = true; } }
-                if (skipBlock) { break; }
-                var provider = block as IMyTextSurfaceProvider;
-                Displayname = block.CustomName;
-                if (provider.SurfaceCount < 1)
+                if (!skipBlock)
                 {
-                    Echo("         << F.S.D. Warning >>");
-                    Echo("The CustomData field of the block:");
-                    Echo('"' + Displayname + '"');
-                    Echo("contains the trigger word:");
-                    Echo('"' + lcdtag + '"');
-                    Echo("but doesn't provide any textpanels");
-                    Echo("");
-                    continue;
-                }
-                StartTag = lcdtag + " " + Layout;
-                if (!("\n" + block.CustomData).Contains("\n" + StartTag)) { StartTag = lcdtag; }
-                temp_txt = block.CustomData.Substring(block.CustomData.IndexOf(StartTag)).Trim();
-                if (temp_txt.IndexOfAny(seperators) < 0) { break; }
-                while (temp_txt.StartsWith(lcdtag)) { temp_txt = temp_txt.Substring(temp_txt.IndexOfAny(seperators)).Trim(); }
-                if (temp_txt.Contains(endtag)) { temp_txt = temp_txt.Remove(temp_txt.IndexOf(endtag)); }
-                sections = ("\n" + temp_txt).Split(new[] { panel_tag, panel_tag.ToLower(), panel_tag.ToUpper() }, StringSplitOptions.None).Where(x => !string.IsNullOrEmpty(x)).Select(s => s.Trim()).ToArray();
-                for (int i = 0; i < sections.Length; i++)
-                {
-                    lines = sections[i].Split('\n').Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                    if (lines.Length == 0) { continue; }
-                    if ((int.TryParse(lines.First(), out surfaceIndex)) && (surfaceIndex < provider.SurfaceCount))
+                    var provider = block as IMyTextSurfaceProvider;
+                    Displayname = block.CustomName; // for Error reporting
+                    temp_txt = block.CustomData.Substring(block.CustomData.IndexOf(lcdtag) + lcdtag.Length).Trim();
+                    if (temp_txt.Contains(endtag)) { temp_txt = temp_txt.Remove(temp_txt.IndexOf(endtag)); }
+                    string[] sections = ("\n" + temp_txt).Split(new[] { "\nPanel ", "\npanel ", "\nPANEL " }, StringSplitOptions.None).Where(x => !string.IsNullOrEmpty(x)).Select(s => s.Trim()).ToArray();
+                    for (int i = 0; i < sections.Length; i++)
                     {
-                        sArgs = lines.Skip(1).ToArray();
+                        string[] lines = sections[i].Split('\n').Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                        if (lines.Length > 0 && int.TryParse(lines.First(), out surfaceIndex))
+                        {       //get surface index
+                            if (surfaceIndex < provider.SurfaceCount)
+                            {     //surface exists?
+                                surface = provider.GetSurface(surfaceIndex);
+                                sArgs = lines.Skip(1).ToArray();                      //get what to show on screen
+                            }
+                        }
+                        else
+                        {  //no surface index found
+                            surface = provider.GetSurface(0);
+                            sArgs = lines;                      //get what to show on screen
+                        }
+                        DrawScreen(surface, argument);
+                        screenIndex++;
                     }
-                    else
-                    {
-                        surfaceIndex = 0;
-                        sArgs = lines;
-                    }
-                    surface = provider.GetSurface(surfaceIndex);
-                    DrawScreen(surface, argument);
-                    screenIndex++;
                 }
             }
-            added_txt = "";
-            rotatecount++;
-            rotatecount %= 4;
             switch (argument)
             {
-                case "version":
-                    Echo("Version: " + ver);
-                    break;
                 case "shutdown":
                     Storage = "offline";
                     Runtime.UpdateFrequency = UpdateFrequency.None;
-                    added_txt = "             << Notice >>\nThis F.S.D. entity is shut down.\nRun this programming block\nwith the argument " + '"' + "powerup" + '"' + "\nto restart it again.";
+                    Echo("             << Notice >>");
+                    Echo("This F.S.D. entity is shut down.");
+                    Echo("Run this programming block");
+                    Echo("with the argument " + '"' + "powerup" + '"');
+                    Echo("to restart it again.");
+                    execCounter = 0;
                     break;
                 case "powerup":
                     Storage = "online";
-                    Runtime.UpdateFrequency = speed;
-                    added_txt = "FSD is booting";
+                    Runtime.UpdateFrequency = UpdateFrequency.Update100;
                     Echo(" ");
+                    execCounter = 0;
                     break;
                 case "refresh":
-                    Runtime.UpdateFrequency = speed;
-                    added_txt = "FSD is refreshing the displays";
+                    Runtime.UpdateFrequency = UpdateFrequency.Update100;
+                    Echo("refreshing");
+                    execCounter = 0;
                     break;
                 case "":
-                    added_txt = "   << F.S.D. is active >>\n" + "|/-\u005C".Substring(rotatecount, 1) + "\nThis programming block is\nhandling " + plSing("LCD Panel", screenIndex) + "\nat the moment.";
+                    Echo("   << F.S.D. is active >>");
+                    Echo("This programming block is");
+                    Echo("handling " + plSing("LCD Panel", screenIndex) + " at the");
+                    Echo("moment.");
                     break;
-                default:
-                    if (argument.StartsWith(LpM_tag))
-                    {
-                        LpM = NumParse(argument, LpM_tag);
-                    }
-                    else if (argument.StartsWith(FpM_tag))
-                    {
-                        FpM = NumParse(argument, FpM_tag);
-                    }
-                    else if (argument.StartsWith("layout="))
-                    {
-                        Layout = NumParse(argument, "layout=");
-                    }
-                    break;
-            }
-            Echo(added_txt);
-            if (!nostatus)
-            {
-                IMyTextSurface surface = Me.GetSurface(0);
-                frame = surface.DrawFrame();
-                viewport = new RectangleF((surface.TextureSize - surface.SurfaceSize) / 2f, surface.SurfaceSize);
-                PrepareTextSurface(surface);
-                if (Me.BlockDefinition.SubtypeName.StartsWith("S"))
-                {
-                    AddTextSprite(frame, viewport.Center + new Vector2(0, -50), added_txt.Trim(), "DEBUG", 0.7f, Color.White, C_align);
-                }
-                else
-                {
-                    AddTextSprite(frame, viewport.Center + new Vector2(0, -90), added_txt.Trim(), "DEBUG", 1.3f, Color.White, C_align);
-                }
-                frame.Dispose();
             }
         }
-
         void DetectIgnoredGrids()
         {
             List<IMyProgrammableBlock> pbs = new List<IMyProgrammableBlock>();
@@ -322,11 +403,10 @@ namespace ScriptFSD
             GridTerminalSystem.GetBlocksOfType<IMyProgrammableBlock>(pbs, x => x.CustomName.Contains("[FSD]") && !(x.CubeGrid == Me.CubeGrid));
             foreach (var pb in pbs) { ignoredGrids.Add(pb.CubeGrid); }
         }
-
         void DrawScreen(IMyTextSurface surface, string argument)
         {
-            viewport = new RectangleF((surface.TextureSize - surface.SurfaceSize) / 2f, surface.SurfaceSize);
-            pos = LineStartpos = viewport.Position + new Vector2(7, 0);
+            viewport = new RectangleF((surface.TextureSize - surface.SurfaceSize) / 2f, surface.SurfaceSize);   //draw area
+            pos = LineStartpos = viewport.Position + new Vector2(7, 0);  //draw starting positon for each screen
             frame = surface.DrawFrame();
             string[] groupAndOptions;
             string c_arg;
@@ -336,45 +416,43 @@ namespace ScriptFSD
             int optionpos = 0;
             int texttagpos = 0;
             headlineIndex = 0;
+            //Set up draw surface
             PrepareTextSurface(surface);
             if (Storage == "offline" || argument == "shutdown" || argument == "refresh")
             {
-                AddTextSprite(frame, pos, " ", "DEBUG", 1f, Color.Black, L_align);
+                AddTextSprite(frame, pos, " ", "DEBUG", 1f, Color.Black, TextAlignment.LEFT);
             }
             else
             {
+                //AddTextureSprite(frame, background, viewport.Center, viewport.Size);  //Add Background?
                 get_sprite = false;
                 gfxSprite.Clear();
                 foreach (var arg in sArgs)
-                {
+                {// get what to draw on a specific screen
                     if (get_sprite)
                     {
                         if (arg.ToLower().TrimStart(new[] { ':', ',' }) == gfxEnd.ToLower())
                         {
-                            AddTextSprite(frame, pos, gfxSprite.ToString(), "Monospace", gfx_res, Color.White, L_align);
+                            AddTextSprite(frame, pos, gfxSprite.ToString(), "Monospace", gfx_res, Color.White, TextAlignment.LEFT);
                             get_sprite = false;
                             gfxSprite.Clear();
                         }
                         else
                         {
-                            gfxSprite.AppendLine(arg);
+                            gfxSprite.AppendLine(arg.Trim());
                         }
                         continue;
                     }
-                    LineStartpos.X = viewport.X + 7;
+                    LineStartpos.X = viewport.X + 7;   //reset x after used positiontag
                     optionpos = arg.IndexOfAny(new char[] { ',', ':' });
-                    containertype = SingleBlock;
-                    for (int i = 0; i < paints.Length; i++) { paints[i] = false; }
-                    Colors[ico] = pictogramColor;
-                    Colors[txt] = headlineColor;
-                    Colors[per] = percentDisplayColor;
-                    Colors[opt] = optioncolor;
+                    textpos = textposdefault;
+                    containertype = SingleContainer;
                     if (optionpos >= 0)
                     {
-                        c_arg = arg.ToLower().Substring(optionpos + 1);
+                        c_arg = arg.ToLower().Substring(optionpos + 1); // separating the options
                         texttagpos = c_arg.IndexOf(texttag.ToLower());
                         if (texttagpos >= 0)
-                        {
+                        { // looking for texttag
                             added_txt = arg.Substring(texttagpos + texttag.Length + optionpos + 1);
                             c_arg = c_arg.Remove(texttagpos);
                         }
@@ -384,6 +462,7 @@ namespace ScriptFSD
                         }
                         if (c_arg.StartsWith(gfxStart.ToLower()))
                         {
+                            Vector2 tempvector;
                             if (getVector(c_arg, gfxStart, out tempvector, out gfx_res))
                             {
                                 pos = LineStartpos = tempvector + viewport.Position;
@@ -393,68 +472,61 @@ namespace ScriptFSD
                             }
                         }
                         if (c_arg.Contains(positiontag.ToLower()))
-                        {
+                        { // looking for positiontag
+                            Vector2 tempvector;
                             if (getVector(c_arg, positiontag, out tempvector, out gfx_res)) { pos = LineStartpos = tempvector + viewport.Position; lastDraw = Nothing; }
                         }
-                        textpos = get_align(c_arg, textposdefault);
-                        opt_chc = wordparse(opt_tag, opt_def, c_arg);
-                        for (int i = 0; i < paints.Length; i++)
-                        {
-                            if (c_arg.Contains(PaintTag[i].ToLower())) { paints[i] = getcolors(c_arg, PaintTag[i], out Colors[i]); }
-                        }
-                        if (!paints[ico]) { Colors[ico] = pictogramColor; }
-                        if (!paints[txt]) { Colors[txt] = headlineColor; }
-                        if (paints[per])
-                        {
-                            Colors[opt] = Colors[per];
-                        }
-                        else
-                        {
-                            Colors[per] = percentDisplayColor;
-                            Colors[opt] = optioncolor;
-                        }
+                        if (c_arg.Contains(righttag.ToLower())) { textpos = TextAlignment.RIGHT; }
+                        else if (c_arg.Contains(centertag.ToLower())) { textpos = TextAlignment.CENTER; }
+                        else if (c_arg.Contains(lefttag.ToLower())) { textpos = TextAlignment.LEFT; }
+                        optionalView = c_arg.Contains(optionaltag.ToLower()) ^ optionalViewDefault;
+                        noheadline = c_arg.Contains(noheadlinetag.ToLower()) ^ noheadlineDefault;
+                        noname = c_arg.Contains(nonametag.ToLower()) ^ nonameDefault;
+                        nolinebreak = c_arg.Contains(nolinebreaktag.ToLower()) ^ nolinebreakDefault;
+                        noscrolling = c_arg.Contains(noscrolltag.ToLower()) ^ noscrollingDefault;
+                        nosubgrids = c_arg.Contains(nosubgridtag.ToLower()) ^ nosubgridDefault;
+                        nogroups = c_arg.Contains(nogrouptag.ToLower()) ^ nogroupsDefault;
                         if (c_arg.Contains(widebartag.ToLower()))
-                        {
+                        { // looking for widebartag
                             if (viewport.Width < 500) { containertype = SmallBar; } else { containertype = WideBar; }
                         }
                         else if (c_arg.Contains(smallbartag.ToLower()))
-                        {
+                        { // looking for smallbartag
                             containertype = SmallBar;
                         }
-                        else if (c_arg.Contains(singleicontag.ToLower()))
-                        {
-                            containertype = SingleIcon;
-                        }
                         else if (c_arg.Contains(noicontag.ToLower()))
-                        {
+                        { // looking for smallbartag
                             containertype = Textline;
                         }
                         c_arg = arg.Substring(0, optionpos);
                     }
                     else
                     {
-                        opt_chc = opt_def;
+                        optionalView = optionalViewDefault;
+                        noheadline = noheadlineDefault;
+                        noname = nonameDefault;
+                        nolinebreak = nolinebreakDefault;
+                        noscrolling = noscrollingDefault;
+                        nosubgrids = nosubgridDefault;
                         added_txt = "";
                         c_arg = arg;
                     }
                     groupAndOptions = c_arg.Trim().Split(new char[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
                     if (continueDrawing)
                     {
-                        continueDrawing = CycleDrawBlocks(groupAndOptions, lastDraw);
+                        continueDrawing = CycleDrawBlocks(groupAndOptions, lastDraw);     //draw blocks or blockgroups
                         lastDraw = containertype;
                     }
                 }
             }
             frame.Dispose();
         }
-
         bool CycleDrawBlocks(string[] groupOrBlocknames, int lastDraw)
         {
             Vector2 posHeadline = new Vector2(0, 0);
             Vector2 posContainerGroup = posHeadline;
             StringBuilder headline = new StringBuilder();
             float percent = 0;
-            float integrity = 0;
             bool continueDrawing = true;
             ClearGroupArrays();
             Group.Clear();
@@ -466,48 +538,46 @@ namespace ScriptFSD
                 case SmallBar:
                     if (containertype != lastDraw || (pos.X + 256) >= viewport.Width) { LineStartpos.Y += 55; pos = LineStartpos; }
                     break;
-                case SingleIcon:
-                    if (containertype != lastDraw || (pos.X + 72) >= viewport.Width || !opt_chc[4]) { LineStartpos.Y += 95; pos = LineStartpos; }
-                    break;
-                case SingleBlock:
+                case SingleContainer:
                     LineStartpos.Y += 95; pos = LineStartpos;
                     break;
                 case Textline:
                     LineStartpos.Y += 23; pos = LineStartpos;
                     break;
             }
-            if ((containertype == SingleBlock || containertype == SingleIcon) && (!opt_chc[4] || added_txt != ""))
+            if (containertype == SingleContainer && (!noheadline || added_txt != ""))
             {
-                LineStartpos.Y += 23; pos = LineStartpos;
+                LineStartpos.Y += 23; pos = LineStartpos;  // leave room for drawing headline above containers
                 posContainerGroup = pos;
             }
             foreach (string entry in groupOrBlocknames)
             {
                 string name = entry.Trim();
                 placehlds = 0;
-                if (containertype == SingleBlock && name.EndsWith("#"))
+                if (containertype == SingleContainer && name.EndsWith("#"))
                 {
                     placehlds = name.Length - name.TrimEnd('#').Length;
                     name = name.TrimEnd('#');
                 }
                 verbatim = verbatimdefault || (name.StartsWith("" + '"') && name.EndsWith("" + '"'));
                 if (verbatim) { name = name.Trim('"'); }
-                var foundgroup = GridTerminalSystem.GetBlockGroupWithName(name);
-                if (foundgroup != null && !opt_chc[6])
+                var foundgroup = GridTerminalSystem.GetBlockGroupWithName(name);     //search either for blockgroup
+                if (foundgroup != null && !nogroups)
                 {
-                    if (groupOrBlocknames.Length == 1 && added_txt == "" && !opt_chc[9])
+                    if (groupOrBlocknames.Length == 1 && added_txt == "" && !noname)
                     {
                         headline.Append(foundgroup.Name + ": ");
                     }
-                    foundgroup.GetBlocks(Group, (x => x.CubeGrid == Me.CubeGrid || !opt_chc[5]));
+                    foundgroup.GetBlocks(Group, (x => x.CubeGrid == Me.CubeGrid || !nosubgrids));
                 }
                 else
                 {
                     Group.Clear();
                 }
+
                 if (Group.Count == 0)
-                {
-                    GridTerminalSystem.SearchBlocksOfName(name, Group, (x => x.CubeGrid == Me.CubeGrid || !opt_chc[5]));
+                {   //or for blocks with name
+                    GridTerminalSystem.SearchBlocksOfName(name, Group, (x => x.CubeGrid == Me.CubeGrid || !nosubgrids));
                 }
                 for (int i = 0; i < placehlds; i++) { Group.Add(Me); }
                 if (name.ToLower().Contains(gaptag.ToLower()))
@@ -530,23 +600,22 @@ namespace ScriptFSD
                 bool continuegroup = true;
                 int place_used = 0;
                 foreach (var block in Group)
-                {
+                {       //loop through Group
                     if (verbatim && block != Me && block.CustomName != name) { continue; }
-                    if (!GetBlockProperties(block, ref percent, ref integrity)) { continue; }
-                    percent = Math.Abs(percent);
+                    if (!GetBlockProperties(block, ref percent)) { continue; }
                     if (placehlds > 0 && place_used >= placehlds) { continue; }
-                    if (!continuegroup || containertype != SingleBlock) { continue; }
+                    if (!continuegroup || containertype != SingleContainer) { continue; }
                     if ((pos.X + 72) > viewport.Width)
-                    {
-                        if (!opt_chc[7])
+                    {   //test if item fits in line
+                        if (!nolinebreak)
                         {
                             if ((pos.Y + 170) > viewport.Bottom)
-                            {
+                            {   //test if item fits in next line
                                 continuegroup = false;
                             }
                             else
                             {
-                                LineStartpos.Y += 95;
+                                LineStartpos.Y += 95;   //linebreak
                                 pos = LineStartpos;
                             }
                         }
@@ -557,66 +626,51 @@ namespace ScriptFSD
                     }
                     if (continuegroup)
                     {
-                        if (pattern == patternNone)
-                        {
-                            fillLevelLoopcount = 0;
-                            if (block != Me) { integrityLevelColor = cvar(1 - (float)Math.Pow(TestForNaN(integrity), 3)); }
-                        }
-                        else
-                        {
-                            GetChargeStateValues(percent, SingleBlock, integrity);
-                        }
-                        DrawSingleContainer(pos, integrity);
-                        pos.X += 72;
+                        if (block != Me) { GetChargeStateValues(percent, SingleContainer); } else { fillLevelLoopcount = 0; drawpercent = "???"; }
+                        DrawSingleContainer(pos, frameColor);   //draw block
+                        pos.X += 72;   //position for next item in line
                         place_used++;
                     }
                 }
             }
-            if (sumAll[0] + sumBlock == 0 && added_txt != "")
+            if (sumAll[0] == 0 && added_txt != "")
             {
-                if (containertype == SingleBlock) { LineStartpos.Y -= 23; pos = LineStartpos; }
+                if (containertype == SingleContainer) { LineStartpos.Y -= 23; pos = LineStartpos; }
                 containertype = Textline;
             }
             else if (sumAll[0] > 0)
             {
-                percent = (int)Math.Round(sumAll[1] / sumAll[0], 0);
+                percent = (int)Math.Truncate(sumAll[1] / sumAll[0]);
             }
             switch (containertype)
             {
                 case WideBar:
                     GetChargeStateValues(percent, WideBar);
-                    posHeadline = pos + new Vector2(15, 14);
-                    DrawCargebarWide(pos);
+                    posHeadline = pos + new Vector2(15, 14);  //place headline inside wide bar
+                    DrawCargebarWide(pos, Color.White);
                     pos.X += 508;
-                    if (pos.Y > viewport.Height) { continueDrawing = false; }
+                    if ((pos.Y + 0) > viewport.Height) { continueDrawing = false; }  // end of screen
                     break;
                 case SmallBar:
                     GetChargeStateValues(percent, SmallBar);
-                    posHeadline = pos + new Vector2(15, 14);
-                    DrawCargebarWide(pos);
+                    posHeadline = pos + new Vector2(15, 14);  //place headline inside wide bar
+                    DrawCargebarWide(pos, Color.White);
                     pos.X += 256;
-                    if (pos.Y > viewport.Height) { continueDrawing = false; }
+                    if ((pos.Y + 0) > viewport.Height) { continueDrawing = false; }  // end of screen
                     break;
-                case SingleIcon:
-                    GetChargeStateValues(percent, SingleIcon);
-                    posHeadline = posContainerGroup + new Vector2(0, -23);
-                    DrawSingleContainer(pos, 0);
-                    pos.X += 72;
-                    if (pos.Y > viewport.Height) { continueDrawing = false; }
-                    break;
-                case SingleBlock:
-                    posHeadline = posContainerGroup + new Vector2(0, -23);
-                    if (pos.Y > viewport.Height) { continueDrawing = false; }
+                case SingleContainer:
+                    posHeadline = posContainerGroup + new Vector2(0, -23);  //place headline above containers
+                    if ((pos.Y) > viewport.Height) { continueDrawing = false; }  // end of screen
                     break;
                 case Textline:
                     posHeadline = LineStartpos;
-                    if ((pos.Y + 23) >= viewport.Height) { continueDrawing = false; }
+                    if ((pos.Y + 23) >= viewport.Height) { continueDrawing = false; }  // end of screen
                     break;
             }
             headline.Append(added_txt);
-            if (!opt_chc[4])
-            {
-                if (opt_chc[9])
+            if (!noheadline)
+            { //   build headline from collected arrays
+                if (noname)
                 {
                     StopSep = StartSep = "";
                 }
@@ -628,43 +682,24 @@ namespace ScriptFSD
                 if (sumBat[0] > 0)
                 {
                     headline.Append(hlstart("Battery", sumBat[0]));
-                    if (opt_chc[0]) { headline.Append("In " + TruncateUnit(sumBat[1], "watt") + "Out "); }
+                    if (optionalView) { headline.Append("In " + TruncateUnit(sumBat[1], "watt") + "Out "); }
                     else { headline.Append(f_percent(sumBat)); }
                     headline.Append(TruncateUnit(sumBat[2], "whr") + StopSep);
                 }
                 if (sumReactor[0] > 0)
                 {
                     headline.Append(hlstart("Reactor", sumReactor[0]));
-                    if (opt_chc[0]) { headline.Append("Output " + f_percent(sumReactor) + TruncateUnit(sumReactor[2], "watt") + StopSep); }
+                    if (optionalView) { headline.Append("Output " + Math.Truncate(sumReactor[1] / sumReactor[0]) + "% " + TruncateUnit(sumReactor[2], "watt") + StopSep); }
                     else { headline.Append(TruncateUnit(sumReactor[2], "kg") + "Uranium " + StopSep); }
                 }
                 if (sumGasgen[0] > 0)
                 {
                     headline.Append(hlstart("Hydrogen Engine", sumGasgen[0]));
-                    if (opt_chc[0]) { headline.Append("Output " + f_percent(sumGasgen) + TruncateUnit(sumGasgen[2], "watt") + StopSep); }
+                    if (optionalView) { headline.Append("Output " + f_percent(sumGasgen) + TruncateUnit(sumGasgen[2], "watt") + StopSep); }
                     else { headline.Append(f_percent(sumGasgen) + TruncateUnit(sumGasgen[2], "lit") + StopSep); }
                 }
-                if (sumRefinery[0] > 0)
-                {
-                    headline.Append(hlstart("Refinery", sumRefinery[0]));
-                    if (opt_chc[0]) { headline.Append("Ingots " + f_percent(sumRefinery) + TruncateUnit(sumRefinery[2], "c_l") + StopSep); } else { headline.Append("Ores " + f_percent(sumRefinery) + TruncateUnit(sumRefinery[2], "c_l") + StopSep); }
-                }
-                if (sumAssembler[0] > 0)
-                {
-                    headline.Append(hlstart("Assembler", sumAssembler[0]));
-                    if (opt_chc[0]) { headline.Append("Items Inventory " + f_percent(sumAssembler) + "Item Completion: " + Math.Round(sumAssembler[2] * 100 / sumAssembler[0], 0) + "% " + StopSep); }
-                    else { headline.Append("Ingot Inventory " + f_percent(sumAssembler) + "Production Queue: " + plSing(" Item", sumAssembler[2]) + StopSep); }
-                }
-                if (sumDoor[0] > 0)
-                {
-                    headline.Append(hlstart("Door", sumDoor[0]) + f_percent(sumDoor));
-                    if (opt_chc[0]) { headline.Append("open" + StopSep); } else { headline.Append("closed" + StopSep); }
-                }
                 if (sumJdrives[0] > 0) { headline.Append(hlstart("Jumpdrive", sumJdrives[0]) + f_percent(sumJdrives) + TruncateUnit(sumJdrives[2], "whr") + StopSep); }
-                if (sumCargo[0] > 0) { headline.Append(hlstart("Cargo", sumCargo[0]) + f_percent(sumCargo) + TruncateUnit(sumCargo[2], "c_l")); }
-                if (sumCockpit[0] > 0) { headline.Append(hlstart("Cockpit", sumCockpit[0]) + f_percent(sumCockpit) + TruncateUnit(sumCockpit[2], "c_l")); }
-                if (sumPara[0] > 0) { headline.Append(hlstart("Parachute Crate", sumPara[0]) + f_percent(sumPara) + TruncateUnit(sumPara[2], "c_l")); }
-                if (sumSorter[0] > 0) { headline.Append(hlstart("Sorter", sumSorter[0]) + f_percent(sumSorter) + TruncateUnit(sumSorter[2], "c_l")); }
+                if (sumCargo[0] > 0) { headline.Append(hlstart("Cargo", sumCargo[0]) + f_percent(sumCargo) + TruncateUnit(sumCargo[2], "c_l") + StopSep); }
                 if (sumCollectors[0] > 0) { headline.Append(hlstart("Collector", sumCollectors[0]) + f_percent(sumCollectors) + TruncateUnit(sumCollectors[2], "c_l") + StopSep); }
                 if (sumConnectors[0] > 0) { headline.Append(hlstart("Connector", sumConnectors[0]) + f_percent(sumConnectors) + TruncateUnit(sumConnectors[2], "c_l") + StopSep); }
                 if (sumEjectors[0] > 0) { headline.Append(hlstart("Ejector", sumEjectors[0]) + f_percent(sumEjectors) + TruncateUnit(sumEjectors[2], "c_l") + StopSep); }
@@ -674,57 +709,63 @@ namespace ScriptFSD
                 if (sumHydro[0] > 0) { headline.Append(hlstart("Hydrogen Tank", sumHydro[0]) + f_percent(sumHydro) + TruncateUnit(sumHydro[2], "lit") + StopSep); }
                 if (sumOxy[0] > 0) { headline.Append(hlstart("Oxygen Tank", sumOxy[0]) + f_percent(sumOxy) + TruncateUnit(sumOxy[2], "lit") + StopSep); }
                 if (sumEShield[0] > 0) { headline.Append(hlstart("Shield Generator", sumEShield[0]) + f_percent(sumEShield) + "Required Input: " + eShieldInput + " " + StopSep); }
-                if (sumShield[0] > 0) { headline.Append(hlstart("Shield Controller", sumShield[0]) + Math.Round(sumShield[1], 0) + "% Overheated: " + Math.Round(sumShield[2], 0) + "% " + StopSep); }
+                if (sumShield[0] > 0) { headline.Append(hlstart("Shield Controller", sumShield[0]) + Math.Truncate(sumShield[1]) + "% " + "Overheated: " + Math.Truncate(sumShield[2]) + "% " + StopSep); }
                 if (sumMissileTurret[0] > 0) { headline.Append(hlstart("Missile Turret", sumMissileTurret[0]) + f_percent(sumMissileTurret) + plSing(" Missile", sumMissileTurret[2]) + " " + StopSep); }
                 if (sumGatlingTurret[0] > 0) { headline.Append(hlstart("Gatling Turret", sumGatlingTurret[0]) + f_percent(sumGatlingTurret) + plSing(" Unit", sumGatlingTurret[2]) + " " + StopSep); }
                 if (sumMissileLauncher[0] > 0) { headline.Append(hlstart("Rocket Launcher", sumMissileLauncher[0]) + f_percent(sumMissileLauncher) + plSing(" Rocket", sumMissileLauncher[2]) + " " + StopSep); }
                 if (sumGatling[0] > 0) { headline.Append(hlstart("Gatling Gun", sumGatling[0]) + f_percent(sumGatling) + plSing(" Unit", sumGatling[2]) + " " + StopSep); }
-                if (sumThrust[0] > 0) { headline.Append(hlstart("Thruster", sumThrust[0]) + f_percent(sumThrust) + "Eff. " + Math.Round(sumThrust[2] * 100 / sumThrust[0], 0) + "% Override" + StopSep); }
+                if (sumThrust[0] > 0) { headline.Append(hlstart("Thruster", sumThrust[0]) + f_percent(sumThrust) + "Override: " + Math.Truncate(sumThrust[2] * 100 / sumThrust[0]) + "% " + StopSep); }
                 if (sumSolar[0] > 0) { headline.Append(hlstart("Solar Panel", sumSolar[0]) + "Output " + f_percent(sumSolar) + TruncateUnit(sumSolar[2], "watt") + StopSep); }
                 if (sumWindmill[0] > 0) { headline.Append(hlstart("Wind Turbine", sumWindmill[0]) + "Output " + f_percent(sumWindmill) + TruncateUnit(sumWindmill[2], "watt") + StopSep); }
                 if (sumO2Gen[0] > 0) { headline.Append(hlstart("O2H2 Generator", sumO2Gen[0]) + f_percent(sumO2Gen) + TruncateUnit(sumO2Gen[2], "c_l") + StopSep); }
+                if (sumRefinery[0] > 0)
+                {
+                    headline.Append(hlstart("Refinery", sumRefinery[0]));
+                    if (optionalView) { headline.Append("Ingots " + f_percent(sumRefinery) + TruncateUnit(sumRefinery[2], "c_l") + StopSep); } else { headline.Append("Ores " + f_percent(sumRefinery) + TruncateUnit(sumRefinery[2], "c_l") + StopSep); }
+                }
+                if (sumAssembler[0] > 0)
+                {
+                    headline.Append(hlstart("Assembler", sumAssembler[0]));
+                    if (optionalView) { headline.Append("Items Inventory " + f_percent(sumAssembler) + "Item Completion: " + Math.Truncate(sumAssembler[2] * 100 / sumAssembler[0]) + "% " + StopSep); }
+                    else { headline.Append("Ingot Inventory " + f_percent(sumAssembler) + "Production Queue: " + plSing(" Item", sumAssembler[2]) + StopSep); }
+                }
                 if (sumProjector[0] > 0) { headline.Append(hlstart("Projector", sumProjector[0]) + f_percent(sumProjector) + "Remaining: " + plSing(" Block", sumProjector[2]) + StopSep); }
-                if (sumVent[0] > 0) { headline.Append(hlstart("Air Vent", sumVent[0]) + f_percent(sumVent) + "Pressure" + StopSep); }
-                if (sumBlock > 0) { headline.Append(hlstart("unidentified Block", sumBlock) + StopSep); }
             }
-            DrawHeadline(posHeadline, headline);
+            DrawHeadline(posHeadline, headline);   //draw headline
             return continueDrawing;
         }
-
         void DrawHeadline(Vector2 drawposHeadline, StringBuilder headline)
         {
             string headline_short = "";
             int scrollindex = 0;
             if (screenIndex < 50 && headlineIndex < 20) { scrollindex = scrollpositions[screenIndex, headlineIndex]; }
-            if (opt_chc[8] || headline.Length + 16 < scrollindex) { scrollindex = 0; }
+            if (noscrolling || headline.Length + 16 < scrollindex) { scrollindex = 0; }
             switch (containertype)
             {
                 case WideBar:
                     if (trimmed_SB(scrollindex, headline, 440f, 1.3f, out headline_short)) { scrollindex++; }
-                    AddTextSprite(frame, shifttext(drawposHeadline, 470f, textpos), headline_short, "DEBUG", 1f, Colors[txt], textpos);
+                    AddTextSprite(frame, shifttext(drawposHeadline, 470f, textpos), headline_short, "DEBUG", 1.3f, headlineColorWideBar, textpos);
                     break;
                 case SmallBar:
                     if (trimmed_SB(scrollindex, headline, 190f, 0.8f, out headline_short)) { scrollindex++; }
-                    AddTextSprite(frame, shifttext(drawposHeadline, 190f, textpos), headline_short, "DEBUG", 0.8f, Colors[txt], textpos);
+                    AddTextSprite(frame, shifttext(drawposHeadline, 190f, textpos), headline_short, "DEBUG", 0.8f, headlineColorWideBar, textpos);
                     break;
-                case SingleIcon:
-                case SingleBlock:
+                case SingleContainer:
                     if (trimmed_SB(scrollindex, headline, (viewport.Width - 25 - drawposHeadline.X), 0.8f, out headline_short)) { scrollindex++; }
-                    AddTextSprite(frame, shifttext(drawposHeadline, (viewport.Width - drawposHeadline.X), textpos), headline_short, "DEBUG", 0.8f, Colors[txt], textpos);
+                    AddTextSprite(frame, shifttext(drawposHeadline, (viewport.Width - drawposHeadline.X), textpos), headline_short, "DEBUG", 0.8f, headlineColorWideBar, textpos);
                     break;
                 case Textline:
                     if (trimmed_SB(scrollindex, headline, (viewport.Width - 25 - drawposHeadline.X), 0.8f, out headline_short)) { scrollindex++; }
-                    AddTextSprite(frame, shifttext(drawposHeadline, (viewport.Width - drawposHeadline.X), textpos), headline_short, "DEBUG", 0.8f, Colors[txt], textpos);
+                    AddTextSprite(frame, shifttext(drawposHeadline, (viewport.Width - drawposHeadline.X), textpos), headline_short, "DEBUG", 0.8f, headlineColor, textpos);
                     break;
             }
             headline.Clear();
-            if (!opt_chc[8] && screenIndex < 50 && headlineIndex < 20)
+            if (!noscrolling)
             {
                 scrollpositions[screenIndex, headlineIndex] = scrollindex;
                 headlineIndex++;
             }
         }
-
         bool trimmed_SB(int scrollindex, StringBuilder headline_orig, float field_width, float font_size, out string cutted_str)
         {
             if (scrollindex > (2 * headline_orig.Length + 19) || (scrollindex == 0 && surface.MeasureStringInPixels(headline_orig, "Debug", font_size).X < field_width))
@@ -749,20 +790,17 @@ namespace ScriptFSD
                 return true;
             }
         }
-
         Vector2 shifttext(Vector2 org_pos, float width, TextAlignment alignpos)
         {
-            if (alignpos == R_align) { org_pos.X += width; }
-            else if (alignpos == C_align) { org_pos.X += (width / 2); }
+            if (alignpos == TextAlignment.RIGHT) { org_pos.X += width; }
+            else if (alignpos == TextAlignment.CENTER) { org_pos.X += (width / 2); }
             return org_pos;
         }
-
         string hlstart(string str, float number)
         {
-            if (opt_chc[9]) { return StartSep; }
+            if (noname) { return StartSep; }
             else { return StartSep + plSing(str, number) + ": "; }
         }
-
         string plSing(string str, float number)
         {
             if (number != 1)
@@ -772,7 +810,6 @@ namespace ScriptFSD
             }
             else { return number + " " + str; }
         }
-
         string TruncateUnit(float number, string unit)
         {
             string str = "";
@@ -783,7 +820,6 @@ namespace ScriptFSD
             if (unit == "kg") { str = calculateunits(number, "K ton", " ton", " Kg", " g", 107.10487f); }
             return str + "  ";
         }
-
         string calculateunits(float number, string sign1, string sign2, string sign3, string sign4, float width)
         {
             StringBuilder sb = new StringBuilder();
@@ -791,28 +827,23 @@ namespace ScriptFSD
             else if (number >= 1000) { sb.Append(Math.Round((number / 1000f), 2) + sign2); }
             else if (number >= 1) { sb.Append(Math.Round(number, 2) + sign3); }
             else { sb.Append(Math.Round((number * 1000f), 2) + sign4); }
-            float temp_f = ((width - surface.MeasureStringInPixels(sb, "Debug", 0.8f).X) / 4.981622f);
+            float temp_f = ((width - surface.MeasureStringInPixels(sb, "Debug", 0.8f).X) / 4.981622f); // + 0.5f;
             sb.Insert(0, "                     ".Substring(0, (int)temp_f));
             return sb.ToString();
         }
-
         string f_percent(float[] werte)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("{0:N0}% ", TestForNaN(werte[1] / werte[0]));
-            float temp_f = ((49.193516f - surface.MeasureStringInPixels(sb, "Debug", 0.8f).X) / 4.981622f);
+            sb.Append(Math.Round(werte[1] / werte[0], 0) + "% ");
+            float temp_f = ((49.193516f - surface.MeasureStringInPixels(sb, "Debug", 0.8f).X) / 4.981622f); // + 0.5f;
             sb.Insert(0, "                     ".Substring(0, (int)temp_f));
             return sb.ToString();
         }
-
-        bool GetBlockProperties(IMyTerminalBlock block, ref float percent, ref float integrity)
+        bool GetBlockProperties(IMyTerminalBlock block, ref float percent)
         {
             invertColor = false;
-            bool isValidBlock = true;
+            bool isValidBlock = false;
             string blocktype = "";
-            string subtype = "";
-            bsize = 0;
-            optionchoice = "";
             if (block.BlockDefinition.SubtypeName.Contains("DSControl"))
             {
                 sumShield[0]++; sumAll[0]++;
@@ -821,6 +852,7 @@ namespace ScriptFSD
                 float.TryParse(getBetween(block.CustomInfo, "[Over Heated]: ", "%"), out sumShield[2]);
                 icon = iconShield;
                 pattern = patternShield;
+                SetFrameColorAndValidBlock(block, ref isValidBlock);
             }
             else if (block.BlockDefinition.SubtypeName.Contains("ShieldGenerator"))
             {
@@ -831,159 +863,137 @@ namespace ScriptFSD
                 eShieldInput = EnergyShield.RequiredInput(block);
                 icon = iconShield;
                 pattern = patternShield;
+                SetFrameColorAndValidBlock(block, ref isValidBlock);
             }
             else if (block == Me)
             {
                 icon = "Cross";
                 pattern = patternNone;
-                optionchoice = "UNKNOWN";
-                drawpercent = "???";
+                frameColor = Color.Orange;
                 percent = 0;
+                isValidBlock = true;
             }
             else
             {
                 blocktype = block.ToString().Remove(block.ToString().IndexOf('{')).Trim();
-                subtype = block.BlockDefinition.SubtypeName;
             }
             switch (blocktype)
             {
                 case "MyBatteryBlock":
-                    bsize = get_size(subtype, 'B');
                     var bat = block as IMyBatteryBlock;
-                    if (opt_chc[0])
+                    sumBat[0]++;
+                    sumAll[0]++;
+                    percent = 100 / bat.MaxStoredPower * bat.CurrentStoredPower;
+                    sumAll[1] += percent;
+                    if (optionalView)
                     {
-                        optionchoice = "Load";
-                        percent = TestForNaN(100 / bat.MaxOutput * bat.CurrentOutput) - TestForNaN(100 / bat.MaxInput * bat.CurrentInput);
                         sumBat[1] += bat.CurrentInput;
                         sumBat[2] += bat.CurrentOutput;
                     }
                     else
                     {
-                        optionchoice = "Charge";
-                        percent = TestForNaN(100 / bat.MaxStoredPower * bat.CurrentStoredPower);
-                        sumAll[1] += percent;
                         sumBat[1] += percent;
                         sumBat[2] += bat.CurrentStoredPower;
                     }
-                    sumBat[0]++;
-                    sumAll[0]++;
                     icon = "IconEnergy";
                     pattern = patternBattery;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyReactor":
-                    bsize = get_size(subtype, 'A');
-                    if (opt_chc[0])
+                    if (optionalView)
                     {
-                        optionchoice = "Load";
                         invertColor = true;
                         PowerOutput2Arr(block, sumReactor, ref percent);
                     }
                     else
                     {
-                        optionchoice = "Fuel";
                         ItemCount2Arr(block, sumReactor, ref percent);
                     }
                     icon = iconReactor;
                     pattern = patternReactor;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyHydrogenEngine":
-                    bsize = get_size(subtype, 'T');
-                    if (opt_chc[0])
+                    if (optionalView)
                     {
-                        optionchoice = "Load";
-                        invertColor = true;
                         PowerOutput2Arr(block, sumGasgen, ref percent);
+                        icon = "IconEnergy";
                     }
                     else
                     {
-                        optionchoice = "Fuel";
-                        float MaxVol, CurVol;
-                        string temp_text = block.DetailedInfo;
-                        if (temp_text.Contains("л"))
-                        {
-                            float.TryParse(getBetween(temp_text, " л/", " л)"), out MaxVol);
-                            float.TryParse(getBetween(temp_text, " (", " л/"), out CurVol);
-                        }
-                        else
-                        {
-                            float.TryParse(getBetween(temp_text, "L/", "L)"), out MaxVol);
-                            float.TryParse(getBetween(temp_text, " (", "L/"), out CurVol);
-                        }
                         sumGasgen[0]++;
                         sumAll[0]++;
-                        percent = 100 / MaxVol * CurVol;
+                        percent = 100 / GasGen.MaxVolume(block) * GasGen.CurrentVolume(block);
                         sumGasgen[1] += percent;
                         sumAll[1] += percent;
-                        sumGasgen[2] += CurVol;
+                        sumGasgen[2] += GasGen.CurrentVolume(block);
+                        icon = "IconHydrogen";
                     }
-                    icon = iconEngine;
                     pattern = patternGasgen;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyCargoContainer":
-                    bsize = get_size(subtype, 'A');
-                    isValidBlock = CargoVolume2Arr(block, sumCargo, ref percent);
+                    CargoVolume2Arr(block, sumCargo, ref percent);
                     icon = iconCargo;
-                    optionchoice = "Fill";
                     pattern = patternCargo;
                     invertColor = true;
-                    break;
-                case "MyCockpit":
-                    isValidBlock = CargoVolume2Arr(block, sumCockpit, ref percent);
-                    icon = iconCockpit;
-                    optionchoice = "Fill";
-                    pattern = patternCargo;
-                    invertColor = true;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyGasTank":
+                    var tank = block as IMyGasTank;
                     if (block.BlockDefinition.SubtypeName.Contains("Hydro"))
                     {
-                        bsize = get_size(subtype, 'H');
-                        TankVolume2Arr(block, sumHydro, ref percent);
+                        sumHydro[0]++;
+                        sumAll[0]++;
+                        percent = (float)Math.Round(tank.FilledRatio * 100);
+                        sumHydro[1] += percent;
+                        sumAll[1] += percent;
+                        sumHydro[2] += (float)tank.Capacity * (float)tank.FilledRatio;
                         icon = "IconHydrogen";
                     }
                     else
                     {
-                        bsize = get_size(subtype, 'T');
-                        TankVolume2Arr(block, sumOxy, ref percent);
+                        sumOxy[0]++;
+                        sumAll[0]++;
+                        percent = (float)Math.Round(tank.FilledRatio * 100);
+                        sumOxy[1] += percent;
+                        sumAll[1] += percent;
+                        sumOxy[2] += (float)tank.Capacity * (float)tank.FilledRatio;
                         icon = "IconOxygen";
                     }
-                    optionchoice = "Fill";
                     pattern = patternTank;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyShipConnector":
-                    bsize = get_size(subtype, 'C');
-                    if ((bsize == 1) || (subtype == "ConnectorLarge_SEBuilder4"))
-                    {
-                        isValidBlock = CargoVolume2Arr(block, sumEjectors, ref percent);
+                    if (block.BlockDefinition.SubtypeName.Contains("Large") || block.BlockDefinition.SubtypeName.Contains("Small"))
+                    { // Ejector: ConnectorLarge_SEBuilder4, ConnectorSmall
+                        CargoVolume2Arr(block, sumEjectors, ref percent);
                         icon = iconEjector;
                     }
                     else
-                    {
-                        isValidBlock = CargoVolume2Arr(block, sumConnectors, ref percent);
+                    { // Connector
+                        CargoVolume2Arr(block, sumConnectors, ref percent);
                         icon = iconConnector;
                     }
-                    optionchoice = "Fill";
                     pattern = patternConnector;
                     invertColor = true;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyCollector":
-                    bsize = get_size(subtype, 'T');
-                    isValidBlock = CargoVolume2Arr(block, sumCollectors, ref percent);
-                    optionchoice = "Fill";
+                    CargoVolume2Arr(block, sumCollectors, ref percent);
                     icon = iconCollector;
                     pattern = patternConnector;
                     invertColor = true;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyShipDrill":
-                    bsize = get_size(subtype, 'T');
-                    isValidBlock = CargoVolume2Arr(block, sumDrills, ref percent);
+                    CargoVolume2Arr(block, sumDrills, ref percent);
                     icon = iconDrill;
-                    optionchoice = "Fill";
                     pattern = patternTool;
                     invertColor = true;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyJumpDrive":
-                    bsize = 8;
                     var jumpdrive = block as IMyJumpDrive;
                     sumJdrives[0]++;
                     sumAll[0]++;
@@ -992,75 +1002,67 @@ namespace ScriptFSD
                     sumAll[1] += percent;
                     sumJdrives[2] += jumpdrive.CurrentStoredPower;
                     icon = iconJumpdrive;
-                    optionchoice = "Charge";
                     pattern = patternJumpdrive;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyThrust":
-                    Echo("1");
-                    bsize = get_size(subtype, 'A');
                     var thruster = block as IMyThrust;
                     sumThrust[0]++;
                     sumAll[0]++;
                     percent = 100 / thruster.MaxEffectiveThrust * thruster.CurrentThrust;
-                    if (percent > 100) { percent = 0; }
                     sumThrust[1] += percent;
                     sumAll[1] += percent;
                     sumThrust[2] += thruster.ThrustOverridePercentage;
                     icon = iconThruster;
-                    optionchoice = "Thrst";
                     pattern = patternThruster;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MySolarPanel":
-                    bsize = get_size(subtype, 'T');
                     PowerOutput2Arr(block, sumSolar, ref percent);
                     icon = iconSolar;
-                    optionchoice = "Load";
-                    invertColor = true;
                     pattern = patternSolar;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyWindTurbine":
-                    bsize = 8;
                     PowerOutput2Arr(block, sumWindmill, ref percent);
                     icon = iconWindmill;
-                    optionchoice = "Load";
-                    invertColor = true;
                     pattern = patternWindmill;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyGasGenerator":
-                    bsize = get_size(subtype, 'T');
-                    isValidBlock = CargoVolume2Arr(block, sumO2Gen, ref percent);
+                    sumO2Gen[0]++;
+                    sumAll[0]++;
+                    percent = 100 / (float)block.GetInventory().MaxVolume * (float)block.GetInventory().CurrentVolume;
+                    sumO2Gen[1] += percent;
+                    sumAll[1] += percent;
+                    sumO2Gen[2] += (float)block.GetInventory().CurrentVolume;
                     icon = iconIce;
-                    optionchoice = "Fill";
                     pattern = patternGasgen;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyShipGrinder":
-                    bsize = get_size(subtype, 'T');
-                    isValidBlock = CargoVolume2Arr(block, sumGrinder, ref percent);
+                    CargoVolume2Arr(block, sumGrinder, ref percent);
                     icon = iconGrinder;
-                    optionchoice = "Fill";
                     pattern = patternTool;
                     invertColor = true;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyShipWelder":
-                    bsize = get_size(subtype, 'T');
-                    isValidBlock = CargoVolume2Arr(block, sumWelder, ref percent);
+                    CargoVolume2Arr(block, sumWelder, ref percent);
                     icon = iconWelder;
-                    optionchoice = "Fill";
                     pattern = patternTool;
                     invertColor = true;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyRefinery":
-                    bsize = get_size(subtype, 'R');
                     IMyInventory Ref_inv = null;
                     var Refblock = block as IMyRefinery;
-                    if (!opt_chc[0])
+                    if (!optionalView)
                     {
-                        optionchoice = "Ores";
                         Ref_inv = Refblock.InputInventory;
                     }
                     else
                     {
-                        optionchoice = "Ingots";
                         Ref_inv = Refblock.OutputInventory;
                     }
                     sumRefinery[0]++;
@@ -1072,14 +1074,13 @@ namespace ScriptFSD
                     icon = iconRefinery;
                     pattern = patternRefinery;
                     invertColor = true;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyAssembler":
-                    bsize = get_size(subtype, 'R');
                     IMyInventory inventory = null;
                     var Assblock = block as IMyAssembler;
-                    if (!opt_chc[0])
+                    if (!optionalView)
                     {
-                        optionchoice = "Ingots";
                         inventory = Assblock.InputInventory;
                         List<MyProductionItem> queue = new List<MyProductionItem>();
                         Assblock.GetQueue(queue);
@@ -1087,7 +1088,6 @@ namespace ScriptFSD
                     }
                     else
                     {
-                        optionchoice = "Items";
                         inventory = Assblock.OutputInventory;
                         sumAssembler[2] += Assblock.CurrentProgress;
                     }
@@ -1099,135 +1099,50 @@ namespace ScriptFSD
                     icon = iconAssembler;
                     pattern = patternAssembler;
                     invertColor = true;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyLargeMissileTurret":
-                    bsize = get_size(subtype, 'T');
                     ItemCount2Arr(block, sumMissileTurret, ref percent);
                     icon = iconRocket;
-                    optionchoice = "Ammo";
                     pattern = patternTurret;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MyLargeGatlingTurret":
                 case "MyLargeInteriorTurret":
-                    bsize = get_size(subtype + blocktype, 'W');
-                    ItemCount2Arr(block, sumGatlingTurret, ref percent);
-                    icon = iconBullet;
-                    optionchoice = "Ammo";
-                    pattern = patternTurret;
-                    break;
-                case "MySmallGatlingGun":
-                    bsize = 4;
                     ItemCount2Arr(block, sumGatling, ref percent);
                     icon = iconBullet;
-                    optionchoice = "Ammo";
                     pattern = patternTurret;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
+                    break;
+                case "MySmallGatlingGun":
+                    ItemCount2Arr(block, sumGatlingTurret, ref percent);
+                    icon = iconBullet;
+                    pattern = patternTurret;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MySmallMissileLauncher":
                 case "MySmallMissileLauncherReload":
-                    bsize = get_size(subtype + blocktype, 'W');
                     ItemCount2Arr(block, sumMissileLauncher, ref percent);
                     icon = iconRocket;
-                    optionchoice = "Ammo";
                     pattern = patternTurret;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
                 case "MySpaceProjector":
                     var projector = block as IMyProjector;
                     var total = projector.TotalBlocks;
                     sumProjector[0]++;
                     sumAll[0]++;
-                    if (total != 0) { percent = 100 * (total - projector.RemainingBlocks) / total; }
+                    if (total != 0) { percent = 100 / total * (total - projector.RemainingBlocks); }
                     sumProjector[1] += percent;
                     sumAll[1] += percent;
                     sumProjector[2] += projector.RemainingBlocks;
                     icon = iconProjector;
-                    optionchoice = "Done";
                     pattern = patternProjector;
+                    SetFrameColorAndValidBlock(block, ref isValidBlock);
                     break;
-                case "MyAirVent":
-                    bsize = get_size(subtype, 'T');
-                    var vent = block as IMyAirVent;
-                    sumVent[0]++;
-                    sumAll[0]++;
-                    percent = (float)Math.Round(vent.GetOxygenLevel() * 100);
-                    sumVent[1] += percent;
-                    sumAll[1] += percent;
-                    icon = iconVent;
-                    optionchoice = "Press";
-                    pattern = patternVent;
-                    break;
-                case "MyParachute":
-                    isValidBlock = CargoVolume2Arr(block, sumPara, ref percent);
-                    icon = iconPara;
-                    optionchoice = "Fill";
-                    pattern = patternCargo;
-                    break;
-                case "MyConveyorSorter":
-                    bsize = get_size(subtype, 'C');
-                    isValidBlock = CargoVolume2Arr(block, sumSorter, ref percent);
-                    icon = iconSorter;
-                    optionchoice = "Fill";
-                    pattern = patternConnector;
-                    invertColor = true;
-                    break;
-                case "MyAirtightHangarDoor":
-                case "MyDoor":
-                case "MyAirtightSlideDoor":
-                    var door = block as IMyDoor;
-                    sumDoor[0]++;
-                    sumAll[0]++;
-                    percent = (float)Math.Round(door.OpenRatio * 100);
-                    optionchoice = "open";
-                    invertColor = true;
-                    if (!opt_chc[0])
-                    {
-                        optionchoice = "closed";
-                        percent = 100 - percent;
-                        invertColor = false;
-                    }
-                    sumDoor[1] += percent;
-                    sumAll[1] += percent;
-                    icon = iconDoor;
-                    pattern = patternJumpdrive;
-                    break;
-                case "":
-                    break;
-                default:
-                    if (opt_chc[3])
-                    {
-                        sumBlock++;
-                        pattern = patternNone;
-                        drawpercent = "-----";
-                        icon = iconBlock;
-                    }
-                    else { isValidBlock = false; }
-                    break;
-            }
-            if (isValidBlock)
-            {
-                if (opt_chc[3]) { integrity = GetMyTerminalBlockHealth(block.CubeGrid.GetCubeBlock(block.Position)); } else { integrity = 0; }
-                if (!paints[frm])
-                {
-                    if (block == Me) { Colors[frm] = frameColorIsNotThere; integrity = 0; }
-                    else if (block.IsWorking) { Colors[frm] = frameColorIsWorking; }
-                    else if (block.IsFunctional) { Colors[frm] = frameColorIsFunctional; }
-                    else { Colors[frm] = frameColorIsUnfunctional; }
-                }
-            }
-            else
-            {
-                blocktype = "";
-                subtype = "";
-                bsize = 0;
-                optionchoice = "";
             }
             return isValidBlock;
         }
-
-        float GetMyTerminalBlockHealth(IMySlimBlock slimblock)
-        {
-            return (slimblock.BuildIntegrity - slimblock.CurrentDamage) / slimblock.MaxIntegrity;
-        }
-
         void PowerOutput2Arr(IMyTerminalBlock block, float[] arr, ref float percent)
         {
             var powProd = block as IMyPowerProducer;
@@ -1238,32 +1153,20 @@ namespace ScriptFSD
             sumAll[1] += percent;
             arr[2] += powProd.CurrentOutput;
         }
-
-        bool ItemCount2Arr(IMyTerminalBlock block, float[] arr, ref float percent)
+        void ItemCount2Arr(IMyTerminalBlock block, float[] arr, ref float percent)
         {
-            bool result = block.HasInventory;
-            if (result)
-            {
-                arr[0]++;
-                sumAll[0]++;
-                percent = 100 / (float)block.GetInventory().MaxVolume * (float)block.GetInventory().CurrentVolume;
-                arr[1] += percent;
-                sumAll[1] += percent;
-                arr[2] += itemCount(block);
-            }
-            else
-            {
-                percent = 0;
-            }
-            return result;
+            arr[0]++;
+            sumAll[0]++;
+            percent = 100 / (float)block.GetInventory().MaxVolume * (float)block.GetInventory().CurrentVolume;
+            arr[1] += percent;
+            sumAll[1] += percent;
+            arr[2] += itemCount(block);
         }
-
-        bool CargoVolume2Arr(IMyTerminalBlock block, float[] arr, ref float percent)
+        void CargoVolume2Arr(IMyTerminalBlock block, float[] arr, ref float percent)
         {
-            bool result = block.HasInventory;
-            if (result)
+            var inventory = block.GetInventory();
+            if (inventory != null)
             {
-                var inventory = block.GetInventory();
                 arr[0]++;
                 sumAll[0]++;
                 percent = 100 / (float)inventory.MaxVolume * (float)inventory.CurrentVolume;
@@ -1271,45 +1174,31 @@ namespace ScriptFSD
                 sumAll[1] += percent;
                 arr[2] += (float)inventory.CurrentVolume;
             }
-            else
-            {
-                percent = 0;
-            }
-            return result;
         }
-
-        void TankVolume2Arr(IMyTerminalBlock block, float[] arr, ref float percent)
-        {
-            var tank = block as IMyGasTank;
-            if (tank != null)
-            {
-                arr[0]++;
-                sumAll[0]++;
-                percent = (float)Math.Round(tank.FilledRatio * 100);
-                arr[1] += percent;
-                sumAll[1] += percent;
-                arr[2] += (float)tank.Capacity * (float)tank.FilledRatio;
-            }
-        }
-
         float TestForNaN(float number)
         {
-            if (double.IsNaN(number)) { number = 0; }
-            return number;
+            var num = number;
+            if (number != num)
+            {
+                return 0;
+            }
+            else
+            {
+                return number;
+            }
         }
-
+        void SetFrameColorAndValidBlock(IMyTerminalBlock block, ref bool isValidBlock)
+        {
+            if (block.IsFunctional) { frameColor = frameColorFunctional; } else { frameColor = frameColorNotFunctional; }
+            isValidBlock = true;
+        }
         void ClearGroupArrays()
         {
             ClearArray(sumBat);
             ClearArray(sumJdrives);
             ClearArray(sumCargo);
-            ClearArray(sumCockpit);
-            ClearArray(sumPara);
-            ClearArray(sumSorter);
             ClearArray(sumHydro);
             ClearArray(sumOxy);
-            ClearArray(sumVent);
-            ClearArray(sumDoor);
             ClearArray(sumCollectors);
             ClearArray(sumConnectors);
             ClearArray(sumEjectors);
@@ -1332,14 +1221,11 @@ namespace ScriptFSD
             ClearArray(sumProjector);
             ClearArray(sumEShield);
             ClearArray(sumAll);
-            sumBlock = 0;
         }
-
         void ClearArray(Array arr)
         {
             Array.Clear(arr, 0, arr.Length);
         }
-
         float itemCount(IMyTerminalBlock block)
         {
             List<MyInventoryItem> items = new List<MyInventoryItem>();
@@ -1348,56 +1234,33 @@ namespace ScriptFSD
             foreach (var item in items) { count += item.Amount.RawValue / 1000000; }
             return count;
         }
-
-        void GetChargeStateValues(float percent, int containertype, float integrity = 0)
+        void GetChargeStateValues(float percent, int containertype)
         {
-            percent = TestForNaN(percent);
-            integrity = TestForNaN(integrity);
-            int counter = drawcounter(percent) + 5;
             switch (containertype)
             {
                 case WideBar:
-                    chargeBarInitialOffset = new Vector2(14, 37);
-                    chargeBarOffset = 48;
-                    chargeBarSize = new Vector2(40, 43);
+                    chargeBarInitialOffset = new Vector2(14, 15);
+                    chargeBarOffset = new Vector2(48, 0);
+                    chargeBar = chargebarWide;
                     pattern = patternWideBar;
-                    fillLevelLoopcount = counter / 10;
+                    fillLevelLoopcount = (int)Math.Round(percent * 0.1);
                     break;
                 case SmallBar:
-                    chargeBarInitialOffset = new Vector2(12, 27);
-                    chargeBarOffset = 22;
-                    chargeBarSize = new Vector2(20, 29);
+                    chargeBarInitialOffset = new Vector2(12, 12);
+                    chargeBarOffset = new Vector2(22, 0);
+                    chargeBar = chargebarSmall;
                     pattern = patternSmallBar;
-                    fillLevelLoopcount = counter / 10;
+                    fillLevelLoopcount = (int)Math.Round(percent * 0.1);
                     break;
-                case SingleIcon:
-                case SingleBlock:
-                    fillLevelLoopcount = (counter + 5) / 20;
-                    drawpercent = String.Format("{0:N0}%", percent);
-                    break;
-                default:
-                    fillLevelLoopcount = 0;
+                case SingleContainer:
+                    fillLevelLoopcount = (int)Math.Round(percent * 0.05);
+                    drawpercent = Convert.ToString(Math.Truncate(percent)) + '%';
                     break;
             }
-            if (!paints[bar])
-            {
-                if (invertColor)
-                {
-                    Colors[bar] = cvar(percent / 100);
-                }
-                else
-                {
-                    Colors[bar] = cvar(1 - (percent / 100));
-                }
-            }
-            integrityLevelColor = cvar(1 - (float)Math.Pow(integrity, 3));
+            if (percent > 90) { if (invertColor) { fillLevelColor = ChargeColorEmpty; } else fillLevelColor = ChargeColorLoaded; }
+            else if (percent > 25) { fillLevelColor = ChargeColorNormal; }
+            else { if (invertColor) { fillLevelColor = ChargeColorLoaded; } else fillLevelColor = ChargeColorEmpty; }
         }
-
-        int drawcounter(float percent)
-        {
-            return Math.Max(Math.Min((int)percent, 100), 0);
-        }
-
         static string getBetween(string strSource, string strStart, string strEnd)
         {
             int Start, End;
@@ -1412,134 +1275,38 @@ namespace ScriptFSD
                 return "";
             }
         }
-
-        int get_size(string type, char methode)
-        {
-            int res = 0;
-
-            Echo(type + "_-_" + methode);
-            int lengthstring = type.Length;
-            if (methode == 'A')
-            {
-                Echo(type);
-                Echo("%i", lengthstring);
-            }
-            switch (methode)
-            {
-                case ('A'):
-                    {
-                        if (type.Length < 11)
-                        {
-                            switch (type)
-                            {
-                                case ("SmallBlockS"): { res = 1; } break;
-                                case ("SmallBlockM"): { res = 2; } break;
-                                case ("SmallBlockL"): { res = 3; } break;
-                                case ("LBSHAT2"): { res = 5; } break;
-                            }
-                        }
-                        switch (type.Substring(0, 11))
-                        {
-                            case ("SmallBlockS"): { res = 1; } break;
-                            case ("SmallBlockM"): { res = 2; } break;
-                            case ("SmallBlockL"): { res = 3; } break;
-                            case ("LargeBlockS"): { res = 5; } break;
-                            default: { res = 7; } break;
-                        }
-                    }
-                    break;
-                case ('B'):
-                    {
-                        if (type.StartsWith("Large")) { res = 7; }
-                        else if (type.Contains("BlockBattery")) { res = 2; }
-                        else { res = 1; }
-                    }
-                    break;
-                case ('C'):
-                    {
-                        if (type.Contains("Small")) { res = 1; }
-                        else if (type.Contains("Medium")) { res = 2; }
-                        else { res = 7; }
-                    }
-                    break;
-                case ('H'):
-                    {
-                        if (type.StartsWith("Large")) { res = 7; } else { res = 3; }
-                        if (type.EndsWith("Small")) { res -= 2; }
-                    }
-                    break;
-                case ('R'):
-                    {
-                        if (type.StartsWith("Large")) { res = 7; } else { res = 5; }
-                    }
-                    break;
-                case ('T'):
-                    {
-                        if (type.Contains("Small")) { res = 4; } else { res = 8; }
-                    }
-                    break;
-                case ('W'):
-                    {
-                        switch (type.Substring(0, 6))
-                        {
-                            case ("MySmal"): { res = 1; } break;
-                            case ("SmallR"): { res = 2; } break;
-                            case ("SmallG"): { res = 4; } break;
-                            case ("LargeI"): { res = 5; } break;
-                            default: { res = 7; } break;
-                        }
-                    }
-                    break;
-            }
-            return res;
-        }
-
-        void DrawCargebarWide(Vector2 pos)
+        void DrawCargebarWide(Vector2 pos, Color framecolor)
         {
             var chargebarpos = pos + chargeBarInitialOffset;
-            if (!paints[frm]) { Colors[frm] = frameColorWideBar; }
-            AddTextSprite(frame, pos, pattern, "Monospace", 0.1f, Colors[frm], L_align);
+            //Add pattern image
+            AddMonoSprite(frame, pos, pattern, frameColorWideBar, TextAlignment.LEFT);
+            //Add chargestate bar
             for (int i = 0; i < fillLevelLoopcount; i++)
             {
-                AddTextureSprite(frame, "SquareSimple", chargebarpos, chargeBarSize, Colors[bar], L_align);
-                chargebarpos.X += chargeBarOffset;
+                AddMonoSprite(frame, chargebarpos, chargeBar, fillLevelColor, TextAlignment.LEFT);
+                chargebarpos += chargeBarOffset;
             }
         }
-
-        void DrawSingleContainer(Vector2 pos, float integrity = 0)
+        void DrawSingleContainer(Vector2 pos, Color framecolor)
         {
-            var chargebarpos = pos + new Vector2(10.8f, 75);
-            var iconpos = pos + new Vector2(33, 36);
-            var optionpos = pos + new Vector2(33, 54.5f);
-            var numberpos = pos + new Vector2(33, 62);
-            var integritypos = pos + new Vector2(49.5f, 79.5f - (integrity * 31.7f));
-            var chargebarsize = new Vector2(44, 9);
-            var integritysize = new Vector2(6f, 63.4f * integrity);
-            AddTextSprite(frame, pos, pattern, "Monospace", 0.1f, Colors[frm], L_align);
-            if (opt_chc[3] && (containertype == SingleBlock))
-            {
-                chargebarsize = new Vector2(33, 9);
-                AddTextureSprite(frame, "SquareSimple", integritypos, integritysize, integrityLevelColor, L_align);
-                AddTextSprite(frame, pos + new Vector2(52f, 12), "+\n+\n+\n+", "Monospace", 0.54f, Color.Black, C_align);
-                AddTextSprite(frame, pos + new Vector2(52f, 20), "+\n+\n+\n+", "Monospace", 0.54f, Color.Black, C_align);
-            }
+            pos.X += 33;
+            var chargebarpos = pos + new Vector2(0, 70);
+            //Add pattern image
+            AddMonoSprite(frame, pos, pattern, framecolor, TextAlignment.CENTER);
+            //Add chargestate bar
             for (int i = 0; i < fillLevelLoopcount; i++)
             {
-                AddTextureSprite(frame, "SquareSimple", chargebarpos, chargebarsize, Colors[bar], L_align);
+                AddMonoSprite(frame, chargebarpos, chargebarSC, fillLevelColor, TextAlignment.CENTER);
                 chargebarpos.Y -= 13.6f;
             }
-            if (icon.Contains("\n")) { AddTextSprite(frame, iconpos + new Vector2(0, -20), icon, "Monospace", 0.1f, Colors[ico], C_align); } else { AddTextureSprite(frame, icon, iconpos, new Vector2(39, 35), Colors[ico], C_align); }
-            if (opt_chc[1] && (optionchoice != "")) { AddTextSprite(frame, optionpos, optionchoice, "DEBUG", 0.4f, Colors[per], C_align); }
-            if (opt_chc[2] && (containertype == SingleBlock))
-            {
-                AddTextSprite(frame, pos + new Vector2(7, 9), " SMLSML█".Substring(bsize, 1), "Monospace", 0.3f, Colors[opt], L_align);
-                AddTextSprite(frame, pos + new Vector2(59, 9), " ████".Substring(bsize, 1), "Monospace", 0.3f, Colors[opt], R_align);
-                AddTextSprite(frame, pos + new Vector2(7, 74), " ████".Substring(bsize, 1), "Monospace", 0.3f, Colors[opt], L_align);
-                AddTextSprite(frame, pos + new Vector2(59, 74), " SMLSML█".Substring(bsize, 1), "Monospace", 0.3f, Colors[opt], R_align);
-            }
-            AddTextSprite(frame, numberpos, drawpercent, "DEBUG", 0.7f, Colors[per], C_align);
-        }
+            //Add icon
+            pos.Y += 40;
+            if (icon.Contains("\n")) { AddMonoSprite(frame, pos + new Vector2(0, -23), icon, pictogramColor.Alpha(0.4f), TextAlignment.CENTER); } else { AddTextureSprite(frame, icon, pos, new Vector2(30, 30), pictogramColor, TextAlignment.CENTER); }
+            //Add chargestate number %
+            pos.Y += 20;
 
+            AddTextSprite(frame, pos, drawpercent, "DEBUG", 0.75f, percentDisplayColor, TextAlignment.CENTER);
+        }
         void AddTextureSprite(MySpriteDrawFrame frame, string picture, Vector2 pos, Vector2 size, Color color, TextAlignment alignment)
         {
             var sprite = new MySprite()
@@ -1553,7 +1320,6 @@ namespace ScriptFSD
             };
             frame.Add(sprite);
         }
-
         void AddTextSprite(MySpriteDrawFrame frame, Vector2 pos, string str, string font, float size, Color color, TextAlignment alignment)
         {
             var sprite = new MySprite()
@@ -1568,50 +1334,58 @@ namespace ScriptFSD
             };
             frame.Add(sprite);
         }
-
+        void AddMonoSprite(MySpriteDrawFrame frame, Vector2 pos, string str, Color color, TextAlignment alignment)
+        {
+            var sprite = new MySprite()
+            {
+                Type = SpriteType.TEXT,
+                Data = str,
+                Position = pos,
+                RotationOrScale = 0.1f,
+                Color = color,
+                Alignment = alignment,
+                FontId = "Monospace"
+            };
+            frame.Add(sprite);
+        }
         void PrepareTextSurface(IMyTextSurface surface)
         {
             surface.ContentType = ContentType.SCRIPT;
             surface.Script = "";
-            AddTextSprite(frame, new Vector2(-100, -100), Background, "Monospace", 10.0f, Color.Black, L_align);
-            AddTextureSprite(frame, "SquareSimple", viewport.Center, viewport.Size, Color.Black, C_align);
+            AddTextSprite(frame, new Vector2(-100, -100), Background, "Monospace", 10.0f, Color.Black, TextAlignment.LEFT);
+            AddTextureSprite(frame, "SquareSimple", viewport.Center, viewport.Size, Color.Black, TextAlignment.CENTER);
         }
-
         void GeneratePatterns()
         {
-            patternWideBar = xstr("", 174) + "\n" + xstr("", 172) + "\n" + xstr("", 170) + "\n" + xstr("", 168) + "\n" + xstr("" + xstr("", 166) + "\n", 17) + "" + xstr("", 168) + "\n" + xstr("", 170) + "\n" + xstr("", 172) + "\n" + xstr("", 174);
-            patternSmallBar = xstr("", 85) + "\n" + xstr("", 83) + "\n" + xstr("", 81) + "\n" + xstr("" + xstr("", 79) + "\n", 12) + "" + xstr("", 81) + "\n" + xstr("", 83) + "\n" + xstr("", 85);
-            Background = xstr(xstr("", 10) + "\n", 10).Trim();
+            patternWideBar = xstr("", 174) + "\n" + xstr("", 172) + "\n" + xstr("", 170) + "\n" + xstr("", 168) + "\n" + xstr("" + xstr("", 166) + "\n", 17) + "" + xstr("", 168) + "\n" + xstr("", 170) + "\n" + xstr("", 172) + "\n" + xstr("", 174);
+            patternSmallBar = xstr("", 85) + "\n" + xstr("", 83) + "\n" + xstr("", 81) + "\n" + xstr("" + xstr("", 79) + "\n", 12) + "" + xstr("", 81) + "\n" + xstr("", 83) + "\n" + xstr("", 85);
+            chargebarSmall = xstr("\n", 10).Trim();
+            chargebarSC = xstr(xstr("", 15) + "\n", 3).Trim();
+            Background = xstr(xstr("", 10), 5).Trim();
 
-            string[] LineDecoded = decodeLine1(13, "AaaAcmAgeAiqAkmAmyAtcAuaBxoAwmBaeBemBgyBncBnoBsmAyuBtsCnsCumBxcDaqGbpGebGkfJbdIjhGsfGurGybHgbHmfHorHpdGqnGlhJcfLjz");
-            iconIce = decodedPattern(LineDecoded, "lWXYBJVJBYXWl");
-            iconWindmill = decodedPattern(LineDecoded, "lWWcBNBNBcWWl");
-            iconSolar = decodedPattern(LineDecoded, "lWXdFATAFdXWl");
-            iconGrinder = decodedPattern(LineDecoded, "lWceJMGVOhkWl");
-            iconRefinery = decodedPattern(LineDecoded, "lWWcCCEHHcWWlA");
-            iconVent = decodedPattern(LineDecoded, "lWWgANANAgWWl");
-            iconBlock = decodedPattern(LineDecoded, "lWZaIUPPQijWl");
-            iconPara = decodedPattern(LineDecoded, "lWYfSRJFDYYWl");
-            iconSorter = decodedPattern(LineDecoded, "lWWgHLKJHgWWl");
-            iconEngine = decodedPattern(LineDecoded, "lWcWGGBBDbYWl");
+            string[] LineDecoded = decodeLine1(13, "AaaAcmAgeAkmAmyAtcAuaAwmBgyBncBnoCumDaqGbpGebGkfGurGybHgbHpdJcfLjz");
+            iconIce = decodedPattern(LineDecoded, "VNOPBHMHBPONV");
+            iconWindmill = decodedPattern(LineDecoded, "VNNQBJBJBQNNV");
+            iconSolar = decodedPattern(LineDecoded, "VNOREALAERONV");
+            iconGrinder = decodedPattern(LineDecoded, "VNQSHIFMKTUNV");
+            iconRefinery = decodedPattern(LineDecoded, "VNNQCCDGGQNNV");
 
-            LineDecoded = decodeLine1(14, "AaaAhkAsmAuiAkmAfoBbsAbwBfkBmuDbcBnsBxoAfgBoyByuCgeAuqCiaAkuBtgBncDamGbkGbqGjaGmsGvyHokJccKqgLkoMddMknMofMvpNpxNqvMebMhtPdpVfrVnbVqtWtjYgd");
-            iconReactor = decodedPattern(LineDecoded, "fYYcDDJFEbYYf");
-            iconThruster = decodedPattern(LineDecoded, "sgggJJBBBBgggs");
-            iconCollector = decodedPattern(LineDecoded, "eYZGCBASWLdYe");
-            iconEjector = decodedPattern(LineDecoded, "eYdLSJABGCZYe");
-            iconCargo = decodedPattern(LineDecoded, "sggkJHHHHJkggs");
-            iconConnector = decodedPattern(LineDecoded, "eYdLSJAJSLdYe");
-            iconDrill = decodedPattern(LineDecoded, "pghACAJAWAXggp");
-            iconJumpdrive = decodedPattern(LineDecoded, "riiBAqPPqABiir");
-            iconShield = decodedPattern(LineDecoded, "pgoLQOQMQLIjgp");
-            iconBullet = decodedPattern(LineDecoded, "sgggAVOOVAgggs");
-            iconRocket = decodedPattern(LineDecoded, "sggmHWKKWHmggs");
-            iconWelder = decodedPattern(LineDecoded, "eYaDDDWLLLdYe");
-            iconAssembler = decodedPattern(LineDecoded, "sggiCBBBCiggs");
-            iconProjector = decodedPattern(LineDecoded, "sggoAJACAJijgs");
-            iconDoor = decodedPattern(LineDecoded, "sgolLLOLLlogs");
-            iconCockpit = decodedPattern(LineDecoded, "sggnNTRUWoggs");
+            LineDecoded = decodeLine1(14, "AaaAhkAsmAuiAkmAfoBbsAbwBfkBmuDbcBnsBxoBoyByuCgeCiaBncDamGbqGjaGmsGvyHokJccKqgLkoMddMknMofMvpNpxMebPdpSenVfrVnbVqtWtjYgd");
+            iconReactor = decodedPattern(LineDecoded, "aTTXDDJFEWTTa");
+            iconThruster = decodedPattern(LineDecoded, "mbbbJJBBBBbbbm");
+            iconCollector = decodedPattern(LineDecoded, "ZTUGCBAQSLYTZ");
+            iconEjector = decodedPattern(LineDecoded, "ZTYLQJABGCUTZ");
+            iconCargo = decodedPattern(LineDecoded, "mbbfJHHHHJfbbm");
+            iconConnector = decodedPattern(LineDecoded, "ZTYLQJAJQLYTZ");
+            iconDrill = decodedPattern(LineDecoded, "jcbCAJAJASAibj");
+            iconJumpdrive = decodedPattern(LineDecoded, "lddBAkOOkABddl");
+            iconShield = decodedPattern(LineDecoded, "jbhLPNPMPLIebj");
+            iconBullet = decodedPattern(LineDecoded, "mbbbARNNRAbbbm");
+            iconRocket = decodedPattern(LineDecoded, "mbbgHSKKSHgbbm");
+            iconWelder = decodedPattern(LineDecoded, "ZTVDDDSLLLYTZ");
+            iconAssembler = decodedPattern(LineDecoded, "mbbdCBBBBCdbbm");
+            iconProjector = decodedPattern(LineDecoded, "mbbhAJACAJdebm");
+            chargebarWide = decodedPattern(LineDecoded, "nnnnnnnnnnnnnnn");
 
             LineDecoded = decodeLine2("AAAAf4AAH//8IAACP+P+P//+QAABQf/BYAADbbbbcAAHeD4PfgA/f8H/f+P/f///");
             patternBattery = decodedPattern(LineDecoded, "BPPIIIIIIIIIIIIIIIIIIIIIIIIIIPP");
@@ -1631,9 +1405,7 @@ namespace ScriptFSD
             patternRefinery = decodedPattern(LineDecoded, "AFPGGGGGGGGGGGIIIDDIIDDIIDDIIPP");
             patternAssembler = decodedPattern(LineDecoded, "AFMIIIDDDDDDDDIIIIIIGIGIGIGIGPP");
             patternProjector = decodedPattern(LineDecoded, "AEOKIIIIIIIIIIAAAIIIIIIIIIIIKOE");
-            patternVent = decodedPattern(LineDecoded, "AEPIIIIIIIIIIIDDDIIIIIIIIIIIIPE");
         }
-
         string[] decodeLine1(int patternWidth, string sourcePattern)
         {
             string[] tempLine = new string[sourcePattern.Length / 3];
@@ -1641,13 +1413,12 @@ namespace ScriptFSD
             for (int i = 0; i < sourcePattern.Length; i++)
             {
                 int temp = ((int)sourcePattern[i++] - 65) * 676
-                    + ((int)sourcePattern[i++] - 97) * 26
-                    + ((int)sourcePattern[i] - 97);
+                         + ((int)sourcePattern[i++] - 97) * 26
+                         + ((int)sourcePattern[i] - 97);
                 tempLine[j++] = number2line(patternWidth, temp);
             }
             return tempLine;
         }
-
         string[] decodeLine2(string sourcePattern)
         {
             string[] tempLine = new string[sourcePattern.Length / 4];
@@ -1655,45 +1426,40 @@ namespace ScriptFSD
             for (int i = 0; i < sourcePattern.Length; i++)
             {
                 tempLine[j++] = number2line(6, b64dec(sourcePattern[i + 3]))
-                       + number2line(6, b64dec(sourcePattern[i + 2]))
-                       + number2line(6, b64dec(sourcePattern[i + 1]))
-                       + number2line(5, b64dec(sourcePattern[i]));
+                              + number2line(6, b64dec(sourcePattern[i + 2]))
+                              + number2line(6, b64dec(sourcePattern[i + 1]))
+                              + number2line(5, b64dec(sourcePattern[i]));
                 i += 3;
             }
             return tempLine;
         }
-
         string number2line(int patternWidth, int temp)
-        {
+        { //convert decimalnumber to binary pixel line
             string tempLine = "";
             for (int i = 0; i < patternWidth; i++)
             {
                 if (temp % 2 != 0) { tempLine += ""; }
-                else { tempLine += ""; }
+                else { tempLine += ""; }
                 temp /= 2;
             }
             return tempLine;
         }
-
         string decodedPattern(string[] tempLine, string tempPattern)
         {
             StringBuilder tempstring = new StringBuilder();
             for (int i = 0; i < tempPattern.Length; i++) { tempstring.AppendLine(tempLine[b64dec(tempPattern[i])]); }
             return tempstring.ToString().Trim();
         }
-
         string xstr(string str, int repeat)
         {
             StringBuilder tempstring = new StringBuilder();
             for (int i = 0; i < repeat; i++) { tempstring.Append(str); }
             return tempstring.ToString();
         }
-
         int b64dec(char chr)
-        {
+        { //Base64 in dec
             return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".IndexOf(chr);
         }
-
         bool getVector(string option, string tagstart, out Vector2 tempvector, out float gfx_res)
         {
             tempvector = new Vector2(0, 0);
@@ -1710,82 +1476,11 @@ namespace ScriptFSD
             else return false;
         }
 
-        bool getcolors(string option, string tagstart, out Color tempColor)
-        {
-            bool valid = false;
-            int red = 0, green = 0, blue = 0;
-            tempColor = new Color(0, 0, 0);
-            var xyz = getBetween(option.ToLower(), tagstart.ToLower() + "(", ")").Split(',').ToArray();
-            if (xyz.Length == 3)
-            {
-                valid = int.TryParse(xyz[0], out red) && int.TryParse(xyz[1], out green) && int.TryParse(xyz[2], out blue);
-            }
-            if (valid) { tempColor = new Color(red, green, blue); }
-            return valid;
-        }
-
-        Color cvar(float percent)
-        {
-            float factor = Math.Max(1 - percent, percent);
-            return new Color(percent / factor, (1 - percent) / factor, 0);
-        }
-
-        bool[] wordparse(string[] words, bool[] inv, string text)
-        {
-            int len = words.Length;
-            bool[] res = new bool[len];
-            for (int i = 0; i < len; i++)
-            {
-                res[i] = text.Contains(words[i].ToLower()) ^ inv[i];
-            }
-            return res;
-        }
-
-        void layoutswitch(int change)
-        {
-            if (LayoutCount > 1)
-            {
-                execCounter1 = 0;
-                execCounter2 = 0;
-                LayoutIndex += change + LayoutCount;
-                LayoutIndex %= LayoutCount;
-                Layout = Layouts[LayoutIndex];
-            }
-        }
-
-        int NumParse(string argument, string trigger)
-        {
-            int output = 0;
-            int.TryParse(argument.Substring(argument.IndexOf(trigger) + trigger.Length).Trim(), out output);
-            return output;
-        }
-
-        TextAlignment get_align(string text, TextAlignment align)
-        {
-            TextAlignment res = align;
-            if (text.Contains(aligntag[0])) { res = L_align; }
-            else if (text.Contains(aligntag[1])) { res = C_align; }
-            else if (text.Contains(aligntag[2])) { res = R_align; }
-            return res;
-        }
-
-        const TextAlignment L_align = TextAlignment.LEFT;
-        const TextAlignment C_align = TextAlignment.CENTER;
-        const TextAlignment R_align = TextAlignment.RIGHT;
-
-        const int ico = 0;
-        const int txt = 1;
-        const int per = 2;
-        const int frm = 3;
-        const int bar = 4;
-        const int opt = 5;
-
         const int Nothing = 0;
         const int SmallBar = 1;
         const int WideBar = 2;
-        const int SingleIcon = 3;
-        const int SingleBlock = 4;
-        const int Textline = 5;
+        const int SingleContainer = 3;
+        const int Textline = 4;
         //------------END--------------
     }
 }

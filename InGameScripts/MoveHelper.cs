@@ -15,7 +15,7 @@ using SpaceEngineers.Game.ModAPI.Ingame;
 using VRage.Game.GUI.TextPanel;
 using System.Linq;
 
-namespace Script1
+namespace MoveHelper
 {
     public sealed class Program : MyGridProgram
     {

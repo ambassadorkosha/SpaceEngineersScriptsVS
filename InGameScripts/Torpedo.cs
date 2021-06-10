@@ -12,9 +12,12 @@ using VRage.Collections;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Game.ModAPI.Ingame;
 using SpaceEngineers.Game.ModAPI.Ingame;
-namespace ScriptTorpedo{
-    public sealed class Program : MyGridProgram
-    {
+
+
+namespace Torpedo
+{
+	public sealed class Program : MyGridProgram
+	{
 		//------------BEGIN--------------
 
 		static Program myScript;

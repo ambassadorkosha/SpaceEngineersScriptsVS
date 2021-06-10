@@ -12,11 +12,14 @@ using VRage.Collections;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Game.ModAPI.Ingame;
 using SpaceEngineers.Game.ModAPI.Ingame;
-namespace ScriptNav
+
+
+namespace Nav
 {
     public sealed class Program : MyGridProgram
     {
         //------------BEGIN--------------
+
         const float max_speed_flight = 35.0f; //макс скорость полета
         const float max_speed_drill = 3f; //макс скорость проходки
         const float max_hover_h = 21.0f; //макс высота ховера
@@ -43,6 +46,9 @@ namespace ScriptNav
         bool drill = false;
         bool dir_con = true;
         bool keepASL = false;
+
+
+
         int cnt = 0;
 
         IMyCockpit Controller;
@@ -52,11 +58,10 @@ namespace ScriptNav
         List<IMyGyro> gyros;
         IMyTextSurface LCD;
 
+
         public Program()
         {
             Echo = EchoToLCD;
-
-
             TempList = new List<IMyTerminalBlock>();
             GridTerminalSystem.GetBlocksOfType<IMyCockpit>(TempList, (b) => (b.IsSameConstructAs(Me) && b.CustomName.Contains("Cockpit")));
             if (TempList.Count > 0)
@@ -64,6 +69,8 @@ namespace ScriptNav
                 Controller = TempList[0] as IMyCockpit;
                 Echo(Controller.BlockDefinition.SubtypeId.ToString());
                 LCD = Controller.GetSurface(4);
+            
+            
             }
             else
                 Echo("No Main Cockpit");
