@@ -2,45 +2,22 @@
         // НАЧАЛО СКРИПТА
         // Сия поебень - скрипт для главной базы на сервере "Nebula"
 
-        IMyTextPanel LCD_main;
-
-        int zamedlenie = 0;
-        int load = 0;
         float info = 0;
-        string base_name = "", auto_on_ref = "Выкл";
-        string prefix = "";
-        int update_time = 100, update_name_time = 1000;
-        bool use_id_owner = true, ref_on_kd = false;
-        string ref_stat = "";
-        string ass_stat = "";
-        bool Pred_nastr = false;
-        string otladka = "";
-        bool light_day_off = false;
+        string otladka = "", otladka_2 = "", ass_stat = "", ref_stat = "", prefix = "", base_name = "", auto_on_ref = "Выкл";
+        bool Pred_nastr = false, pereinit = false, light_day_off = false, use_id_owner = true, ref_on_kd = false;
+        int load = 0, zamedlenie = 0, update_time = 100, update_name_time = 1000, update_properties = 600;
         int bat = 0, wind_turb = 0, upgr_mod = 0, garage = 0, gat_tur = 0, miss_tur = 0, couch = 0, desk_corn = 0, bad = 0, weapon_rack = 0, base_ass = 0, basic_ass = 0, refin = 0, electrol = 0, oil_ref = 0, keros_ref = 0,
-            hyd_tank = 0, oil_tank = 0, keros_tank = 0, connectors = 0, disel_gen = 0, solar_pan = 0, welder = 0, nanite = 0;
+        hyd_tank = 0, oil_tank = 0, keros_tank = 0, connectors = 0, disel_gen = 0, solar_pan = 0, welder = 0, nanite = 0, cargo = 0, doors = 0, small_cargo = 0, lcd = 0, sartir = 0, design = 0;
 
-        string[] CargoTypes =
-        {
-            "Руда",
-            "Компоненты",
-            "Инструменты",
-            "Лед",
-            "Слитки",
-            "Баллоны",
-            "Битум",
-            "Боезопас"
-        };
-
+        IMyTextPanel LCD_main;
         List<string> error_list = new List<string>();                                               //Список ошибок 
-
-        Dictionary<string, List<IMyTerminalBlock>> Cargos;
         List<IMyRefinery> All_ref_list = new List<IMyRefinery>();                                       //Все рефки, ледоломы и т.д.
-        List<IMyTextPanel> LCD_all_list = new List<IMyTextPanel>();                                     //LCD панельки
         List<IMyRefinery> IceCrusher_list = new List<IMyRefinery>();                                    //Ледоломы                  
         List<IMyRefinery> OreCrusher_list = new List<IMyRefinery>();                                    //Рудоломы
-        List<IMyTextPanel> LCD_Ass_Ref_list = new List<IMyTextPanel>();                                 //LCD состояния рефок и сборщиков
+        List<IMyTerminalBlock> LCD_all_list = new List<IMyTerminalBlock>();                             //LCD панельки
         List<IMyTerminalBlock> Bad_all_list = new List<IMyTerminalBlock>();                             //Кровати
         List<IMyTerminalBlock> Oil_all_list = new List<IMyTerminalBlock>();                             //Нефтезаводы
+        List<IMyTerminalBlock> door_all_list = new List<IMyTerminalBlock>();                            //Двери
         List<IMyTerminalBlock> Base_ref_list = new List<IMyTerminalBlock>();                            //Очистители базы
         List<IMyTerminalBlock> Couch_all_list = new List<IMyTerminalBlock>();                           //Диваны
         List<IMyTerminalBlock> Keros_all_list = new List<IMyTerminalBlock>();                           //Экстракторы кероса
@@ -49,8 +26,11 @@
         List<IMyTerminalBlock> Garage_all_list = new List<IMyTerminalBlock>();                          //Гаражи
         List<IMyTerminalBlock> Coсpit_all_list = new List<IMyTerminalBlock>();                          //Кокпиты
         List<IMyTerminalBlock> Welder_all_list = new List<IMyTerminalBlock>();                          //Сварщики
+        List<IMyTerminalBlock> Sartir_all_list = new List<IMyTerminalBlock>();                          //Толчки
+        List<IMyTerminalBlock> LCD_Ass_Ref_list = new List<IMyTerminalBlock>();                         //LCD состояния рефок и сборщиков
         List<IMyTerminalBlock> Gas_Gen_all_list = new List<IMyTerminalBlock>();                         //Электролизёры/керос/битум
         List<IMyTerminalBlock> Battery_all_list = new List<IMyTerminalBlock>();                         //АКБ
+        List<IMyTerminalBlock> X_CargoContainers = new List<IMyTerminalBlock>();                        //X-Контейнеры
         List<IMyTerminalBlock> Gas_Tank_all_list = new List<IMyTerminalBlock>();                        //Баки
         List<IMyTerminalBlock> Oil_Tank_all_list = new List<IMyTerminalBlock>();                        //Нефтяные баки
         List<IMyTerminalBlock> Base_ref_all_list = new List<IMyTerminalBlock>();                        //Все рефки базы, ледоломы и т.д.
@@ -64,6 +44,8 @@
         List<IMyTerminalBlock> SolarPanel_all_list = new List<IMyTerminalBlock>();                      //Солнечные панели
         List<IMyLightingBlock> Base_projector_list = new List<IMyLightingBlock>();                      //Прожекторы базы
         List<IMyTerminalBlock> WeaponRack_all_list = new List<IMyTerminalBlock>();                      //Шкафчики
+        List<IMyTerminalBlock> Missile_Turret_list = new List<IMyTerminalBlock>();                      //Ракетницы
+        List<IMyTerminalBlock> Designator_all_list = new List<IMyTerminalBlock>();                      //Десигнаторы
         List<IMyTerminalBlock> Basic_Assembler_list = new List<IMyTerminalBlock>();                     //Инструментарии базы
         List<IMyTerminalBlock> Welder_base_all_list = new List<IMyTerminalBlock>();                     //Строительные блоки
         List<IMyTerminalBlock> Nanite_base_all_list = new List<IMyTerminalBlock>();                     //Наниты
@@ -74,62 +56,39 @@
         List<IMyTerminalBlock> Upgrade_mudule_all_list = new List<IMyTerminalBlock>();                  //Модули апгрейда 
         List<IMyTerminalBlock> TerminalBlocks_all_list = new List<IMyTerminalBlock>();                  //Все блоки
         List<IMyTerminalBlock> Gatling_Turret_all_list = new List<IMyTerminalBlock>();                  //Гатлинги
-        List<IMyTerminalBlock> Missile_Turret_all_list = new List<IMyTerminalBlock>();                  //Ракетницы
-        List<IMyTerminalBlock> CargoContainers_all_list = new List<IMyTerminalBlock>();                 //Контейнеры
+        List<IMyTerminalBlock> Missile_Turret_all_list = new List<IMyTerminalBlock>();                  //Ракетницы/десигнаторы
+        List<IMyTerminalBlock> CargoContainers_all_list = new List<IMyTerminalBlock>();                 //Абсолютно все контейнеры/хранилища
+        List<IMyTerminalBlock> Small_CargoContainers_list = new List<IMyTerminalBlock>();               //Малые контейнеры
 
+        List<IMyCargoContainer> Cargo_with_out_ice = new List<IMyCargoContainer>();                     //Все конты, не содержащие лёд
+        List<IMyCargoContainer> Cargo_with_out_ore = new List<IMyCargoContainer>();                     //Все конты, не содержащие руду
+        List<IMyCargoContainer> Cargo_with_out_ammo = new List<IMyCargoContainer>();                    //Все конты, не содержащие боеприпасов
+        List<IMyCargoContainer> Cargo_with_out_ingot = new List<IMyCargoContainer>();                   //Все конты, не содержащие слитки
+        List<IMyCargoContainer> Cargo_with_out_bitum = new List<IMyCargoContainer>();                   //Все конты, не содержащие битум
+        List<IMyCargoContainer> Cargo_with_out_buttle = new List<IMyCargoContainer>();                  //Все конты, не содержащие баллонов
+        List<IMyCargoContainer> Cargo_with_out_components = new List<IMyCargoContainer>();              //Все конты, не содержащие компоненты
+        List<IMyCargoContainer> Cargo_with_out_instruments = new List<IMyCargoContainer>();             //Все конты, не содержащие инструменты
 
+        List<IMyCargoContainer> Cargo_with_ice = new List<IMyCargoContainer>();                         //Все конты, содержащие лёд
+        List<IMyCargoContainer> Cargo_with_ore = new List<IMyCargoContainer>();                         //Все конты, содержащие руду
+        List<IMyCargoContainer> Cargo_with_ammo = new List<IMyCargoContainer>();                        //Все конты, содержащие боеприпасы
+        List<IMyCargoContainer> Cargo_with_ingot = new List<IMyCargoContainer>();                       //Все конты, содержащие слитки
+        List<IMyCargoContainer> Cargo_with_bitum = new List<IMyCargoContainer>();                       //Все конты, содержащие битум
+        List<IMyCargoContainer> Cargo_with_buttle = new List<IMyCargoContainer>();                      //Все конты, содержащие баллоны
+        List<IMyCargoContainer> Cargo_with_components = new List<IMyCargoContainer>();                  //Все конты, содержащие компоненты
+        List<IMyCargoContainer> Cargo_with_instruments = new List<IMyCargoContainer>();                 //Все конты, содержащие инструменты
+        
         bool filterThis(IMyTerminalBlock block)                         //Фильтр поиска блоков в одном гриде
         {
             return block.CubeGrid == Me.CubeGrid;
         }
         public Program()
         {
-            Me.Enabled = true;
+            //Me.Enabled = true;
             Runtime.UpdateFrequency = UpdateFrequency.Update1;
-            Cargos = new Dictionary<string, List<IMyTerminalBlock>>();
-            LCD_main = GridTerminalSystem.GetBlockWithName("LCD_main") as IMyTextPanel;
-
-
             GridTerminalSystem.GetBlocksOfType<IMyTextPanel>(LCD_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyCockpit>(Coсpit_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyGasTank>(Gas_Tank_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyRefinery>(Base_ref_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyLightingBlock>(Light_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyPowerProducer>(Power_all_list, filterThis);
-
-            GridTerminalSystem.GetBlocksOfType<IMyBatteryBlock>(Battery_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyGasGenerator>(Gas_Gen_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMySolarPanel>(SolarPanel_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyShipWelder>(Welder_base_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyShipConnector>(Connector_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyAssembler>(Base_Assembler_all_list, filterThis);
-
-            GridTerminalSystem.GetBlocksOfType<IMyCargoContainer>(CargoContainers_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyLargeGatlingTurret>(Gatling_Turret_all_list, filterThis);
-            GridTerminalSystem.GetBlocksOfType<IMyLargeMissileTurret>(Missile_Turret_all_list, filterThis);
-
+            LCD_main = LCD_all_list.ConvertAll(x => (IMyTextPanel)x).Find(x => x.CustomName.Contains("LCD_main"));                                      //LCD
             LCD_Ass_Ref_list = LCD_all_list.FindAll(x => x.CustomName.Contains("LCD_Очистка/сборка"));                                                  //LCD
-
-            Oil_all_list = Gas_Gen_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OilRefinery"));                                          //Нефтезаводы
-            Bad_all_list = Coсpit_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockBed"));                                         //Кровати 
-            Oil_Tank_all_list = Gas_Tank_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OilTank"));                                        //Нефтебаки
-            Generator_all_list = Power_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OilEngine"));                                        //Дизель генераторы
-            Base_ref_list = Base_ref_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeRefinery"));                                      //Рефки
-            Couch_all_list = Coсpit_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockCouch"));                                     //Диваны
-            Keros_all_list = Gas_Gen_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("KeroseneGenerator"));                                  //Экстракторы кероса
-            Base_projector_list = Light_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("ClassicSpotBar"));                                  //Прожекторы
-            Base_Battery_list = Battery_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("Large3x3x2Base"));                                  //Батареи базы
-            DeskCorner_all_list = Coсpit_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockDesk"));                                 //Стол
-            Keros_Tank_all_list = Gas_Tank_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("KeroseneTank"));                                 //Керосиновые баки
-            Welder_all_list = Welder_base_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeShipWelder"));                               //Сварщики
-            Electrolize_all_list = Gas_Gen_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OxygenGenerator"));                              //Газ генераторы
-            Hydrogen_Tank_all_list = Gas_Tank_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("HydrogenTank"));                              //Водородные баки
-            Nanite_base_all_list = Welder_base_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("RepairSystem"));                             //Наниты
-
-            Base_Assembler_list = Base_Assembler_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeAssembler"));                         //Сборщики
-            Basic_Assembler_list = Base_Assembler_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("BasicAssembler"));                        //Инструментарии
-            WeaponRack_all_list = CargoContainers_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockWeaponRack"));                  //Оружейные шкафчики 
-            WeaponRack_all_list.AddRange(CargoContainers_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockLockerRoomCorner")));    //+Шкафчики
 
             //Ошибки
             if (LCD_main == null) { error_list.Add("Нет LCD с именем <<LCD_main>>!"); }
@@ -141,34 +100,100 @@
             load++;
             zamedlenie++;
             if ((LCD_main == null) || (LCD_Ass_Ref_list.Count == 0))
-            {
-                Echo("Инициализация не успешна,\nвыход из main... " + "\n" + String.Join("\n", error_list) + "\n" + InsertActivityChar(load) + "\n");
-                return;
-            }
-            else
-            {
-                Echo("Инициализация успешна  " + InsertActivityChar(load) + "\n" + zamedlenie % update_time + "\n" + String.Join("\n", error_list));
-            }
+            { Echo("Инициализация не успешна,\nвыход из main... " + "\n" + String.Join("\n", error_list) + "\n" + InsertActivityChar(load) + "\n"); return; }
+            else { Echo("Инициализация успешна  " + InsertActivityChar(load) + "\n" + zamedlenie % update_time + "\n" + String.Join("\n", error_list)); }
 
             //Преднастройка
             if (Pred_nastr == false)
             {
+                List<IMyTextPanel> LCD_panel = LCD_Ass_Ref_list.ConvertAll(x => (IMyTextPanel)x);
                 SetLcdConfig(LCD_main, ContentType.TEXT_AND_IMAGE, 0.78f, 0.0f, Color.Black, 0, 100, 0, "ОТЛАДКА");
-                foreach (var i in LCD_Ass_Ref_list)
+                foreach (var i in LCD_panel)
                 {
                     SetLcdConfig(i, ContentType.TEXT_AND_IMAGE, 0.78f, 0.0f, Color.Black, 85, 0, 60, "Monospace");        //Экраны состояния рефок/сборщиков
                 }
                 Pred_nastr = true;
             }
+            //Переинициализация
+            if (pereinit == false)
+            {
+                GridTerminalSystem.GetBlocksOfType<IMyDoor>(door_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType(TerminalBlocks_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyTextPanel>(LCD_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyCockpit>(Coсpit_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyGasTank>(Gas_Tank_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyRefinery>(Base_ref_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyLightingBlock>(Light_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyPowerProducer>(Power_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyProjector>(Projector_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyBatteryBlock>(Battery_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyGasGenerator>(Gas_Gen_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMySolarPanel>(SolarPanel_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyShipWelder>(Welder_base_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyShipConnector>(Connector_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyAssembler>(Base_Assembler_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyUpgradeModule>(Upgrade_mudule_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyCargoContainer>(CargoContainers_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyLargeGatlingTurret>(Gatling_Turret_all_list, filterThis);
+                GridTerminalSystem.GetBlocksOfType<IMyLargeMissileTurret>(Missile_Turret_all_list, filterThis);
 
-            GridTerminalSystem.GetBlocksOfType(All_ref_list);
-            GridTerminalSystem.GetBlocksOfType(Projector_all_list, filterThis);
-            IceCrusher_list = All_ref_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("IceCrusher"));
-            OreCrusher_list = All_ref_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OreCrusher"));
-            Garage_all_list = Projector_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("Garage"));
+                Garage_all_list = Projector_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("Garage"));                                          //Гаражи
+                Oil_all_list = Gas_Gen_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OilRefinery"));                                          //Нефтезаводы
+                Bad_all_list = Coсpit_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockBed"));                                         //Кровати 
+                Oil_Tank_all_list = Gas_Tank_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OilTank"));                                        //Нефтебаки
+                Generator_all_list = Power_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OilEngine"));                                        //Дизель генераторы
+                Base_ref_list = Base_ref_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeRefinery"));                                      //Рефки
+                Couch_all_list = Coсpit_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockCouch"));                                     //Диваны
+                Sartir_all_list = Coсpit_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockToilet"));                                   //Сартиры
+                Keros_all_list = Gas_Gen_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("KeroseneGenerator"));                                  //Экстракторы кероса
+                Base_projector_list = Light_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("ClassicSpotBar"));                                  //Прожекторы
+                Base_Battery_list = Battery_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("Large3x3x2Base"));                                  //Батареи базы
+                DeskCorner_all_list = Coсpit_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockDesk"));                                 //Стол
+                Keros_Tank_all_list = Gas_Tank_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("KeroseneTank"));                                 //Керосиновые баки
+                Missile_Turret_list = Missile_Turret_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("Missile"));                                //Ракетницы
+                Welder_all_list = Welder_base_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeShipWelder"));                               //Сварщики
+                Electrolize_all_list = Gas_Gen_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OxygenGenerator"));                              //Газ генераторы
+                Hydrogen_Tank_all_list = Gas_Tank_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("HydrogenTank"));                              //Водородные баки
+                Designator_all_list = Missile_Turret_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("Designator"));                             //Десигнаторы
+                Nanite_base_all_list = Welder_base_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("RepairSystem"));                             //Наниты
+                Wind_Turbine_all_list = TerminalBlocks_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("WindTurbine"));                          //Ветряки
+                Base_Assembler_list = Base_Assembler_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeAssembler"));                         //Сборщики
+                Basic_Assembler_list = Base_Assembler_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("BasicAssembler"));                        //Инструментарии
+                X_CargoContainers = CargoContainers_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("X-LargeContainer"));                        //Огромные конты
+                WeaponRack_all_list = CargoContainers_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockWeaponRack"));                  //Оружейные шкафчики 
+                Small_CargoContainers_list = CargoContainers_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("SmallContainer"));                 //Малые конты
+                WeaponRack_all_list.AddRange(CargoContainers_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("LargeBlockLockerRoomCorner")));    //+Шкафчики
+
+                bat = wind_turb = upgr_mod = garage = gat_tur = miss_tur = couch = desk_corn = bad = weapon_rack = base_ass = basic_ass = refin = electrol = 
+                oil_ref = keros_ref = hyd_tank = oil_tank = keros_tank = connectors = disel_gen = solar_pan = welder = nanite = cargo = doors = small_cargo = lcd = sartir = design = 0;
+
+                //Сорт                                           
+                Cargo_with_out_bitum = CargoContainers_all_list.ConvertAll(x => (IMyCargoContainer)x); Cargo_with_out_bitum.RemoveAll(x => x.CustomName.Contains("Битум"));                         //Все конты, не содержащие битум
+                Cargo_with_out_ice = CargoContainers_all_list.ConvertAll(x => (IMyCargoContainer)x); Cargo_with_out_ice.RemoveAll(x => x.CustomName.Contains("Лед"));                               //Все конты, не содержащие лёд
+                Cargo_with_out_ore = CargoContainers_all_list.ConvertAll(x => (IMyCargoContainer)x); Cargo_with_out_ore.RemoveAll(x => x.CustomName.Contains("Руда"));                              //Все конты, не содержащие руду
+                Cargo_with_out_ingot = CargoContainers_all_list.ConvertAll(x => (IMyCargoContainer)x); Cargo_with_out_ingot.RemoveAll(x => x.CustomName.Contains("Слитки"));                        //Все конты, не содержащие слитки
+                Cargo_with_out_components = CargoContainers_all_list.ConvertAll(x => (IMyCargoContainer)x); Cargo_with_out_components.RemoveAll(x => x.CustomName.Contains("Компоненты"));          //Все конты, не содержащие компоненты
+                Cargo_with_out_instruments = CargoContainers_all_list.ConvertAll(x => (IMyCargoContainer)x); Cargo_with_out_instruments.RemoveAll(x => x.CustomName.Contains("Инструменты"));       //Все конты, не содержащие инструменты
+                Cargo_with_out_ammo = CargoContainers_all_list.ConvertAll(x => (IMyCargoContainer)x); Cargo_with_out_ammo.RemoveAll(x => x.CustomName.Contains("Боезапас"));                        //Все конты, не содержащие боеприпасов
+                Cargo_with_out_buttle = CargoContainers_all_list.ConvertAll(x => (IMyCargoContainer)x); Cargo_with_out_buttle.RemoveAll(x => x.CustomName.Contains("Баллоны"));                     //Все конты, не содержащие баллонов
+                
+                Cargo_with_bitum = CargoContainers_all_list.FindAll(x => x.CustomName.Contains("Битум")).ConvertAll(x => (IMyCargoContainer)x);                                                     //Все конты, содержащие битум
+                Cargo_with_ice = CargoContainers_all_list.FindAll(x => x.CustomName.Contains("Лед")).ConvertAll(x => (IMyCargoContainer)x);                                                         //Все конты, содержащие лёд
+                Cargo_with_ore = CargoContainers_all_list.FindAll(x => x.CustomName.Contains("Руда")).ConvertAll(x => (IMyCargoContainer)x);                                                        //Все конты, содержащие руду
+                Cargo_with_ingot = CargoContainers_all_list.FindAll(x => x.CustomName.Contains("Слитки")).ConvertAll(x => (IMyCargoContainer)x);                                                    //Все конты, содержащие слитки
+                Cargo_with_components = CargoContainers_all_list.FindAll(x => x.CustomName.Contains("Компоненты")).ConvertAll(x => (IMyCargoContainer)x);                                           //Все конты, содержащие компоненты
+                Cargo_with_instruments = CargoContainers_all_list.FindAll(x => x.CustomName.Contains("Инструменты")).ConvertAll(x => (IMyCargoContainer)x);                                         //Все конты, содержащие инструменты
+                Cargo_with_ammo = CargoContainers_all_list.FindAll(x => x.CustomName.Contains("Боезапас")).ConvertAll(x => (IMyCargoContainer)x);                                                   //Все конты, содержащие боеприпасы
+                Cargo_with_buttle = CargoContainers_all_list.FindAll(x => x.CustomName.Contains("Баллоны")).ConvertAll(x => (IMyCargoContainer)x);                                                  //Все конты, содержащие баллоны
+                pereinit = true;
+            }
 
             //Отключаем рудоломки и ледоломки
             {
+                GridTerminalSystem.GetBlocksOfType(All_ref_list);
+                IceCrusher_list = All_ref_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("IceCrusher"));
+                OreCrusher_list = All_ref_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("OreCrusher"));
+
                 foreach (var i in IceCrusher_list)
                 {
                     if (i.Enabled == true)
@@ -186,37 +211,41 @@
             }
             //Переименовываем блоки и меняем им параметры
             {
-                if ((zamedlenie % update_time) == 0)
+                //Протухание инициализации
+                if ((zamedlenie % update_name_time) == 0) { pereinit = false; }
+                if ((zamedlenie % update_properties) == 0)
                 {
                     CustomData();
-                    GridTerminalSystem.GetBlocksOfType(Upgrade_mudule_all_list, filterThis);
-                    GridTerminalSystem.GetBlocksOfType(TerminalBlocks_all_list, filterThis);
-                    Wind_Turbine_all_list = TerminalBlocks_all_list.FindAll(x => x.BlockDefinition.SubtypeId.Contains("WindTurbine"));
-
-                    bat = Rename(Battery_all_list, "АКБ", false, false, bat);                                                       //АКБ
-                    wind_turb = Rename(Wind_Turbine_all_list, "Ветряк", false, false, wind_turb);                                   //Ветряные мельницы
-                    upgr_mod = Rename(Upgrade_mudule_all_list, "Модуль улучшения", false, false, upgr_mod);                         //Модули апгрейда
-                    garage = Rename(Garage_all_list, "Гараж", false, false, garage);                                                //Гаражи
-                    gat_tur = Rename(Gatling_Turret_all_list, "Гатлинг", false, true, gat_tur);                                     //Турели гатлинга
-                    miss_tur = Rename(Missile_Turret_all_list, "Ракетница", false, true, miss_tur);                                 //Ракетницы
-                    couch = Rename(Couch_all_list, "Какой-то блять диван", false, false, couch);                                    //Диваны
-                    desk_corn = Rename(DeskCorner_all_list, "Какой-то угловой стол", false, false, desk_corn);                      //Столы
-                    bad = Rename(Bad_all_list, "Какая-то кровать", false, false, bad);                                              //Кровати
-                    weapon_rack = Rename(WeaponRack_all_list, "Оружейный шкафчик", false, false, weapon_rack);                      //Оружейные шкафчики
-                    base_ass = Rename(Base_Assembler_list, "Сборщик", true, false, base_ass);                                       //Сборщики
-                    basic_ass = Rename(Basic_Assembler_list, "Инструментарий", true, false, basic_ass);                             //Инструментарии
-                    refin = Rename(Base_ref_list, "Очиститель", true, false, refin);                                                //Рефки
-                    electrol = Rename(Electrolize_all_list, "Электоролизёр", false, false, electrol);                               //Электролизёры
-                    oil_ref = Rename(Oil_all_list, "Нефтезавод", false, false, oil_ref);                                            //Нефтезаводы
-                    keros_ref = Rename(Keros_all_list, "Экстрактор керосина", false, false, keros_ref);                             //Керос баки
-                    hyd_tank = Rename(Hydrogen_Tank_all_list, "Водородный бак", false, false, hyd_tank);                            //Водородные баки
-                    oil_tank = Rename(Oil_Tank_all_list, "Нефтяной бак", false, false, oil_tank);                                   //Нефте баки
-                    keros_tank = Rename(Keros_Tank_all_list, "Керосиновый бак", false, false, keros_tank);                          //Керос баки
-                    connectors = Rename(Connector_all_list, "Коннектор", false, false, connectors);                                 //Коннекторы
-                    disel_gen = Rename(Generator_all_list, "Дизель генератор", false, false, disel_gen);                            //Дизель генераторы
-                    solar_pan = Rename(SolarPanel_all_list, "Солнечная панель", false, false, solar_pan);                           //Солнечные панели
-                    welder = Rename(Welder_all_list, "Сварщик", false, false, welder);                                              //Сварщики
-                    nanite = Rename(Nanite_base_all_list, "Нанитка", true, false, nanite);                                          //Наниты
+                    lcd = Rename(LCD_all_list, "LCD", false, false, false, lcd, true);                                                           //LCD
+                    bat = Rename(Base_Battery_list, "АКБ", false, false, false, bat, true);                                                      //АКБ
+                    doors = Rename(door_all_list, "Дверь", false, false, false, doors, true);                                                    //Двери
+                    garage = Rename(Garage_all_list, "Гараж", true, false, false, garage, true);                                                 //Гаражи
+                    refin = Rename(Base_ref_list, "Очиститель", true, false, true, refin, true);                                                 //Рефки
+                    cargo = Rename(X_CargoContainers, "Конт", false, false, true, cargo, false);                                                 //Большие конты
+                    sartir = Rename(Sartir_all_list, "Сартир", false, false, false, sartir, false);                                              //Сартиры
+                    welder = Rename(Welder_all_list, "Сварщик", false, false, false, welder, true);                                              //Сварщики
+                    bad = Rename(Bad_all_list, "Какая-то кровать", false, false, false, bad, false);                                             //Кровати
+                    oil_ref = Rename(Oil_all_list, "Нефтезавод", false, false, false, oil_ref, true);                                            //Нефтезаводы
+                    nanite = Rename(Nanite_base_all_list, "Нанитка", true, false, false, nanite, true);                                          //Наниты
+                    design = Rename(Designator_all_list, "Десигнатор", false, true, false, design, true);                                        //Десигнаторы
+                    base_ass = Rename(Base_Assembler_list, "Сборщик", true, false, false, base_ass, true);                                       //Сборщики
+                    gat_tur = Rename(Gatling_Turret_all_list, "Гатлинг", false, true, false, gat_tur, true);                                     //Турели гатлинга
+                    miss_tur = Rename(Missile_Turret_list, "Ракетница", false, true, false, miss_tur, true);                                     //Ракетницы
+                    wind_turb = Rename(Wind_Turbine_all_list, "Ветряк", false, false, false, wind_turb, true);                                   //Ветряные мельницы
+                    couch = Rename(Couch_all_list, "Какой-то блять диван", false, false, false, couch, false);                                   //Диваны
+                    oil_tank = Rename(Oil_Tank_all_list, "Нефтяной бак", false, false, false, oil_tank, true);                                   //Нефте баки
+                    connectors = Rename(Connector_all_list, "Коннектор", false, false, false, connectors, true);                                 //Коннекторы
+                    electrol = Rename(Electrolize_all_list, "Электоролизёр", false, false, false, electrol, true);                               //Электролизёры
+                    basic_ass = Rename(Basic_Assembler_list, "Инструментарий", true, false, false, basic_ass, true);                             //Инструментарии
+                    keros_ref = Rename(Keros_all_list, "Экстрактор керосина", false, false, false, keros_ref, true);                             //Керос баки
+                    small_cargo = Rename(Small_CargoContainers_list, "Конт", false, false, true, small_cargo, false);                            //Малые конты
+                    hyd_tank = Rename(Hydrogen_Tank_all_list, "Водородный бак", false, false, false, hyd_tank, true);                            //Водородные баки
+                    disel_gen = Rename(Generator_all_list, "Дизель генератор", false, false, false, disel_gen, true);                            //Дизель генераторы
+                    solar_pan = Rename(SolarPanel_all_list, "Солнечная панель", false, false, false, solar_pan, true);                           //Солнечные панели
+                    keros_tank = Rename(Keros_Tank_all_list, "Керосиновый бак", false, false, false, keros_tank, true);                          //Керос баки
+                    upgr_mod = Rename(Upgrade_mudule_all_list, "Модуль улучшения", false, false, false, upgr_mod, true);                         //Модули апгрейда
+                    weapon_rack = Rename(WeaponRack_all_list, "Оружейный шкафчик", false, false, false, weapon_rack, true);                      //Оружейные шкафчики
+                    desk_corn = Rename(DeskCorner_all_list, "Какой-то угловой стол", false, false, false, desk_corn, false);                     //Столы
                 }
             }
             //Статусы рефок/сборщиков
@@ -241,38 +270,90 @@
                     }
                 }
             }
-            //Включаем рефки
+            //Включаем рефки и инструментарии
             {
                 if (args == "Ref_On") { ref_on_kd = true; }
                 if (args == "Ref_Off") { ref_on_kd = false; }
 
+                if ((zamedlenie % 40) == 0)
+                {
+                    List<IMyAssembler> Instrum = Basic_Assembler_list.ConvertAll(x => (IMyAssembler)x);
+                    foreach (var i in Instrum)
+                    {
+                        i.Enabled = true;
+                    }
+                }
                 if (ref_on_kd)
                 {
                     auto_on_ref = "Вкл";
-                    if ((zamedlenie % 30) == 0)
+                    if ((zamedlenie % 5) == 0)
                     {
-                        if (Base_ref_list.Count > 0)
+                        foreach (var cargo in Cargo_with_ore)
                         {
-                            List<IMyRefinery> Refins = Base_ref_list.ConvertAll(x => (IMyRefinery)x);
-                            foreach (var Ref in Refins)
+                            if (cargo.CustomName.Contains("[Руда] 1"))
                             {
-                                if (Ref.GetInventory(0).ItemCount > 0)
+                                List<MyInventoryItem> Items = new List<MyInventoryItem>();
+                                cargo.GetInventory(0).GetItems(Items);
+
+                                if (cargo.GetInventory(0).ItemCount > 0)
                                 {
-                                    Ref.Enabled = true;
-                                }
-                                else
-                                {
-                                    Ref.Enabled = false;
+                                    if (Items[0].Type.TypeId.Contains("Ore"))
+                                    {
+                                        if (Base_ref_list.Count > 0)
+                                        {
+                                            foreach (var Ref in Base_ref_list)
+                                            {
+                                                if (!Ref.GetInventory(0).IsFull)
+                                                {
+                                                    cargo.GetInventory(0).TransferItemTo(Ref.GetInventory(0), Items[0]);
+                                                    //break;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                    if ((zamedlenie % 20) == 0)
+                    {
+                        List<IMyRefinery> Refins = Base_ref_list.ConvertAll(x => (IMyRefinery)x);
+                        int ref_count = 0;
+
+                        foreach (var Ref in Refins)
+                        {
+                            if (Ref.GetInventory(0).ItemCount > 0)
+                            {
+                                Ref.Enabled = true;
+                            }
+                            else
+                            {
+                                ref_count++;
+                                Ref.Enabled = false;
+                            }
+                        }
+                        if (ref_count == Base_ref_list.Count)
+                        {
+                            ref_on_kd = false;
+                        }
+                    }    
                 }
                 else
                 {
                     auto_on_ref = "Выкл";
                 }
             }
+
+            //Сортирвка
+            if ((zamedlenie % update_time) == 0)
+            {
+                Sorting(Cargo_with_out_ore, Cargo_with_ore, "Ore");
+                Sorting(Cargo_with_out_ingot, Cargo_with_ingot, "Ingot");
+                Sorting(Cargo_with_out_components, Cargo_with_components, "Component");
+                Sorting(Cargo_with_out_instruments, Cargo_with_instruments, "GunObject");
+                Sorting(Cargo_with_out_ammo, Cargo_with_ammo, "Ammo");
+            }
+
             //Отключаем свет днём
             if ((zamedlenie % 800) == 0)
             {
@@ -316,29 +397,17 @@
                     }
                 }
             }
-            //Сортировка
-            if ((zamedlenie % 60) == 0)
-            {
-                foreach (string CargoType in CargoTypes)
-                {
-                    Cargos[CargoType] = new List<IMyTerminalBlock>();
-
-                    GridTerminalSystem.SearchBlocksOfName("[" + CargoType + "]", Cargos[CargoType]);
-                }
-                SortAssemberItems();
-                SortRefineryItems();
-                SortCargos();
-            }
-
             //Вся хуйня - на дисплеи
-            foreach (var i in LCD_Ass_Ref_list)
+            List<IMyTextPanel> LCD_pan = LCD_Ass_Ref_list.ConvertAll(x => (IMyTextPanel)x);
+            foreach (var i in LCD_pan)
             {
                 i.WriteText(ref_stat + "\n" + ass_stat, false);
                 i.WriteText("\n" + " Автовключение рефок:  " + "[" + auto_on_ref + "]", true);
             }
-            LCD_main.WriteText(zamedlenie % update_time + "\n" + Base_projector_list.Count() + "\n" + SolarPanel_all_list.Count() + "\n" + info + "\n" + base_name + "\n" + prefix + "\n" + use_id_owner + "\n"
-               + "Отключение света днём: " + light_day_off, false);
+            LCD_main.WriteText("Отключение света днём: " + light_day_off + "\n" + "Обновление наименований через " + (update_name_time - zamedlenie % update_name_time) + "\n" +
+                "Обновление настроек через: " + (update_properties - zamedlenie % update_properties) + "\n" + "Сортировка через: " + (update_time - zamedlenie % update_time), false);
         }
+
         //Свои данные
         public void CustomData()
         {
@@ -372,38 +441,36 @@
             }
             return;
         }
-
-        //Переименовывание
-        public int Rename (List<IMyTerminalBlock> list, string name, bool ShowInTerminal, bool ShowInToolbarConfig, int list_count)
+        //Переименовывание + настройка
+        public int Rename (List<IMyTerminalBlock> list, string name, bool ShowInTerminal, bool ShowInToolbarConfig, bool ShowInInventory, int list_count, bool use_id)
         {
+            foreach (var i in list)
+            {
+                //Отображенеи в терминале
+                if (ShowInTerminal) { if (i.ShowInTerminal == false) { i.ShowInTerminal = true; } } else { if (i.ShowInTerminal == true) { i.ShowInTerminal = false; } }
+                //Отображение в инвентаре
+                if (ShowInInventory) { if (i.ShowInInventory == false) { i.ShowInInventory = true; } } else { if (i.ShowInInventory == true) { i.ShowInInventory = false; } }
+                //Отображение в панели инструментов
+                if (ShowInToolbarConfig) { if (i.ShowInToolbarConfig == false) { i.ShowInToolbarConfig = true; } } else { if (i.ShowInToolbarConfig == true) { i.ShowInToolbarConfig = false; } }
+            }
             if (list.Count != list_count)
             {
                 foreach (var i in list)
                 {
-                    if (ShowInTerminal == false)
+                    long ID = 0;
+                    if (use_id)
                     {
-                        if (i.ShowInTerminal == true)
-                        {
-                            i.ShowInTerminal = false;
-                        }
+                        ID = i.OwnerId;
                     }
-                    if (ShowInToolbarConfig == false)
+                    //Ренейм
+                    if (i.CustomName.Contains(SetBlocksName(name + prefix, ID)) == false)
                     {
-                        if (i.ShowInToolbarConfig == true)
-                        {
-                            i.ShowInToolbarConfig = false;
-                        }
-                    }
-                    
-                    if (i.CustomName.Contains(SetBlocksName(name + prefix, i.OwnerId)) == false)
-                    {
-                        i.CustomName = SetBlocksName(name + prefix, i.OwnerId);
+                        i.CustomName = SetBlocksName(name + prefix, ID);
                     }
                 }
             }
             return list.Count;
         }
-
         //Состояние батарей
         public float GetChargeBat(IMyBatteryBlock batt)
         {
@@ -413,11 +480,10 @@
         //Состояние рефок
         public string GetRefStatus(IMyRefinery refin)
         {
-            string status = "Не работает";
+            string status = "Не варит";
             string[] ref_det_info = refin.DetailedInfo.Split('\n');
             string[] def_ref_energy = ref_det_info[1].Split(':');
             string[] cur_ref_energy = ref_det_info[2].Split(':');
-
 
             if (cur_ref_energy[1].Contains("."))
             {
@@ -451,7 +517,6 @@
             string[] def_ass_energy = ref_det_info[1].Split(':');
             string[] cur_ass_energy = ref_det_info[2].Split(':');
 
-
             if (cur_ass_energy[1].Contains("."))
             {
                 string[] def_ass_energy_1 = def_ass_energy[1].Split('.');
@@ -480,21 +545,6 @@
             }
             return status;
         }
-        //Какой грид в гараже
-        public string GetGridInGarage(IMyProjector garage)
-        {
-            string grid_name = "Пустой";
-            //string[] garage_info = garage.DetailedInfo.Split('\n');
-            //string[] garage_info = garage.CustomInfo.Split('\n');
-            //if(garage_info[4].Contains("Ship"))
-            {
-                //string [] grid_name_stroka = garage_info[5].Split(':');
-                //grid_name = grid_name_stroka[1].TrimStart(' ');
-            }
-            //grid_name = garage_info.Length.ToString();
-            grid_name = garage.DetailedInfo;
-            return grid_name;
-        }
         //Ники
         public string SetBlocksName(string name, long ID)
         {
@@ -510,7 +560,7 @@
             long kosh_owner_ID = 144115188075858457;             string Kosh = "Kosh";
             //long gidonic_owner_ID = 144115188075858440;        string Gidonic = "Gidonic";*/
 
-            if (use_id_owner == false)
+            if (ID == 0)
             {
                 return name + "  ";
             }
@@ -543,159 +593,180 @@
             lcd.Font = fount;
         }
         //Сортировка
-        //Сборщики
-        void SortAssemberItems()
+        void Sorting(List<IMyCargoContainer> cargo_from, List<IMyCargoContainer> cargo_to, string typeID)
         {
+            foreach (var cargo in cargo_from)
+            {
+                List<MyInventoryItem> Items = new List<MyInventoryItem>();
+                cargo.GetInventory(0).GetItems(Items);
+
+                foreach (var item in Items)
+                {
+                    //Битум
+                    if (item.Type.SubtypeId == "FrozenOil")
+                    {
+                        if (!Cargo_with_bitum.Contains(cargo))
+                        {
+                            foreach (var carg in Cargo_with_bitum)
+                            {
+                                if (!carg.GetInventory(0).IsFull)
+                                {
+                                    cargo.GetInventory(0).TransferItemTo(carg.GetInventory(0), item);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    //Лёд
+                    if (item.Type.SubtypeId == "Ice")
+                    {
+                        if (!Cargo_with_ice.Contains(cargo))
+                        {
+                            foreach (var carg in Cargo_with_ice)
+                            {
+                                if (!carg.GetInventory(0).IsFull)
+                                {
+                                    cargo.GetInventory(0).TransferItemTo(carg.GetInventory(0), item);
+                                    break;
+                                }
+                            }
+                        }    
+                    }
+                    //Баллоны
+                    if (item.Type.TypeId.Contains("ContainerObject"))
+                    {
+                        if(!Cargo_with_buttle.Contains(cargo))
+                        {
+                            foreach (var carg in Cargo_with_buttle)
+                            {
+                                if (!carg.GetInventory(0).IsFull)
+                                {
+                                    cargo.GetInventory(0).TransferItemTo(carg.GetInventory(0), item);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    //Всё остальное
+                    if (item.Type.TypeId.Contains(typeID))
+                    {
+                        if (!item.Type.SubtypeId.Contains("FrozenOil"))
+                        {
+                            if (!item.Type.SubtypeId.Contains("Ice"))
+                            {
+                                if (!item.Type.SubtypeId.Contains("Bottle"))
+                                {
+                                    foreach (var carg in cargo_to)
+                                    {
+                                        List<MyInventoryItem> Items_to = new List<MyInventoryItem>();
+                                        carg.GetInventory(0).GetItems(Items_to);
+                                        foreach (var it in Items_to)
+                                        {
+                                            if (it.Type.SubtypeId == item.Type.SubtypeId)
+                                            {
+                                                if (!carg.GetInventory(0).IsFull)
+                                                {
+                                                    cargo.GetInventory(0).TransferItemTo(carg.GetInventory(0), item);
+                                                }
+                                            }
+                                        }
+                                    }   
+                                    foreach (var carg in cargo_to)
+                                    {
+                                        if (!carg.GetInventory(0).IsFull)
+                                        {
+                                            cargo.GetInventory(0).TransferItemTo(carg.GetInventory(0), item);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            //Сборщики
             if (Base_Assembler_all_list.Count > 0)
             {
                 foreach (IMyAssembler Assembler in Base_Assembler_all_list)
                 {
                     if (Assembler.GetInventory(1).ItemCount > 0)
                     {
-                        List<MyInventoryItem> Items;
-                        Items = new List<MyInventoryItem>();
+                        List<MyInventoryItem> Items_ass;
+                        Items_ass = new List<MyInventoryItem>();
 
-                        Assembler.GetInventory(1).GetItems(Items);
+                        Assembler.GetInventory(1).GetItems(Items_ass);
 
-                        foreach (MyInventoryItem Item in Items)
+                        foreach (MyInventoryItem Item in Items_ass)
                         {
-                            if (Cargos.ContainsKey("Компоненты"))
+                            foreach (var carg in Cargo_with_components)
                             {
-                                foreach (IMyCargoContainer Cargo in Cargos["Компоненты"])
+                                List<MyInventoryItem> Items_to = new List<MyInventoryItem>();
+                                carg.GetInventory(0).GetItems(Items_to);
+                                foreach (var it in Items_to)
                                 {
-                                    if (!Cargo.GetInventory(0).IsFull)
+                                    if (it.Type.SubtypeId == Item.Type.SubtypeId)
                                     {
-                                        Assembler.GetInventory(1).TransferItemTo(Cargo.GetInventory(0), Item);
-                                        break;
+                                        if (!carg.GetInventory(0).IsFull)
+                                        {
+                                            Assembler.GetInventory(1).TransferItemTo(carg.GetInventory(0), Item);
+                                        }
                                     }
+                                }
+                            }
+                            foreach (var carg in Cargo_with_components)
+                            {
+                                if (!carg.GetInventory(0).IsFull)
+                                {
+                                    Assembler.GetInventory(1).TransferItemTo(carg.GetInventory(0), Item);
+                                    break;
                                 }
                             }
                         }
                     }
                 }
             }
-        }
-        //Очистители
-        void SortRefineryItems()
-        {
+            //Рефки
             if (Base_ref_all_list.Count > 0)
             {
                 foreach (IMyRefinery Refinery in Base_ref_all_list)
                 {
                     if (Refinery.GetInventory(1).ItemCount > 0)
                     {
-                        List<MyInventoryItem> Items;
-                        Items = new List<MyInventoryItem>();
+                        List<MyInventoryItem> Items_ref;
+                        Items_ref = new List<MyInventoryItem>();
 
-                        Refinery.GetInventory(1).GetItems(Items);
+                        Refinery.GetInventory(1).GetItems(Items_ref);
 
-                        foreach (MyInventoryItem Item in Items)
+                        foreach (MyInventoryItem Item in Items_ref)
                         {
-                            if (Cargos.ContainsKey("Слитки"))
+                            foreach (var carg in Cargo_with_ingot)
                             {
-                                foreach (IMyCargoContainer Cargo in Cargos["Слитки"])
+                                List<MyInventoryItem> Items_to = new List<MyInventoryItem>();
+                                carg.GetInventory(0).GetItems(Items_to);
+                                foreach (var it in Items_to)
                                 {
-                                    if (!Cargo.GetInventory(0).IsFull)
+                                    if (it.Type.SubtypeId == Item.Type.SubtypeId)
                                     {
-                                        Refinery.GetInventory(1).TransferItemTo(Cargo.GetInventory(0), Item);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        //Контейнеры
-        void SortCargos()
-        {
-            List<MyInventoryItem> Items;
-
-            foreach (string CargoType in CargoTypes)
-            {
-                if (Cargos.ContainsKey(CargoType))
-                {
-                    foreach (IMyCargoContainer Cargo in Cargos[CargoType])
-                    {
-                        if (Cargo.GetInventory(0).ItemCount > 0)
-                        {
-                            Items = new List<MyInventoryItem>();
-                            Cargo.GetInventory(0).GetItems(Items);
-                            foreach (MyInventoryItem Item in Items)
-                            {
-                                string ItemFullType = Item.Type.ToString();
-
-                                int firstStringPosition = ItemFullType.IndexOf("_");
-                                int secondStringPosition = ItemFullType.IndexOf("/");
-                                string ItemType = ItemFullType.Substring(firstStringPosition + 1, secondStringPosition - firstStringPosition - 1);
-                                string otladka = firstStringPosition + "\n" + secondStringPosition + "\n" + ItemType;
-
-                                if (ItemFullType.IndexOf("Ice") != -1) ItemType = "Ice";
-
-                                if (ItemType != CargoType)
-                                {
-                                    if (Cargos.ContainsKey(ItemType.ToUpper()))
-                                    {
-                                        foreach (IMyCargoContainer CargoDst in Cargos[ItemType.ToUpper()])
+                                        if (!carg.GetInventory(0).IsFull)
                                         {
-                                            if (!CargoDst.GetInventory(0).IsFull)
-                                            {
-                                                Cargo.GetInventory(0).TransferItemTo(CargoDst.GetInventory(0), Item);
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else if (Cargos.ContainsKey("STUFF"))
-                                    {
-                                        foreach (IMyCargoContainer CargoDst in Cargos["STUFF"])
-                                        {
-                                            if (!CargoDst.GetInventory(0).IsFull)
-                                            {
-                                                Cargo.GetInventory(0).TransferItemTo(CargoDst.GetInventory(0), Item);
-                                                break;
-                                            }
+                                            Refinery.GetInventory(1).TransferItemTo(carg.GetInventory(0), Item);
                                         }
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-            }
-
-            //Лёд
-
-            /*if (CargoContainers_all_list.Count > 0)
-            {
-                foreach (IMyCargoContainer Cargo in CargoContainers_all_list)
-                {
-                    if (Cargo.GetInventory(1).ItemCount > 0)
-                    {
-                        List<MyInventoryItem> Items;
-                        Items = new List<MyInventoryItem>();
-
-                        Refinery.GetInventory(1).GetItems(Items);
-
-                        foreach (MyInventoryItem Item in Items)
-                        {
-                            if (Cargos.ContainsKey("Слитки"))
+                            foreach (var carg in Cargo_with_ingot)
                             {
-                                foreach (IMyCargoContainer Cargo in Cargos["Слитки"])
+                                if (!carg.GetInventory(0).IsFull)
                                 {
-                                    if (!Cargo.GetInventory(0).IsFull)
-                                    {
-                                        Refinery.GetInventory(1).TransferItemTo(Cargo.GetInventory(0), Item);
-                                        break;
-                                    }
+                                    Refinery.GetInventory(1).TransferItemTo(carg.GetInventory(0), Item);
+                                    break;
                                 }
                             }
                         }
                     }
                 }
             }
-
-            */
         }
         //Крутилка
         public char InsertActivityChar(int counter)
@@ -712,4 +783,3 @@
         public void Save()
         { }
         // КОНЕЦ СКРИПТА
-
