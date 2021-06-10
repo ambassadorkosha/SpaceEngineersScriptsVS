@@ -289,8 +289,8 @@ namespace KROT_Scan_Fix
 
             //Считаем желаемую скорость вперед относительно коннектора корабля
             ForwardSpeed = 0;
-            //if (Math.Abs(DeltaH) / Math.Max(Math.Abs(DeltaF), 1) < 1)
-            if (Math.Abs(DeltaR) / Math.Max(Math.Abs(DeltaF), 1) < 1)
+            if (Math.Abs(DeltaH) / Math.Max(Math.Abs(DeltaF), 1) < 1)
+            //if (Math.Abs(DeltaR) / Math.Max(Math.Abs(DeltaF), 1) < 1)
             {
                 ForwardSpeed = -Math.Min(Math.Max(DeltaF / 10, 1), 10);
             }
