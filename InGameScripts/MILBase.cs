@@ -19,11 +19,11 @@ namespace MILBase
         //------------BEGIN--------------
         // НАЧАЛО СКРИПТА
         // Сия поебень - скрипт для главной базы на сервере "Nebula"
-
+        string script_ver = "v0.2";
         float info = 0;
-        string otladka = "", otladka_2 = "", ass_stat = "", ref_stat = "", prefix = "", base_name = "", auto_on_ref = "Выкл";
-        bool Pred_nastr = false, pereinit = false, light_day_off = false, use_id_owner = true, ref_on_kd = false;
-        int load = 0, zamedlenie = 0, update_time = 100, update_name_time = 1000, update_properties = 600;
+        string otladka = "", otladka_2 = "", ass_stat = "", ref_stat = "", prefix = "?", base_name = "?", auto_on_ref = "Выкл";
+        bool Pred_nastr_lcd = false, pereinit = false, light_day_off = false, use_id_owner = true, ref_on_kd = false;
+        int load = 0, zamedlenie = 0, update_time = 100, init_time = 1000, rename_time = 600;
         int bat = 0, wind_turb = 0, upgr_mod = 0, garage = 0, gat_tur = 0, miss_tur = 0, couch = 0, desk_corn = 0, bad = 0, weapon_rack = 0, base_ass = 0, basic_ass = 0, refin = 0, electrol = 0, oil_ref = 0, keros_ref = 0,
         hyd_tank = 0, oil_tank = 0, keros_tank = 0, connectors = 0, disel_gen = 0, solar_pan = 0, welder = 0, nanite = 0, cargo = 0, doors = 0, small_cargo = 0, lcd = 0, sartir = 0, design = 0;
 
@@ -104,34 +104,14 @@ namespace MILBase
         {
             //Me.Enabled = true;
             Runtime.UpdateFrequency = UpdateFrequency.Update1;
-            GridTerminalSystem.GetBlocksOfType<IMyTextPanel>(LCD_all_list, filterThis);
-            LCD_main = LCD_all_list.ConvertAll(x => (IMyTextPanel)x).Find(x => x.CustomName.Contains("LCD_main"));                                      //LCD
-            LCD_Ass_Ref_list = LCD_all_list.FindAll(x => x.CustomName.Contains("LCD_Очистка/сборка"));                                                  //LCD
-
-            //Ошибки
-            if (LCD_main == null) { error_list.Add("Нет LCD с именем <<LCD_main>>!"); }
-            if (LCD_Ass_Ref_list.Count == 0) { error_list.Add("Нет LCD с именем <<LCD_Очистка/сборка>>!"); }
         }
 
         public void Main(string args)
         {
             load++;
             zamedlenie++;
-            if ((LCD_main == null) || (LCD_Ass_Ref_list.Count == 0))
-            { Echo("Инициализация не успешна,\nвыход из main... " + "\n" + String.Join("\n", error_list) + "\n" + InsertActivityChar(load) + "\n"); return; }
-            else { Echo("Инициализация успешна  " + InsertActivityChar(load) + "\n" + zamedlenie % update_time + "\n" + String.Join("\n", error_list)); }
+            Echo(InsertActivityChar(load) + "");
 
-            //Преднастройка
-            if (Pred_nastr == false)
-            {
-                List<IMyTextPanel> LCD_panel = LCD_Ass_Ref_list.ConvertAll(x => (IMyTextPanel)x);
-                SetLcdConfig(LCD_main, ContentType.TEXT_AND_IMAGE, 0.78f, 0.0f, Color.Black, 0, 100, 0, "ОТЛАДКА");
-                foreach (var i in LCD_panel)
-                {
-                    SetLcdConfig(i, ContentType.TEXT_AND_IMAGE, 0.78f, 0.0f, Color.Black, 85, 0, 60, "Monospace");        //Экраны состояния рефок/сборщиков
-                }
-                Pred_nastr = true;
-            }
             //Переинициализация
             if (pereinit == false)
             {
@@ -230,10 +210,10 @@ namespace MILBase
             //Переименовываем блоки и меняем им параметры
             {
                 //Протухание инициализации
-                if ((zamedlenie % update_name_time) == 0) { pereinit = false; }
-                if ((zamedlenie % update_properties) == 0)
+                if ((zamedlenie % init_time) == 0) { pereinit = false; }
+                if ((zamedlenie % rename_time) == 0)
                 {
-                    CustomData();
+                    ReadCustomData();
                     lcd = Rename(LCD_all_list, "LCD", false, false, false, lcd, true);                                                           //LCD
                     bat = Rename(Base_Battery_list, "АКБ", false, false, false, bat, true);                                                      //АКБ
                     doors = Rename(door_all_list, "Дверь", false, false, false, doors, true);                                                    //Двери
@@ -324,7 +304,6 @@ namespace MILBase
                                                 if (!Ref.GetInventory(0).IsFull)
                                                 {
                                                     cargo.GetInventory(0).TransferItemTo(Ref.GetInventory(0), Items[0]);
-                                                    //break;
                                                 }
                                             }
                                         }
@@ -371,7 +350,6 @@ namespace MILBase
                 Sorting(Cargo_with_out_instruments, Cargo_with_instruments, "GunObject");
                 Sorting(Cargo_with_out_ammo, Cargo_with_ammo, "Ammo");
             }
-
             //Отключаем свет днём
             if ((zamedlenie % 800) == 0)
             {
@@ -416,32 +394,63 @@ namespace MILBase
                 }
             }
             //Вся хуйня - на дисплеи
-            List<IMyTextPanel> LCD_pan = LCD_Ass_Ref_list.ConvertAll(x => (IMyTextPanel)x);
-            foreach (var i in LCD_pan)
             {
-                i.WriteText(ref_stat + "\n" + ass_stat, false);
-                i.WriteText("\n" + " Автовключение рефок:  " + "[" + auto_on_ref + "]", true);
+                List<IMyTextPanel> LCD_pan = LCD_Ass_Ref_list.ConvertAll(x => (IMyTextPanel)x);
+                if ((LCD_main == null) || (LCD_Ass_Ref_list.Count == 0))
+                {
+                    Echo("Инициализация не успешна,\nДисплеи не работают... " + "\n" + String.Join("\n", error_list) + "\n");
+                    LCD_main = LCD_all_list.ConvertAll(x => (IMyTextPanel)x).Find(x => x.CustomName.Contains("LCD_main"));
+                    LCD_Ass_Ref_list = LCD_all_list.FindAll(x => x.CustomName.Contains("LCD_Очистка/сборка"));
+
+                    //Ошибки
+                    error_list.Clear();
+                    if (LCD_main == null) { error_list.Add("Нет LCD содержащего <<LCD_main>>!"); }
+                    if (LCD_Ass_Ref_list.Count == 0) { error_list.Add("Нет LCD содержащего <<LCD_Очистка/сборка>>!"); }
+                }
+                else
+                {
+                    Echo("Инициализация успешна  " + "\n" + String.Join("\n", error_list));
+
+                    //Преднастройка LCD
+                    if (Pred_nastr_lcd == false)
+                    {
+                        List<IMyTextPanel> LCD_panel = LCD_Ass_Ref_list.ConvertAll(x => (IMyTextPanel)x);
+                        SetLcdConfig(LCD_main, ContentType.TEXT_AND_IMAGE, 0.74f, 0.0f, Color.Black, 0, 100, 0, "Monospace");
+                        foreach (var i in LCD_panel)
+                        {
+                            SetLcdConfig(i, ContentType.TEXT_AND_IMAGE, 0.78f, 0.0f, Color.Black, 85, 0, 60, "Monospace");        //Экраны состояния рефок/сборщиков
+                        }
+                        Pred_nastr_lcd = true;
+                    }
+                    foreach (var i in LCD_pan)
+                    {
+                        i.WriteText(ref_stat + "\n" + ass_stat, false);
+                        i.WriteText("\n" + " Автовключение рефок:  " + "[" + auto_on_ref + "]", true);
+                    }
+
+                    string light_tumb = "Отключение света днём:"; int ostat_light_tumb_leight = 30 - light_tumb.Length;
+                    string reinit = "Reinitialisation:"; int ostat_reinit_leight = 30 - reinit.Length;
+                    string update_set = "Rename/update:"; int ostat_update_set_leight = 30 - update_set.Length;
+                    string sorting = "Sorting:"; int ostat_sorting_leight = 30 - sorting.Length;
+
+                    LCD_main.WriteText(light_tumb + new String('_', ostat_light_tumb_leight) + light_day_off + "\n" + reinit + new String('_', ostat_reinit_leight) + (init_time - zamedlenie % init_time) + "\n" +
+                        update_set + new String('_', ostat_update_set_leight) + (rename_time - zamedlenie % rename_time) + "\n" + sorting + new String('_', ostat_sorting_leight) + (update_time - zamedlenie % update_time), false);
+                }
             }
-            LCD_main.WriteText("Отключение света днём: " + light_day_off + "\n" + "Обновление наименований через " + (update_name_time - zamedlenie % update_name_time) + "\n" +
-                "Обновление настроек через: " + (update_properties - zamedlenie % update_properties) + "\n" + "Сортировка через: " + (update_time - zamedlenie % update_time), false);
         }
 
-        //Свои данные
-        public void CustomData()
+        //Read custom data
+        public void ReadCustomData()
         {
             if (Me.CustomData.Length < 1)
             {
-                Me.CustomData = "Сия поебень - скрипт для кораблей/баз, предназначенный для\nупорядочивания пиздеца и некоторых других фич\n v 0.1 Okabe edition\n" +
-                                "1) Название базы/корабля: <?>\n" +
-                                "2) Префикс, (Будет отображаться в конце имён блоков): <?>\n" +
-                                "3) Частота обновления (в тиках): <100>\n" +
-                                "4) Добавлять в конце названия блока ник владельца (true/false)?: <true>\n" +
-                                "5) Отключать свет днём (true/false)?: <true>";
+                SaveCustomData(script_ver, base_name, prefix, update_time, use_id_owner, light_day_off);
             }
             else
             {
                 string custom_date = Me.CustomData;
                 string[] custom_date_list = custom_date.Split('\n');
+                string[] script_ver_list = custom_date_list[2].Split(' ');
                 string[] base_name_list = custom_date_list[3].Split(':');
                 string[] prefix_name_list = custom_date_list[4].Split(':');
                 string[] update_time_list = custom_date_list[5].Split(':');
@@ -449,16 +458,31 @@ namespace MILBase
                 string[] use_light_day_night_list = custom_date_list[7].Split(':');
 
                 base_name = base_name_list[1].TrimStart(' ', '<').TrimEnd('>');
-                prefix = " " + prefix_name_list[1].TrimStart(' ', '<').TrimEnd('>');
+                prefix = prefix_name_list[1].TrimStart(' ', '<').TrimEnd('>');
                 update_time = Int32.Parse(update_time_list[1].TrimStart(' ', '<').TrimEnd('>'));
                 string use_id_owner_flag = use_id_owner_list[1].TrimStart(' ', '<').TrimEnd('>');
                 string light_day_off_str = use_light_day_night_list[1].TrimStart(' ', '<').TrimEnd('>');
+                string version = script_ver_list[0];
 
-                if (use_id_owner_flag == "true") { use_id_owner = true; } else if (use_id_owner_flag == "false") { use_id_owner = false; }
-                if (light_day_off_str == "true") { light_day_off = true; } else if (light_day_off_str == "false") { light_day_off = false; }
+                if (use_id_owner_flag == "True") { use_id_owner = true; } else if (use_id_owner_flag == "False") { use_id_owner = false; }
+                if (light_day_off_str == "True") { light_day_off = true; } else if (light_day_off_str == "False") { light_day_off = false; }
+                if (version != script_ver)
+                {
+                    SaveCustomData(script_ver, base_name, prefix, update_time, use_id_owner, light_day_off);
+                }
             }
-            return;
         }
+        //Save custom data
+        public void SaveCustomData(string version, string base_name, string prefix, int update_time, bool use_id_owner, bool light_day_off)
+        {
+            Me.CustomData = "Сия поебень - скрипт для кораблей/баз, предназначенный для\nупорядочивания пиздеца и некоторых других фич\n" + version + " Okabe edition\n" +
+                               "1) Название базы/корабля: <" + base_name + ">\n" +
+                               "2) Префикс, (Будет отображаться в конце имён блоков): <" + prefix + ">\n" +
+                               "3) Частота обновления (в тиках): <" + update_time + ">\n" +
+                               "4) Добавлять в конце названия блока ник владельца (True/False)?: <" + use_id_owner + ">\n" +
+                               "5) Отключать свет днём (True/False)?: <" + light_day_off + ">";
+        }
+
         //Переименовывание + настройка
         public int Rename(List<IMyTerminalBlock> list, string name, bool ShowInTerminal, bool ShowInToolbarConfig, bool ShowInInventory, int list_count, bool use_id)
         {
@@ -481,9 +505,9 @@ namespace MILBase
                         ID = i.OwnerId;
                     }
                     //Ренейм
-                    if (i.CustomName.Contains(SetBlocksName(name + prefix, ID)) == false)
+                    if (i.CustomName.Contains(SetBlocksName(name + " " + prefix, ID)) == false)
                     {
-                        i.CustomName = SetBlocksName(name + prefix, ID);
+                        i.CustomName = SetBlocksName(name + " " + prefix, ID);
                     }
                 }
             }
@@ -580,7 +604,7 @@ namespace MILBase
 
             if (ID == 0)
             {
-                return name + "  ";
+                return name;
             }
             else
             {
@@ -789,7 +813,7 @@ namespace MILBase
         //Крутилка
         public char InsertActivityChar(int counter)
         {
-            switch ((counter / 10) % 4)
+            switch ((counter) % 4)
             {
                 case 0: { return '|'; }
                 case 1: { return '/'; }
