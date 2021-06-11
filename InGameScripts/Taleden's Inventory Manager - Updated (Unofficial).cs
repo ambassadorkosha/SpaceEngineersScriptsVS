@@ -230,33 +230,73 @@ namespace Taledens_Inventory_Manager
         // =================================================
         const string MOB = "MyObjectBuilder_";
         const string NON_AMMO = "Component,GasContainerObject,Ingot,Ore,OxygenContainerObject,PhysicalGunObject\n";
-        readonly string Y = string.Format("v{0}.{1}.{2} ({3})", 1, 7, 7, "2019-04-07"); bool aa; bool ab; char ac; char ad;
-        string ae; bool af; bool ag; bool ah; bool ai; string aj; readonly System.Text.RegularExpressions.Regex al = new System.Text.
-              RegularExpressions.Regex(@"^([^=\n]*)(?:=([^=\n]*))?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.
-              RegularExpressions.RegexOptions.Multiline | System.Text.RegularExpressions.RegexOptions.Compiled); readonly string[] am ={"quotas",
-"sorting","refineries","assemblers"}; const StringComparison an = StringComparison.OrdinalIgnoreCase; const StringSplitOptions ao =
-    StringSplitOptions.RemoveEmptyEntries; static readonly char[] ap = { ' ', '\t', '\u00AD' }, aq = { ':' }, ar = { '\r', '\n' }, at ={' ','\t','\u00AD',
-','}; static Dictionary<string, Dictionary<string, Dictionary<string, HashSet<string>>>> au = new Dictionary<string, Dictionary<string,
- Dictionary<string, HashSet<string>>>>(); static List<string> av = new List<string>(); static Dictionary<string, string> aw = new Dictionary<
-       string, string>(); static Dictionary<string, List<string>> ax = new Dictionary<string, List<string>>(); static Dictionary<string, long> ay =
-               new Dictionary<string, long>(); static List<string> az = new List<string>(); static Dictionary<string, string> aA = new Dictionary<string,
-                     string>(); static Dictionary<string, List<string>> aB = new Dictionary<string, List<string>>(); static Dictionary<string, Dictionary<
-                            string, bK>> aC = new Dictionary<string, Dictionary<string, bK>>(); static Dictionary<MyDefinitionId, ak> aD = new Dictionary<MyDefinitionId,
-                                   ak>(); string aE = ""; string[] aF = new string[12]; DateTime aG; TimeSpan aH = new TimeSpan(0, 0, 0, 0, UPDATE_REAL_TIME); long aI; int aJ; int aK;
-        int aL; int aM; readonly Action[] aN; System.Text.RegularExpressions.Regex aO; static bool aP; string aQ; StringBuilder aR = new
-               StringBuilder(); HashSet<IMyCubeGrid> aS = new HashSet<IMyCubeGrid>(); Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<
-                    IMyInventory, long>>>> aT = new Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<IMyInventory, long>>>>(); Dictionary<
-                             IMyTextPanel, int> aU = new Dictionary<IMyTextPanel, int>(); Dictionary<IMyTextPanel, List<string>> aV = new Dictionary<IMyTextPanel, List<
-                                   string>>(); Dictionary<IMyTextPanel, List<string>> aW = new Dictionary<IMyTextPanel, List<string>>(); List<IMyTextPanel> aX = new List<
-                                          IMyTextPanel>(); List<IMyTextPanel> aY = new List<IMyTextPanel>(); HashSet<string> aZ = new HashSet<string>(); List<string> a_ = new List<
-                                                   string>(); Dictionary<IMyTerminalBlock, System.Text.RegularExpressions.Match> b0 = new Dictionary<IMyTerminalBlock, System.Text.
-                                                    RegularExpressions.Match>(); Dictionary<IMyTerminalBlock, System.Text.RegularExpressions.Match> b1 = new Dictionary<IMyTerminalBlock,
-                                                     System.Text.RegularExpressions.Match>(); HashSet<IMyInventory> b2 = new HashSet<IMyInventory>(); HashSet<IMyInventory> b3 = new HashSet<
-                                                          IMyInventory>(); Dictionary<IMyRefinery, HashSet<string>> b4 = new Dictionary<IMyRefinery, HashSet<string>>(); Dictionary<IMyAssembler,
-                                                                 HashSet<ak>> b5 = new Dictionary<IMyAssembler, HashSet<ak>>(); Dictionary<IMyFunctionalBlock, bJ> b6 = new Dictionary<IMyFunctionalBlock, bJ
-                                                                      >(); Dictionary<IMyFunctionalBlock, int> b7 = new Dictionary<IMyFunctionalBlock, int>(); Dictionary<IMyTextPanel, a9> b8 = new Dictionary<
-                                                                             IMyTextPanel, a9>(); Dictionary<IMyTerminalBlock, HashSet<IMyTerminalBlock>> b9 = new Dictionary<IMyTerminalBlock, HashSet<
-                                                                               IMyTerminalBlock>>(); public Action<string> EchoR; int ba { get { return (int)((DateTime.Now - aG).TotalMilliseconds + 0.5); } }
+        readonly string Y = string.Format("v{0}.{1}.{2} ({3})", 1, 7, 7, "2019-04-07");
+        bool aa; 
+        bool ab; 
+        char ac; 
+        char ad;
+        string ae;
+        bool af; 
+        bool ag; 
+        bool ah; 
+        bool ai; 
+        string aj;
+        readonly System.Text.RegularExpressions.Regex al = new System.Text.RegularExpressions.Regex(@"^([^=\n]*)(?:=([^=\n]*))?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Multiline | System.Text.RegularExpressions.RegexOptions.Compiled);
+        readonly string[] am ={"quotas","sorting","refineries","assemblers"};
+        const StringComparison an = StringComparison.OrdinalIgnoreCase;
+        const StringSplitOptions ao = StringSplitOptions.RemoveEmptyEntries; 
+        static readonly char[] ap = { ' ', '\t', '\u00AD' }, aq = { ':' }, ar = { '\r', '\n' }, at ={' ','\t','\u00AD', ','};
+        static Dictionary<string, Dictionary<string, Dictionary<string, HashSet<string>>>> au = new Dictionary<string, Dictionary<string, Dictionary<string, HashSet<string>>>>(); 
+        static List<string> av = new List<string>(); 
+        static Dictionary<string, string> aw = new Dictionary<string, string>(); 
+        static Dictionary<string, List<string>> ax = new Dictionary<string, List<string>>();
+        static Dictionary<string, long> ay = new Dictionary<string, long>();
+        static List<string> az = new List<string>(); 
+        static Dictionary<string, string> aA = new Dictionary<string, string>(); 
+        static Dictionary<string, List<string>> aB = new Dictionary<string, List<string>>();
+        static Dictionary<string, Dictionary<string, bK>> aC = new Dictionary<string, Dictionary<string, bK>>();
+        static Dictionary<MyDefinitionId, ak> aD = new Dictionary<MyDefinitionId, ak>();
+        string aE = ""; 
+        string[] aF = new string[12];
+        DateTime aG;
+        TimeSpan aH = new TimeSpan(0, 0, 0, 0, UPDATE_REAL_TIME); 
+        long aI;
+        int aJ; 
+        int aK;
+        int aL;
+        int aM; 
+        readonly Action[] aN;
+        System.Text.RegularExpressions.Regex aO; 
+        static bool aP; 
+        string aQ;
+        StringBuilder aR = new StringBuilder(); 
+        HashSet<IMyCubeGrid> aS = new HashSet<IMyCubeGrid>();
+        Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<IMyInventory, long>>>> aT = new Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<IMyInventory, long>>>>(); 
+        Dictionary<IMyTextPanel, int> aU = new Dictionary<IMyTextPanel, int>(); 
+        Dictionary<IMyTextPanel, List<string>> aV = new Dictionary<IMyTextPanel, List<string>>();
+        Dictionary<IMyTextPanel, List<string>> aW = new Dictionary<IMyTextPanel, List<string>>(); 
+        List<IMyTextPanel> aX = new List<IMyTextPanel>();
+        List<IMyTextPanel> aY = new List<IMyTextPanel>();
+        HashSet<string> aZ = new HashSet<string>();
+        List<string> a_ = new List<string>();
+        Dictionary<IMyTerminalBlock, System.Text.RegularExpressions.Match> b0 = new Dictionary<IMyTerminalBlock, System.Text.RegularExpressions.Match>();
+        Dictionary<IMyTerminalBlock, System.Text.RegularExpressions.Match> b1 = new Dictionary<IMyTerminalBlock, System.Text.RegularExpressions.Match>(); 
+        HashSet<IMyInventory> b2 = new HashSet<IMyInventory>(); 
+        HashSet<IMyInventory> b3 = new HashSet<IMyInventory>();
+        Dictionary<IMyRefinery, HashSet<string>> b4 = new Dictionary<IMyRefinery, HashSet<string>>();
+        Dictionary<IMyAssembler, HashSet<ak>> b5 = new Dictionary<IMyAssembler, HashSet<ak>>();
+        Dictionary<IMyFunctionalBlock, bJ> b6 = new Dictionary<IMyFunctionalBlock, bJ>();
+        Dictionary<IMyFunctionalBlock, int> b7 = new Dictionary<IMyFunctionalBlock, int>(); 
+        Dictionary<IMyTextPanel, a9> b8 = new Dictionary<IMyTextPanel, a9>();
+        Dictionary<IMyTerminalBlock, HashSet<IMyTerminalBlock>> b9 = new Dictionary<IMyTerminalBlock, HashSet<IMyTerminalBlock>>(); 
+        public Action<string> EchoR; 
+        int ba 
+        {
+            get 
+            {
+                return (int)((DateTime.Now - aG).TotalMilliseconds + 0.5);
+            }
+        }
         double bb
         {
             get
@@ -268,40 +308,85 @@ namespace Taledens_Inventory_Manager
         class a8 : Exception { }
         struct a9
         {
-            public int
-A, B; public a9(int b, int c) { A = b; B = c; }
+            public int A, B; 
+            public a9(int b, int c)
+            {
+                A = b;
+                B = c;
+            }
         }
-        struct ak { public string type, subType; public ak(string b, string c) { type = b; subType = c; } }
-        struct
-bJ
-        { public ak item; public double quantity; public bJ(ak b, double c) { item = b; quantity = c; } }
+        struct ak 
+        {
+            public string type, subType;
+            public ak(string b, string c) 
+            {
+                type = b; 
+                subType = c; 
+            }
+        }
+        struct bJ
+        { 
+            public ak item;
+            public double quantity;
+            public bJ(ak b, double c) 
+            {
+                item = b; 
+                quantity = c;
+            }
+        }
         class bK
         {
-            public string subType, label; public
-MyDefinitionId blueprint; public long amount, avail, locked, quota, minimum; public float ratio; public int qpriority, hold, jam; public
-Dictionary<IMyInventory, long> invenTotal; public Dictionary<IMyInventory, int> invenSlot; public HashSet<IMyFunctionalBlock> producers;
-            public Dictionary<string, double> prdSpeed; public static void InitItem(string b, string c, long e = 0L, float f = 0.0f, string g = "", string h
-               = "")
+            public string subType, label; 
+            public MyDefinitionId blueprint; 
+            public long amount, avail, locked, quota, minimum; 
+            public float ratio; 
+            public int qpriority, hold, jam;
+            public Dictionary<IMyInventory, long> invenTotal;
+            public Dictionary<IMyInventory, int> invenSlot; 
+            public HashSet<IMyFunctionalBlock> producers;
+            public Dictionary<string, double> prdSpeed; 
+            public static void InitItem(string b, string c, long e = 0L, float f = 0.0f, string g = "", string h = "")
             {
-                string j = b, k = c; b = b.ToUpper(); c = c.ToUpper(); if (!ax.ContainsKey(b))
+                string j = b, k = c;
+                b = b.ToUpper(); 
+                c = c.ToUpper(); 
+                if (!ax.ContainsKey(b))
                 {
-                    av.Add(b); aw[b] = j; ax[b] = new List<string>(); ay[b] = 0L; aC[b] =
-new Dictionary<string, bK>();
+                    av.Add(b); 
+                    aw[b] = j;
+                    ax[b] = new List<string>();
+                    ay[b] = 0L;
+                    aC[b] = new Dictionary<string, bK>();
                 }
-                if (!aB.ContainsKey(c)) { az.Add(c); aA[c] = k; aB[c] = new List<string>(); }
+                if (!aB.ContainsKey(c))
+                {
+                    az.Add(c); 
+                    aA[c] = k;
+                    aB[c] = new List<string>();
+                }
                 if (!aC[b].ContainsKey(c))
                 {
                     aP = true;
-                    ax[b].Add(c); aB[c].Add(b); aC[b][c] = new bK(c, e, f, g == "" ? k : g, h == "" ? k : h); if (h != null) aD[aC[b][c].blueprint] = new ak(b, c);
+                    ax[b].Add(c);
+                    aB[c].Add(b);
+                    aC[b][c] = new bK(c, e, f, g == "" ? k : g, h == "" ? k : h);
+                    if (h != null) aD[aC[b][c].blueprint] = new ak(b, c);
                 }
             }
-            private bK(
-string b, long c, float e, string f, string g)
+            private bK(string b, long c, float e, string f, string g)
             {
-                subType = b; this.label = f; this.blueprint = g == null ? default(MyDefinitionId) : MyDefinitionId.
-Parse("MyObjectBuilder_BlueprintDefinition/" + g); amount = avail = locked = quota = 0L; this.minimum = (long)(c * 1000000.0 + 0.5); this.ratio = e /
-100.0f; qpriority = -1; hold = jam = 0; invenTotal = new Dictionary<IMyInventory, long>(); invenSlot = new Dictionary<IMyInventory, int>();
-                producers = new HashSet<IMyFunctionalBlock>(); prdSpeed = new Dictionary<string, double>();
+                subType = b;
+                this.label = f;
+                this.blueprint = g == null ? default(MyDefinitionId) : MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + g);
+                amount = avail = locked = quota = 0L; 
+                this.minimum = (long)(c * 1000000.0 + 0.5);
+                this.ratio = e / 100.0f;
+                qpriority = -1;
+                hold = jam = 0;
+                invenTotal = new Dictionary<IMyInventory, long>();
+                invenSlot = new Dictionary<IMyInventory, int>();
+                producers = new HashSet<IMyFunctionalBlock>(); 
+                prdSpeed = new Dictionary<string, double>();
             }
         }
         public Program()
@@ -540,9 +625,19 @@ Parse("MyObjectBuilder_BlueprintDefinition/" + g); amount = avail = locked = quo
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
         }
         public void ProcessStepProcessArgs()
-        { if (Me.CustomData != aj) { a_.Add("Arguments changed, re-processing..."); be(); aj = Me.CustomData; } }
+        { 
+            if (Me.CustomData != aj) 
+            {
+                a_.Add("Arguments changed, re-processing..."); 
+                be();
+                aj = Me.CustomData;
+            }
+        }
         public void ProcessStepScanGrids()
-        { a_.Add("Scanning grid connectors..."); bl(); }
+        { 
+            a_.Add("Scanning grid connectors...");
+            bl();
+        }
         public void ProcessStepStandbyCheck()
         {
             List<IMyTerminalBlock> b = new List<IMyTerminalBlock>();
@@ -627,8 +722,7 @@ Parse("MyObjectBuilder_BlueprintDefinition/" + g); amount = avail = locked = quo
         }
         public void ProcessStepAmountAdjustment() { a_.Add("Adjusting tallies..."); bo(); }
         public void ProcessStepQuotaPanels() { a_.Add("Scanning quota panels..."); bp(ab); }
-        public void ProcessStepLimitedItemRequests() { a_.Add("Processing limited item requests..."); bA(true);
-        }
+        public void ProcessStepLimitedItemRequests() { a_.Add("Processing limited item requests..."); bA(true); }
         public void ProcessStepManageRefineries() { a_.Add("Managing refineries..."); bE(); }
         public void ProcessStepScanProduction() { a_.Add("Scanning production..."); bD(); }
         public void ProcessStepUnlimitedItemRequests() { 
@@ -665,25 +759,37 @@ Parse("MyObjectBuilder_BlueprintDefinition/" + g); amount = avail = locked = quo
         }
         bool bh(IMyCubeBlock b, string c, string e)
         {
-            Dictionary<string, Dictionary<string, HashSet<string>>> f; Dictionary<string, HashSet<string>> g; HashSet<string> h; if (au.
-           TryGetValue(b.BlockDefinition.TypeIdString.ToUpper(), out f))
+            Dictionary<string, Dictionary<string, HashSet<string>>> f; 
+            Dictionary<string, HashSet<string>> g;
+            HashSet<string> h; 
+            if (au.TryGetValue(b.BlockDefinition.TypeIdString.ToUpper(), out f))
             {
-                f.TryGetValue(b.BlockDefinition.SubtypeName.ToUpper(), out g); if ((g ?? f["*"]).TryGetValue(c, out h)) return !(h == null || h.Contains(e));
+                f.TryGetValue(b.BlockDefinition.SubtypeName.ToUpper(), out g); 
+                if ((g ?? f["*"]).TryGetValue(c, out h)) return !(h == null || h.Contains(e));
             }
             return true;
         }
         HashSet<string> bi(IMyCubeBlock b, string c, HashSet<string > e = null)
         {
-            Dictionary<string, Dictionary<string, HashSet<string>>> f; Dictionary<string, HashSet<string>> g; HashSet<string> h; e = e ?? new
-            HashSet<string>(ax[c]); if (au.TryGetValue(b.BlockDefinition.TypeIdString.ToUpper(), out f))
+            Dictionary<string, Dictionary<string, HashSet<string>>> f; 
+            Dictionary<string, HashSet<string>> g;
+            HashSet<string> h;
+            e = e ?? new HashSet<string>(ax[c]); 
+            if (au.TryGetValue(b.BlockDefinition.TypeIdString.ToUpper(), out f))
             {
-                f.TryGetValue(b.BlockDefinition.SubtypeName.ToUpper(), out g); if ((g ?? f["*"]).TryGetValue(c, out h)) e.ExceptWith(h ?? e);
+                f.TryGetValue(b.BlockDefinition.SubtypeName.ToUpper(), out g);
+                if ((g ?? f["*"]).TryGetValue(c, out h)) e.ExceptWith(h ?? e);
             }
             return e;
         }
         string bj(IMyCubeBlock b, string c)
         {
-            string e; e = null; foreach (string itype in aB[c]) { if (bh(b, itype, c)) { if (e != null) return null; e = itype; } }
+            string e; 
+            e = null;
+            foreach (string itype in aB[c]) { if (bh(b, itype, c)) { if (e != null) return null; 
+                    e = itype;
+                }
+            }
             return e;
         }
         string bk(long b)
