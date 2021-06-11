@@ -12,7 +12,8 @@ using VRage.Collections;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Game.ModAPI.Ingame;
 using SpaceEngineers.Game.ModAPI.Ingame;
-
+using VRage.Game.GUI.TextPanel;
+using System.Linq;
 
 namespace Taledens_Inventory_Manager
 {
@@ -124,6 +125,7 @@ namespace Taledens_Inventory_Manager
                                     /CompT10,10000,1%
                                     /CompT11,10000,1%
                                     /CompT12,10000,1%
+
 
                                     GasContainerObject/
                                     /HydrogenBottle
@@ -304,67 +306,121 @@ Parse("MyObjectBuilder_BlueprintDefinition/" + g); amount = avail = locked = quo
         }
         public Program()
         {
-            EchoR = b =>
-            {
-                aR.AppendLine(b)
-; Echo(b);
-            }; aN = new Action[]{ProcessStepProcessArgs,ProcessStepScanGrids,ProcessStepStandbyCheck,ProcessStepInventoryScan,
-ProcessStepParseTags,ProcessStepAmountAdjustment,ProcessStepQuotaPanels,ProcessStepLimitedItemRequests,ProcessStepManageRefineries
-,ProcessStepUnlimitedItemRequests,ProcessStepManageAssemblers,ProcessStepScanProduction,ProcessStepUpdateInventoryPanels,}; int c;
-            ScreenFormatter.Init(); aE = "Taleden's Inventory Manager\n" + Y + "\n\n" + ScreenFormatter.Format("Run", 80, out c, 1) + ScreenFormatter.Format
-             ("F-Step", 125 + c, out c, 1) + ScreenFormatter.Format("Time", 145 + c, out c, 1) + ScreenFormatter.Format("Load", 105 + c, out c, 1) + ScreenFormatter
-             .Format("S", 65 + c, out c, 1) + ScreenFormatter.Format("R", 65 + c, out c, 1) + ScreenFormatter.Format("A", 65 + c, out c, 1) + "\n\n"; bc(
-                                   DEFAULT_ITEMS); bd(DEFAULT_RESTRICTIONS); if (USE_REAL_TIME) Runtime.UpdateFrequency = UpdateFrequency.Update1;
-            else Runtime.
-UpdateFrequency = UPDATE_FREQUENCY; EchoR("Compiled TIM " + Y); aQ = string.Format(
-"Taleden's Inventory Manager\n{0}\nLast run: #{{0}} at {{1}}", Y);
+            EchoR = b => {
+                aR.AppendLine(b);
+                Echo(b);
+            }; 
+            aN = new Action[]{
+                ProcessStepProcessArgs,
+                ProcessStepScanGrids,
+                ProcessStepStandbyCheck,
+                ProcessStepInventoryScan,
+                ProcessStepParseTags,
+                ProcessStepAmountAdjustment,
+                ProcessStepQuotaPanels,
+                ProcessStepLimitedItemRequests,
+                ProcessStepManageRefineries,
+                ProcessStepUnlimitedItemRequests,
+                ProcessStepManageAssemblers,
+                ProcessStepScanProduction,
+                ProcessStepUpdateInventoryPanels,
+            }; 
+            int c;
+            ScreenFormatter.Init(); 
+            aE = "Taleden's Inventory Manager\n" +
+                "" + Y + "\n\n" + "" + 
+                ScreenFormatter.Format("Run", 80, out c, 1) + 
+                ScreenFormatter.Format("F-Step", 125 + c, out c, 1) + 
+                ScreenFormatter.Format("Time", 145 + c, out c, 1) + 
+                ScreenFormatter.Format("Load", 105 + c, out c, 1) + 
+                ScreenFormatter.Format("S", 65 + c, out c, 1) + 
+                ScreenFormatter.Format("R", 65 + c, out c, 1) + 
+                ScreenFormatter.Format("A", 65 + c, out c, 1) + "\n\n";
+            bc(DEFAULT_ITEMS);
+            bd(DEFAULT_RESTRICTIONS); 
+            if (USE_REAL_TIME) Runtime.UpdateFrequency = UpdateFrequency.Update1;
+            else Runtime.UpdateFrequency = UPDATE_FREQUENCY;
+            EchoR("Compiled TIM " + Y);
+            aQ = string.Format("Taleden's Inventory Manager\n{0}\nLast run: #{{0}} at {{1}}", Y);
         }
         public void Main(string b)
         {
             if (USE_REAL_TIME)
             {
-                DateTime c = DateTime
-.Now; if (c - aG >= aH) aG = c; else { Echo(aR.ToString()); return; }
+                DateTime c = DateTime.Now;
+                if (c - aG >= aH) aG = c;
+                else 
+                {
+                    Echo(aR.ToString());
+                    return;
+                }
             }
-            else aG = DateTime.Now; aR.Clear(); int e = aM; bool f = false; EchoR(string.Format(
-aQ, ++aI, aG.ToString("h:mm:ss tt"))); a_.Clear(); aZ.Clear(); aJ = aK = aL = 0; try
+            else aG = DateTime.Now;
+            aR.Clear(); 
+            int e = aM;
+            bool f = false;
+            EchoR(string.Format(aQ, ++aI, aG.ToString("h:mm:ss tt"))); 
+            a_.Clear(); 
+            aZ.Clear();
+            aJ = aK = aL = 0; 
+            try
             {
                 do
                 {
-                    a_.Add(string.Format("> Doing step {0}", aM)); aN[aM]();
+                    a_.Add(string.Format("> Doing step {0}", aM));
+                    aN[aM]();
                     aM++; f = true;
-                } while (aM < aN.Length && bf()); aM = 0;
+                } while (aM < aN.Length && bf()); 
+                aM = 0;
             }
             catch (ArgumentException ex) { EchoR(ex.Message); aM = 0; return; }
             catch (a7) { aM = 0; return; }
             catch (a8) { }
             catch (Exception ex)
             {
-                string g = "An error occured,\n" + "please give the following information to the developer:\n" + string.
-Format("Current step on error: {0}\n{1}", aM, ex.ToString().Replace("\r", "")); a_.Add(g); bH(); EchoR(g); throw ex;
+                string g = "An error occured,\n" + 
+                    "please give the following information to the developer:\n" + 
+                    string.Format("Current step on error: {0}\n" +
+                    "{1}", aM, ex.ToString().Replace("\r", "")); 
+                a_.Add(g); 
+                bH(); 
+                EchoR(g);
+                throw ex;
             }
-            string h, j; int k = aM
-== 0 ? 13 : aM; int l = ba; double m = Math.Round(100.0f * bb, 1); int n; aF[aI % aF.Length] = ScreenFormatter.Format("" + aI, 80, out n, 1) +
-ScreenFormatter.Format((aM == 0 ? aN.Length : aM) + " / " + aN.Length, 125 + n, out n, 1, true) + ScreenFormatter.Format(l + " ms", 145 + n, out n, 1) +
-ScreenFormatter.Format(m + "%", 105 + n, out n, 1, true) + ScreenFormatter.Format("" + aJ, 65 + n, out n, 1, true) + ScreenFormatter.Format("" + aK, 65 + n
-, out n, 1, true) + ScreenFormatter.Format("" + aL, 65 + n, out n, 1, true) + "\n"; if (aM == 0 && e == 0 && f) j = "all steps";
-            else if (aM == e) j = string.Format(
-"step {0} partially", aM);
-            else if (k - e == 1) j = string.Format("step {0}", e); else j = string.Format("steps {0} to {1}", e, k - 1); EchoR(h =
-    string.Format("Completed {0} in {1}ms, {2}% load ({3} instructions)", j, l, m, Runtime.CurrentInstructionCount)); a_.Add(h); bH();
+            string h, j;
+            int k = aM == 0 ? 13 : aM;
+            int l = ba; 
+            double m = Math.Round(100.0f * bb, 1);
+            int n;
+            aF[aI % aF.Length] = ScreenFormatter.Format("" + aI, 80, out n, 1) + 
+                ScreenFormatter.Format((aM == 0 ? aN.Length : aM) + " / " + aN.Length, 125 + n, out n, 1, true) + 
+                ScreenFormatter.Format(l + " ms", 145 + n, out n, 1) + 
+                ScreenFormatter.Format(m + "%", 105 + n, out n, 1, true) + 
+                ScreenFormatter.Format("" + aJ, 65 + n, out n, 1, true) + 
+                ScreenFormatter.Format("" + aK, 65 + n, out n, 1, true) +
+                ScreenFormatter.Format("" + aL, 65 + n, out n, 1, true) + "\n";
+            if (aM == 0 && e == 0 && f) j = "all steps";
+            else if (aM == e) j = string.Format("step {0} partially", aM);
+            else if (k - e == 1) j = string.Format("step {0}", e);
+            else j = string.Format("steps {0} to {1}", e, k - 1);
+            EchoR(h = string.Format("Completed {0} in {1}ms, {2}% load ({3} instructions)", j, l, m, Runtime.CurrentInstructionCount));
+            a_.Add(h);
+            bH();
         }
-        void
-bc(string b)
+        void bc(string b)
         {
             string c = ""; long e; float f; foreach (string line in b.Split(ar, ao))
             {
-                string[] g = (line.Trim() + ",,,,").Split(at, 6); g[0] = g[0
-].Trim(); if (g[0].EndsWith("/")) { c = g[0].Substring(0, g[0].Length - 1); }
+                string[] g = (line.Trim() + ",,,,").Split(at, 6); g[0] = g[0].Trim();
+                if (g[0].EndsWith("/")) 
+                {
+                    c = g[0].Substring(0, g[0].Length - 1);
+                }
                 else if (c != "" & g[0].StartsWith("/"))
                 {
                     long.TryParse(g[1], out e);
-                    float.TryParse(g[2].Substring(0, (g[2] + "%").IndexOf("%")), out f); bK.InitItem(c, g[0].Substring(1), e, f, g[3].Trim(), c == "Ingot" | c ==
-                         "Ore" ? null : g[4].Trim());
+                    float.TryParse(g[2].Substring(0, (g[2] + "%").IndexOf("%")), out f); 
+                    bK.InitItem(c, g[0].Substring(1), e, f, g[3].Trim(), c == "Ingot" | c == "Ore" ? null : g[4].Trim());
                 }
             }
         }
@@ -372,213 +428,256 @@ bc(string b)
         {
             foreach (string line in b.Split(ar, ao))
             {
-                string[] c = (line + ":").Split(':'); string[] e = (c[0
-] + "/*").Split('/'); foreach (string item in c[1].Split(','))
+                string[] c = (line + ":").Split(':');
+                string[] e = (c[0] + "/*").Split('/');
+                foreach (string item in c[1].Split(','))
                 {
-                    string[] f = item.ToUpper().Split('/'); bg(e[0].Trim(ap), e[1].Trim(ap), f[0]
-, f.Length > 1 ? f[1] : null, true);
+                    string[] f = item.ToUpper().Split('/');
+                    bg(e[0].Trim(ap), e[1].Trim(ap), f[0], f.Length > 1 ? f[1] : null, true);
                 }
             }
         }
         void be()
         {
-            aa = true; ac = '['; ad = ']'; ae = "TIM"; af = false; ag = false; ah = false; ai = false; ab = true; string b, c;
-            bool e; foreach (System.Text.RegularExpressions.Match match in al.Matches(Me.CustomData))
+            aa = true;
+            ac = '['; 
+            ad = ']';
+            ae = "TIM";
+            af = false;
+            ag = false; 
+            ah = false; 
+            ai = false; 
+            ab = true; 
+            string b, c;
+            bool e; 
+            foreach (System.Text.RegularExpressions.Match match in al.Matches(Me.CustomData))
             {
-                b = match.Groups[1].Value.ToLower(); e = match.
-Groups[2].Success; if (e) c = match.Groups[2].Value.Trim(); else c = ""; switch (b)
+                b = match.Groups[1].Value.ToLower(); 
+                e = match.Groups[2].Success;
+                if (e) c = match.Groups[2].Value.Trim(); 
+                else c = ""; 
+                switch (b)
                 {
                     case "rewrite":
-                        if (e) throw new ArgumentException(
-"Argument 'rewrite' does not have a value"); aa = true; a_.Add("Tag rewriting enabled"); break;
+                        if (e) throw new ArgumentException("Argument 'rewrite' does not have a value");
+                        aa = true; 
+                        a_.Add("Tag rewriting enabled"); 
+                        break;
                     case "norewrite":
-                        if (e) throw new
-ArgumentException("Argument 'norewrite' does not have a value"); aa = false; a_.Add("Tag rewriting disabled"); break;
+                        if (e) throw new ArgumentException("Argument 'norewrite' does not have a value");
+                        aa = false;
+                        a_.Add("Tag rewriting disabled");
+                        break;
                     case "tags":
-                        if (c.
-Length != 2) throw new ArgumentException(string.Format("Invalid 'tags=' delimiters '{0}': must be exactly two characters", c));
-                        else if
-(char.ToUpper(c[0]) == char.ToUpper(c[1])) throw new ArgumentException(string.Format(
-"Invalid 'tags=' delimiters '{0}': characters must be different", c));
+                        if (c.Length != 2) throw new ArgumentException(string.Format("Invalid 'tags=' delimiters '{0}': must be exactly two characters", c));
+                        else if (char.ToUpper(c[0]) == char.ToUpper(c[1])) throw new ArgumentException(string.Format("Invalid 'tags=' delimiters '{0}': characters must be different", c));
                         else
                         {
-                            ac = char.ToUpper(c[0]); ad = char.ToUpper(c[1]); a_.Add(
-string.Format("Tags are delimited by '{0}' and '{1}", ac, ad));
+                            ac = char.ToUpper(c[0]);
+                            ad = char.ToUpper(c[1]);
+                            a_.Add(string.Format("Tags are delimited by '{0}' and '{1}", ac, ad));
                         }
                         break;
                     case "prefix":
-                        ae = c.ToUpper(); if (ae == "") a_.Add(
-"Tag prefix disabled");
-                        else a_.Add(string.Format("Tag prefix is '{0}'", ae)); break;
+                        ae = c.ToUpper(); 
+                        if (ae == "") a_.Add("Tag prefix disabled");
+                        else a_.Add(string.Format("Tag prefix is '{0}'", ae));
+                        break;
                     case "scan":
                         switch (c.ToLower())
                         {
-                            case
-"collectors":
-                                af = true; a_.Add("Enabled scanning of Collectors"); break;
-                            case "drills":
-                                ag = true; a_.Add("Enabled scanning of Drills");
+                            case "collectors":
+                                af = true; 
+                                a_.Add("Enabled scanning of Collectors"); 
                                 break;
-                            case "grinders": ah = true; a_.Add("Enabled scanning of Grinders"); break;
+                            case "drills":
+                                ag = true; 
+                                a_.Add("Enabled scanning of Drills");
+                                break;
+                            case "grinders": ah = true;
+                                a_.Add("Enabled scanning of Grinders");
+                                break;
                             case "welders":
-                                ai = true; a_.Add(
-"Enabled scanning of Welders"); break;
+                                ai = true;
+                                a_.Add("Enabled scanning of Welders"); 
+                                break;
                             default:
-                                throw new ArgumentException(string.Format(
-"Invalid 'scan=' block type '{0}': must be 'collectors', 'drills', 'grinders' or 'welders'", c));
+                                throw new ArgumentException(string.Format("Invalid 'scan=' block type '{0}': must be 'collectors', 'drills', 'grinders' or 'welders'", c));
                         }
                         break;
                     case "quota":
-                        switch (c.
-ToLower())
+                        switch (c.ToLower())
                         {
-                            case "literal": ab = false; a_.Add("Disabled stable dynamic quotas"); break;
+                            case "literal": ab = false;
+                                a_.Add("Disabled stable dynamic quotas"); 
+                                break;
                             case "stable":
-                                ab = true; a_.Add(
-"Enabled stable dynamic quotas"); break;
+                                ab = true; 
+                                a_.Add("Enabled stable dynamic quotas");
+                                break;
                             default:
-                                throw new ArgumentException(string.Format(
-"Invalid 'quota=' mode '{0}': must be 'literal' or 'stable'", c));
+                                throw new ArgumentException(string.Format("Invalid 'quota=' mode '{0}': must be 'literal' or 'stable'", c));
                         }
                         break;
                     case "debug":
                         c = c.ToLower(); if (am.Contains(c)) aZ.Add(c);
-                        else throw new ArgumentException(string.Format(
-                        "Invalid 'debug=' type '{0}': must be 'quotas', 'sorting', 'refineries', or 'assemblers'", c)); break;
+                        else throw new ArgumentException(string.Format("Invalid 'debug=' type '{0}': must be 'quotas', 'sorting', 'refineries', or 'assemblers'", c)); 
+                        break;
                     case "":
                     case "tim_version":
                         break;
-                    default: throw new ArgumentException(string.Format("Unrecognized argument: '{0}'", b));
+                    default: 
+                        throw new ArgumentException(string.Format("Unrecognized argument: '{0}'", b));
                 }
             }
-            aO = new System.Text.RegularExpressions
-.Regex(string.Format(ae != "" ? @"{0} *{2}(|[ ,]+[^{1}]*){1}" : @"{0}([^{1}]*){1}", System.Text.RegularExpressions.Regex.Escape(ac.
-ToString()), System.Text.RegularExpressions.Regex.Escape(ad.ToString()), System.Text.RegularExpressions.Regex.Escape(ae)), System.
-Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+            aO = new System.Text.RegularExpressions.Regex(
+                string.Format(
+                    ae != "" ? @"{0} *{2}(|[ ,]+[^{1}]*){1}" : @"{0}([^{1}]*){1}",
+                    System.Text.RegularExpressions.Regex.Escape(ac.ToString()),
+                    System.Text.RegularExpressions.Regex.Escape(ad.ToString()), 
+                    System.Text.RegularExpressions.Regex.Escape(ae)
+                    ),
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
         }
-        public void
-ProcessStepProcessArgs()
+        public void ProcessStepProcessArgs()
         { if (Me.CustomData != aj) { a_.Add("Arguments changed, re-processing..."); be(); aj = Me.CustomData; } }
-        public void
-ProcessStepScanGrids()
+        public void ProcessStepScanGrids()
         { a_.Add("Scanning grid connectors..."); bl(); }
         public void ProcessStepStandbyCheck()
         {
-            List<IMyTerminalBlock> b =
-new List<IMyTerminalBlock>(); GridTerminalSystem.GetBlocksOfType<IMyProgrammableBlock>(b, c => (c == Me) | (aO.IsMatch(c.CustomName) & aS.
-Contains(c.CubeGrid))); int e = b.IndexOf(Me); int f = b.FindIndex(g => g.IsFunctional & g.IsWorking); string h = ac + ae + (b.Count > 1 ? " #" + (e + 1) :
-"") + ad; Me.CustomName = aO.IsMatch(Me.CustomName) ? aO.Replace(Me.CustomName, h, 1) : Me.CustomName + " " + h; if (e != f)
+            List<IMyTerminalBlock> b = new List<IMyTerminalBlock>();
+            GridTerminalSystem.GetBlocksOfType<IMyProgrammableBlock>(b, c => (c == Me) | (aO.IsMatch(c.CustomName) & aS.Contains(c.CubeGrid)));
+            int e = b.IndexOf(Me);
+            int f = b.FindIndex(g => g.IsFunctional & g.IsWorking); 
+            string h = ac + ae + (b.Count > 1 ? " #" + (e + 1) : "") + ad;
+            Me.CustomName = aO.IsMatch(Me.CustomName) ? aO.Replace(Me.CustomName, h, 1) : Me.CustomName + " " + h;
+            if (e != f)
             {
-                EchoR("TIM #" + (f + 1) +
-" is on duty. Standing by."); if (("" + (b[f] as IMyProgrammableBlock).TerminalRunArgument).Trim() != ("" + Me.TerminalRunArgument).Trim())
-                    EchoR("WARNING: Script arguments do not match TIM #" + (f + 1) + "."); throw new a7();
+                EchoR("TIM #" + (f + 1) + " is on duty. Standing by.");
+                if (("" + (b[f] as IMyProgrammableBlock).TerminalRunArgument).Trim() != ("" + Me.TerminalRunArgument).Trim()) EchoR("WARNING: Script arguments do not match TIM #" + (f + 1) + ".");
+                throw new a7();
             }
         }
         public void ProcessStepInventoryScan()
         {
-            a_.Add(
-"Scanning inventories..."); foreach (string itype in av)
+            a_.Add("Scanning inventories..."); 
+            foreach (string itype in av)
             {
-                ay[itype] = 0; foreach (bK data in aC[itype].Values)
+                ay[itype] = 0; 
+                foreach (bK data in aC[itype].Values)
                 {
-                    data.amount = 0L; data.avail =
-0L; data.locked = 0L; data.invenTotal.Clear(); data.invenSlot.Clear();
+                    data.amount = 0L; 
+                    data.avail = 0L; 
+                    data.locked = 0L;
+                    data.invenTotal.Clear();
+                    data.invenSlot.Clear();
                 }
             }
-            b1.Clear(); b0.Clear(); b2.Clear(); b3.Clear(); bm(); bn<
-IMyAssembler>(); bn<IMyCargoContainer>(); if (af) bn<IMyCollector>(); bn<IMyGasGenerator>(); bn<IMyGasTank>(); bn<IMyOxygenFarm>(); bn<
-IMyReactor>(); bn<IMyRefinery>(); bn<IMyShipConnector>(); bn<IMyShipController>(); if (ag) bn<IMyShipDrill>(); if (ah) bn<IMyShipGrinder>()
-; if (ai) bn<IMyShipWelder>(); bn<IMyTextPanel>(); bn<IMyUserControllableGun>(); bn<IMyParachute>(); if (aP)
+            b1.Clear();
+            b0.Clear();
+            b2.Clear(); 
+            b3.Clear(); bm();
+            bn<IMyAssembler>();
+            bn<IMyCargoContainer>(); 
+            if (af) bn<IMyCollector>(); 
+            bn<IMyGasGenerator>(); 
+            bn<IMyGasTank>();
+            bn<IMyOxygenFarm>();
+            bn<IMyReactor>(); 
+            bn<IMyRefinery>(); 
+            bn<IMyShipConnector>();
+            bn<IMyShipController>();
+            if (ag) bn<IMyShipDrill>(); 
+            if (ah) bn<IMyShipGrinder>(); 
+            if (ai) bn<IMyShipWelder>();
+            bn<IMyTextPanel>();
+            bn<IMyUserControllableGun>(); 
+            bn<IMyParachute>(); 
+            if (aP)
             {
-                aP = false; av.Sort(); foreach (
-string itype in av) ax[itype].Sort(); az.Sort(); foreach (string isub in az) aB[isub].Sort();
+                aP = false;
+                av.Sort(); 
+                foreach (string itype in av) ax[itype].Sort();
+                az.Sort();
+                foreach (string isub in az) aB[isub].Sort();
             }
         }
         public void ProcessStepParseTags()
         {
-            a_.
-Add("Scanning tags..."); foreach (string itype in av)
+            a_.Add("Scanning tags..."); 
+            foreach (string itype in av)
             {
                 foreach (bK data in aC[itype].Values)
                 {
-                    data.qpriority = -1; data.quota = 0L; data.
-producers.Clear();
+                    data.qpriority = -1; 
+                    data.quota = 0L;
+                    data.producers.Clear();
                 }
             }
-            aU.Clear(); aV.Clear(); aW.Clear(); aT.Clear(); aX.Clear(); aY.Clear(); b4.Clear(); b5.Clear(); b8.Clear(); bq();
+            aU.Clear(); 
+            aV.Clear();
+            aW.Clear(); 
+            aT.Clear(); 
+            aX.Clear(); 
+            aY.Clear(); 
+            b4.Clear();
+            b5.Clear();
+            b8.Clear(); 
+            bq();
         }
         public void ProcessStepAmountAdjustment() { a_.Add("Adjusting tallies..."); bo(); }
-        public void ProcessStepQuotaPanels()
-        {
-            a_.Add(
-"Scanning quota panels..."); bp(ab);
-        }
-        public void ProcessStepLimitedItemRequests()
-        {
-            a_.Add("Processing limited item requests..."); bA(
-true);
+        public void ProcessStepQuotaPanels() { a_.Add("Scanning quota panels..."); bp(ab); }
+        public void ProcessStepLimitedItemRequests() { a_.Add("Processing limited item requests..."); bA(true);
         }
         public void ProcessStepManageRefineries() { a_.Add("Managing refineries..."); bE(); }
-        public void ProcessStepScanProduction()
-        {
-            a_
-.Add("Scanning production..."); bD();
-        }
-        public void ProcessStepUnlimitedItemRequests()
-        {
-            a_.Add("Processing remaining item requests..."
-);
+        public void ProcessStepScanProduction() { a_.Add("Scanning production..."); bD(); }
+        public void ProcessStepUnlimitedItemRequests() { 
+            a_.Add("Processing remaining item requests...");
             //bA(false);
         }
         public void ProcessStepManageAssemblers() { a_.Add("Managing assemblers..."); bF(); }
-        public void
-ProcessStepUpdateInventoryPanels()
-        { a_.Add("Updating inventory panels..."); bG(); }
-        bool bf()
-        {
-            if (ba > MAX_RUN_TIME || bb > MAX_LOAD) throw
-new a8(); return true;
-        }
+        public void ProcessStepUpdateInventoryPanels() { a_.Add("Updating inventory panels..."); bG(); }
+        bool bf() { if (ba > MAX_RUN_TIME || bb > MAX_LOAD) throw new a8(); return true; }
         void bg(string b, string c, string e, string f, bool g = false)
         {
-            Dictionary<string, Dictionary<string, HashSet<string
->>> h; Dictionary<string, HashSet<string>> j; HashSet<string> k; if (!au.TryGetValue(b.ToUpper(), out h)) au[b.ToUpper()] = h = new Dictionary<
-string, Dictionary<string, HashSet<string>>> { { "*", new Dictionary<string, HashSet<string>>() } }; if (!h.TryGetValue(c.ToUpper(), out j))
+            Dictionary<string, Dictionary<string, HashSet<string>>> h; 
+            Dictionary<string, HashSet<string>> j; 
+            HashSet<string> k; 
+            if (!au.TryGetValue(b.ToUpper(), out h)) au[b.ToUpper()] = h = new Dictionary<string, Dictionary<string, HashSet<string>>>{{"*", new Dictionary<string, HashSet<string>>()}};
+            if (!h.TryGetValue(c.ToUpper(), out j))
             {
-                h
-[c.ToUpper()] = j = new Dictionary<string, HashSet<string>>(); if (c != "*" & !g)
+                h[c.ToUpper()] = j = new Dictionary<string, HashSet<string>>(); 
+                if (c != "*" & !g)
                 {
                     foreach (KeyValuePair<string, HashSet<string>> pair in h["*"])
                         j[pair.Key] = pair.Value != null ? new HashSet<string>(pair.Value) : null;
                 }
             }
-            if (f == null | f == "*") { j[e] = null; }
+            if (f == null | f == "*") 
+            {
+                j[e] = null;
+            }
             else
             {
-                (j.TryGetValue(e, out k) ? k : j
-[e] = new HashSet<string>()).Add(f);
+                (j.TryGetValue(e, out k) ? k : j[e] = new HashSet<string>()).Add(f);
             }
             if (!g) a_.Add(b + "/" + c + " does not accept " + aw[e] + "/" + aA[f]);
         }
-        bool bh(IMyCubeBlock b, string c,
-string e)
+        bool bh(IMyCubeBlock b, string c, string e)
         {
             Dictionary<string, Dictionary<string, HashSet<string>>> f; Dictionary<string, HashSet<string>> g; HashSet<string> h; if (au.
            TryGetValue(b.BlockDefinition.TypeIdString.ToUpper(), out f))
             {
-                f.TryGetValue(b.BlockDefinition.SubtypeName.ToUpper(), out g); if ((g ?? f
-["*"]).TryGetValue(c, out h)) return !(h == null || h.Contains(e));
+                f.TryGetValue(b.BlockDefinition.SubtypeName.ToUpper(), out g); if ((g ?? f["*"]).TryGetValue(c, out h)) return !(h == null || h.Contains(e));
             }
             return true;
         }
-        HashSet<string> bi(IMyCubeBlock b, string c, HashSet<string
-> e = null)
+        HashSet<string> bi(IMyCubeBlock b, string c, HashSet<string > e = null)
         {
             Dictionary<string, Dictionary<string, HashSet<string>>> f; Dictionary<string, HashSet<string>> g; HashSet<string> h; e = e ?? new
             HashSet<string>(ax[c]); if (au.TryGetValue(b.BlockDefinition.TypeIdString.ToUpper(), out f))
             {
-                f.TryGetValue(b.BlockDefinition.
-SubtypeName.ToUpper(), out g); if ((g ?? f["*"]).TryGetValue(c, out h)) e.ExceptWith(h ?? e);
+                f.TryGetValue(b.BlockDefinition.SubtypeName.ToUpper(), out g); if ((g ?? f["*"]).TryGetValue(c, out h)) e.ExceptWith(h ?? e);
             }
             return e;
         }
@@ -589,238 +688,395 @@ SubtypeName.ToUpper(), out g); if ((g ?? f["*"]).TryGetValue(c, out h)) e.Except
         }
         string bk(long b)
         {
-            long
-c; if (b <= 0L) return "0"; if (b < 10000L) return "< 0.01"; if (b >= 100000000000000L) return "" + b / 1000000000000L + " M"; c = (long)Math.Pow(10.0,
-Math.Floor(Math.Log10(b)) - 2.0); b = (long)((double)b / c + 0.5) * c; if (b < 1000000000L) return (b / 1e6).ToString("0.##"); if (b < 1000000000000L)
-                return (b / 1e9).ToString("0.##") + " K"; return (b / 1e12).ToString("0.##") + " M";
+            long c; 
+            if (b <= 0L) return "0"; 
+            if (b < 10000L) return "< 0.01"; 
+            if (b >= 100000000000000L) return "" + b / 1000000000000L + " M"; 
+            c = (long)Math.Pow(10.0,Math.Floor(Math.Log10(b)) - 2.0);
+            b = (long)((double)b / c + 0.5) * c;
+            if (b < 1000000000L) return (b / 1e6).ToString("0.##");
+            if (b < 1000000000000L) return (b / 1e9).ToString("0.##") + " K";
+            return (b / 1e12).ToString("0.##") + " M";
         }
         void bl()
         {
-            List<IMyTerminalBlock> b = new List<
-IMyTerminalBlock>(); IMyCubeGrid c, e; Dictionary<IMyCubeGrid, HashSet<IMyCubeGrid>> f = new Dictionary<IMyCubeGrid, HashSet<IMyCubeGrid>>
-(); Dictionary<IMyCubeGrid, int> g = new Dictionary<IMyCubeGrid, int>(); List<HashSet<IMyCubeGrid>> h = new List<HashSet<IMyCubeGrid>>();
-            List<string> j = new List<string>(); HashSet<IMyCubeGrid> k; List<IMyCubeGrid> l = new List<IMyCubeGrid>(); int m, n, o; IMyShipConnector p;
-            HashSet<string> q = new HashSet<string>(); HashSet<string> r = new HashSet<string>(); System.Text.RegularExpressions.Match t; Dictionary<
-                     int, Dictionary<int, List<string>>> u = new Dictionary<int, Dictionary<int, List<string>>>(); Dictionary<int, List<string>> v; List<string> w;
-            HashSet<int> x = new HashSet<int>(); Queue<int> y = new Queue<int>(); GridTerminalSystem.GetBlocksOfType<IMyMechanicalConnectionBlock>(b);
+            List<IMyTerminalBlock> b = new List<IMyTerminalBlock>();
+            IMyCubeGrid c, e;
+            Dictionary<IMyCubeGrid, HashSet<IMyCubeGrid>> f = new Dictionary<IMyCubeGrid, HashSet<IMyCubeGrid>>();
+            Dictionary<IMyCubeGrid, int> g = new Dictionary<IMyCubeGrid, int>();
+            List<HashSet<IMyCubeGrid>> h = new List<HashSet<IMyCubeGrid>>();
+            List<string> j = new List<string>(); 
+            HashSet<IMyCubeGrid> k;
+            List<IMyCubeGrid> l = new List<IMyCubeGrid>();
+            int m, n, o;
+            IMyShipConnector p;
+            HashSet<string> q = new HashSet<string>();
+            HashSet<string> r = new HashSet<string>();
+            System.Text.RegularExpressions.Match t; 
+            Dictionary<int, Dictionary<int, List<string>>> u = new Dictionary<int, Dictionary<int, List<string>>>();
+            Dictionary<int, List<string>> v; 
+            List<string> w;
+            HashSet<int> x = new HashSet<int>();
+            Queue<int> y = new Queue<int>(); 
+            GridTerminalSystem.GetBlocksOfType<IMyMechanicalConnectionBlock>(b);
             foreach (IMyTerminalBlock block in b)
             {
-                c = block.CubeGrid; e = (block as IMyMechanicalConnectionBlock).TopGrid; if (e == null) continue; (f.
-TryGetValue(c, out k) ? k : f[c] = new HashSet<IMyCubeGrid>()).Add(e); (f.TryGetValue(e, out k) ? k : f[e] = new HashSet<IMyCubeGrid>()).Add(c);
+                c = block.CubeGrid; 
+                e = (block as IMyMechanicalConnectionBlock).TopGrid;
+                if (e == null) continue; 
+                (f.TryGetValue(c, out k) ? k : f[c] = new HashSet<IMyCubeGrid>()).Add(e);
+                (f.TryGetValue(e, out k) ? k : f[e] = new HashSet<IMyCubeGrid>()).Add(c);
             }
             foreach (IMyCubeGrid grid in f.Keys)
             {
                 if (!g.ContainsKey(grid))
                 {
-                    n = (grid.Max - grid.Min + Vector3I.One).Size; c = grid; g[grid] = h.Count; k = new
-HashSet<IMyCubeGrid> { grid }; l.Clear(); l.AddRange(f[grid]); for (m = 0; m < l.Count; m++)
+                    n = (grid.Max - grid.Min + Vector3I.One).Size;
+                    c = grid;
+                    g[grid] = h.Count;
+                    k = new HashSet<IMyCubeGrid> { grid }; 
+                    l.Clear();
+                    l.AddRange(f[grid]);
+                    for (m = 0; m < l.Count; m++)
                     {
-                        e = l[m]; if (!k.Add(e)) continue; o = (e.Max - e.Min +
-Vector3I.One).Size; c = o > n ? e : c; n = o > n ? o : n; g[e] = h.Count; l.AddRange(f[e].Except(k));
+                        e = l[m]; 
+                        if (!k.Add(e)) continue; 
+                        o = (e.Max - e.Min + Vector3I.One).Size;
+                        c = o > n ? e : c;
+                        n = o > n ? o : n;
+                        g[e] = h.Count;
+                        l.AddRange(f[e].Except(k));
                     }
-                    h.Add(k); j.Add(c.CustomName);
+                    h.Add(k); 
+                    j.Add(c.CustomName);
                 }
             }
-            GridTerminalSystem.
-GetBlocksOfType<IMyShipConnector>(b); foreach (IMyTerminalBlock block in b)
+            GridTerminalSystem.GetBlocksOfType<IMyShipConnector>(b); 
+            foreach (IMyTerminalBlock block in b)
             {
-                p = (block as IMyShipConnector).OtherConnector; if (p != null
-&& block.EntityId < p.EntityId & (block as IMyShipConnector).Status == MyShipConnectorStatus.Connected)
+                p = (block as IMyShipConnector).OtherConnector; 
+                if (p != null && block.EntityId < p.EntityId & (block as IMyShipConnector).Status == MyShipConnectorStatus.Connected)
                 {
-                    q.Clear(); r.Clear(); if ((t = aO.
-Match(block.CustomName)).Success)
+                    q.Clear();
+                    r.Clear(); 
+                    if ((t = aO.Match(block.CustomName)).Success)
                     {
                         foreach (string attr in t.Groups[1].Captures[0].Value.Split(at, ao))
                         {
-                            if (attr.StartsWith("DOCK:", an
-)) q.UnionWith(attr.Substring(5).ToUpper().Split(aq, ao));
+                            if (attr.StartsWith("DOCK:", an)) q.UnionWith(attr.Substring(5).ToUpper().Split(aq, ao));
                         }
                     }
                     if ((t = aO.Match(p.CustomName)).Success)
                     {
-                        foreach (string attr in t.Groups[1
-].Captures[0].Value.Split(at, ao)) { if (attr.StartsWith("DOCK:", an)) r.UnionWith(attr.Substring(5).ToUpper().Split(aq, ao)); }
+                        foreach (string attr in t.Groups[1].Captures[0].Value.Split(at, ao))
+                        {
+                            if (attr.StartsWith("DOCK:", an)) r.UnionWith(attr.Substring(5).ToUpper().Split(aq, ao)); 
+                        }
                     }
-                    if ((q.
-Count > 0 | r.Count > 0) & !q.Overlaps(r)) continue; c = block.CubeGrid; e = p.CubeGrid; if (!g.TryGetValue(c, out n))
+                    if ((q.Count > 0 | r.Count > 0) & !q.Overlaps(r)) continue;
+                    c = block.CubeGrid; 
+                    e = p.CubeGrid;
+                    if (!g.TryGetValue(c, out n))
                     {
-                        g[c] = n = h.Count; h.Add(new
-HashSet<IMyCubeGrid> { c }); j.Add(c.CustomName);
+                        g[c] = n = h.Count;
+                        h.Add(new HashSet<IMyCubeGrid> { c });
+                        j.Add(c.CustomName);
                     }
                     if (!g.TryGetValue(e, out o))
                     {
-                        g[e] = o = h.Count; h.Add(new HashSet<IMyCubeGrid> { e }); j.Add(
-e.CustomName);
-                    } ((u.TryGetValue(n, out v) ? v : u[n] = new Dictionary<int, List<string>>()).TryGetValue(o, out w) ? w : u[n][o] = new List<string>
-       ()).Add(block.CustomName); ((u.TryGetValue(o, out v) ? v : u[o] = new Dictionary<int, List<string>>()).TryGetValue(n, out w) ? w : u[o][n] = new
-        List<string>()).Add(p.CustomName);
+                        g[e] = o = h.Count;
+                        h.Add(new HashSet<IMyCubeGrid> { e }); 
+                        j.Add(e.CustomName);
+                    }
+                    ((u.TryGetValue(n, out v) ? v : u[n] = new Dictionary<int, List<string>>()).TryGetValue(o, out w) ? w : u[n][o] = new List<string>()).Add(block.CustomName); 
+                    ((u.TryGetValue(o, out v) ? v : u[o] = new Dictionary<int, List<string>>()).TryGetValue(n, out w) ? w : u[o][n] = new List<string>()).Add(p.CustomName);
                 }
             }
-            aS.Clear(); aS.Add(Me.CubeGrid); if (!g.TryGetValue(Me.CubeGrid, out n)) return; x.Add(n); aS.
-UnionWith(h[n]); y.Enqueue(n); while (y.Count > 0)
+            aS.Clear(); 
+            aS.Add(Me.CubeGrid); 
+            if (!g.TryGetValue(Me.CubeGrid, out n)) return;
+            x.Add(n); 
+            aS.UnionWith(h[n]);
+            y.Enqueue(n); 
+            while (y.Count > 0)
             {
-                n = y.Dequeue(); if (!u.TryGetValue(n, out v)) continue; foreach (int ship2 in v.Keys)
+                n = y.Dequeue(); 
+                if (!u.TryGetValue(n, out v)) continue;
+                foreach (int ship2 in v.Keys)
                 {
-                    if (x.
-Add(ship2)) { aS.UnionWith(h[ship2]); y.Enqueue(ship2); a_.Add(j[ship2] + " docked to " + j[n] + " at " + String.Join(", ", v[ship2])); }
+                    if (x.Add(ship2))
+                    {
+                        aS.UnionWith(h[ship2]);
+                        y.Enqueue(ship2);
+                        a_.Add(j[ship2] + " docked to " + j[n] + " at " + String.Join(", ", v[ship2]));
+                    }
                 }
             }
         }
-        void
-bm()
+        void bm()
         {
-            List<IMyBlockGroup> b = new List<IMyBlockGroup>(); List<IMyTerminalBlock> c = new List<IMyTerminalBlock>(); System.Text.
-               RegularExpressions.Match e; GridTerminalSystem.GetBlockGroups(b); foreach (IMyBlockGroup group in b)
+            List<IMyBlockGroup> b = new List<IMyBlockGroup>();
+            List<IMyTerminalBlock> c = new List<IMyTerminalBlock>(); 
+            System.Text.RegularExpressions.Match e;
+            GridTerminalSystem.GetBlockGroups(b); 
+            foreach (IMyBlockGroup group in b)
             {
-                if ((e = aO.Match(group.Name)).
-Success) { group.GetBlocks(c); foreach (IMyTerminalBlock block in c) b0[block] = e; }
+                if ((e = aO.Match(group.Name)).Success) 
+                {
+                    group.GetBlocks(c); 
+                    foreach (IMyTerminalBlock block in c) b0[block] = e; 
+                }
             }
         }
         void bn<T>() where T : class
         {
-            List<IMyTerminalBlock> b =
-new List<IMyTerminalBlock>(); System.Text.RegularExpressions.Match c; int e, f, g; IMyInventory h; List<MyInventoryItem> j = new List<
-MyInventoryItem>(); string k, l; bK m; long n, o; GridTerminalSystem.GetBlocksOfType<T>(b); foreach (IMyTerminalBlock block in b)
+            List<IMyTerminalBlock> b = new List<IMyTerminalBlock>(); 
+            System.Text.RegularExpressions.Match c; 
+            int e, f, g;
+            IMyInventory h;
+            List<MyInventoryItem> j = new List<MyInventoryItem>(); 
+            string k, l; 
+            bK m; 
+            long n, o; 
+            GridTerminalSystem.GetBlocksOfType<T>(b);
+            foreach (IMyTerminalBlock block in b)
             {
-                if (!aS.
-Contains(block.CubeGrid)) continue; c = aO.Match(block.CustomName); if (c.Success) { b0.Remove(block); b1[block] = c; }
-                else if (b0.TryGetValue(
-block, out c)) { b1[block] = c; }
-                if ((block is IMySmallMissileLauncher & !(block is IMySmallMissileLauncherReload | block.BlockDefinition.
-SubtypeName == "LargeMissileLauncher")) | block is IMyLargeInteriorTurret) { b2.Add(block.GetInventory(0)); }
-                else if (block is
-IMyFunctionalBlock && (block as IMyFunctionalBlock).Enabled & block.IsFunctional)
+                if (!aS.Contains(block.CubeGrid)) continue;
+                c = aO.Match(block.CustomName);
+                if (c.Success) 
                 {
-                    if ((block is IMyRefinery | block is IMyReactor | block
-is IMyGasGenerator) & !b1.ContainsKey(block)) { b2.Add(block.GetInventory(0)); }
-                    else if (block is IMyAssembler && !(block as IMyAssembler)
-.IsQueueEmpty) { b2.Add(block.GetInventory((block as IMyAssembler).Mode == MyAssemblerMode.Disassembly ? 1 : 0)); }
+                    b0.Remove(block);
+                    b1[block] = c; 
+                }
+                else if (b0.TryGetValue(block, out c)) 
+                {
+                    b1[block] = c;
+                }
+                if ((block is IMySmallMissileLauncher & !(block is IMySmallMissileLauncherReload | block.BlockDefinition.SubtypeName == "LargeMissileLauncher")) | block is IMyLargeInteriorTurret) 
+                {
+                    b2.Add(block.GetInventory(0)); 
+                }
+                else if (block is IMyFunctionalBlock && (block as IMyFunctionalBlock).Enabled & block.IsFunctional)
+                {
+                    if ((block is IMyRefinery | block is IMyReactor | block is IMyGasGenerator) & !b1.ContainsKey(block)) 
+                    {
+                        b2.Add(block.GetInventory(0)); 
+                    }
+                    else if (block is IMyAssembler && !(block as IMyAssembler).IsQueueEmpty) 
+                    {
+                        b2.Add(block.GetInventory((block as IMyAssembler).Mode == MyAssemblerMode.Disassembly ? 1 : 0));
+                    }
                 }
                 e = block.InventoryCount;
                 while (e-- > 0)
                 {
-                    h = block.GetInventory(e); j.Clear(); h.GetItems(j); f = j.Count; while (f-- > 0)
+                    h = block.GetInventory(e);
+                    j.Clear(); 
+                    h.GetItems(j);
+                    f = j.Count; 
+                    while (f-- > 0)
                     {
-                        k = "" + j[f].Type.TypeId; k = k.Substring(k.
-LastIndexOf('_') + 1); l = j[f].Type.SubtypeId; bK.InitItem(k, l, 0L, 0.0f, j[f].Type.SubtypeId, null); k = k.ToUpper(); l = l.ToUpper(); n = (long)((
-double)j[f].Amount * 1e6); ay[k] += n; m = aC[k][l]; m.amount += n; m.avail += n; m.invenTotal.TryGetValue(h, out o); m.invenTotal[h] = o + n; m.
-invenSlot.TryGetValue(h, out g); m.invenSlot[h] = Math.Max(g, f + 1);
+                        k = "" + j[f].Type.TypeId; 
+                        k = k.Substring(k.LastIndexOf('_') + 1);
+                        l = j[f].Type.SubtypeId; 
+                        bK.InitItem(k, l, 0L, 0.0f, j[f].Type.SubtypeId, null);
+                        k = k.ToUpper();
+                        l = l.ToUpper(); 
+                        n = (long)((double)j[f].Amount * 1e6);
+                        ay[k] += n;
+                        m = aC[k][l]; 
+                        m.amount += n;
+                        m.avail += n; 
+                        m.invenTotal.TryGetValue(h, out o);
+                        m.invenTotal[h] = o + n; 
+                        m.invenSlot.TryGetValue(h, out g); 
+                        m.invenSlot[h] = Math.Max(g, f + 1);
                     }
                 }
             }
         }
         void bo()
         {
-            string b, c; long e; bK f; List<MyInventoryItem> g = new List
-<MyInventoryItem>(); foreach (IMyInventory inven in b3)
+            string b, c;
+            long e;
+            bK f; 
+            List<MyInventoryItem> g = new List<MyInventoryItem>();
+            foreach (IMyInventory inven in b3)
             {
-                g.Clear(); inven.GetItems(g); foreach (MyInventoryItem stack in g)
+                g.Clear(); 
+                inven.GetItems(g);
+                foreach (MyInventoryItem stack in g)
                 {
-                    b = "" + stack.
-Type.TypeId; b = b.Substring(b.LastIndexOf('_') + 1).ToUpper(); c = stack.Type.SubtypeId.ToUpper(); e = (long)((double)stack.Amount * 1e6); ay[b
-] -= e; aC[b][c].amount -= e;
+                    b = "" + stack.Type.TypeId; 
+                    b = b.Substring(b.LastIndexOf('_') + 1).ToUpper();
+                    c = stack.Type.SubtypeId.ToUpper();
+                    e = (long)((double)stack.Amount * 1e6); 
+                    ay[b] -= e;
+                    aC[b][c].amount -= e;
                 }
             }
             foreach (IMyInventory inven in b2)
             {
-                g.Clear(); inven.GetItems(g); foreach (MyInventoryItem stack in g)
+                g.Clear(); 
+                inven.GetItems(g); 
+                foreach (MyInventoryItem stack in g)
                 {
-                    b = "" +
-stack.Type.TypeId; b = b.Substring(b.LastIndexOf('_') + 1).ToUpper(); c = stack.Type.SubtypeId.ToUpper(); e = (long)((double)stack.Amount * 1e6
-); f = aC[b][c]; f.avail -= e; f.locked += e;
+                    b = "" + stack.Type.TypeId
+                        b = b.Substring(b.LastIndexOf('_') + 1).ToUpper();
+                    c = stack.Type.SubtypeId.ToUpper();
+                    e = (long)((double)stack.Amount * 1e6);
+                    f = aC[b][c];
+                    f.avail -= e;
+                    f.locked += e;
                 }
             }
         }
         void bp(bool b)
         {
-            bool c = aZ.Contains("quotas"); int e, f, g, h, j, k, l, m, n, o; long p, q, r; float t;
-            bool u; string v, w, x; string[] y, z = new string[1] { " " }; string[][] C; IMyTextPanel D; IMySlimBlock E; Matrix F; StringBuilder G = new
-                             StringBuilder(); List<string> H = new List<string>(), I = new List<string>(), J = new List<string>(); Dictionary<string, SortedDictionary<
-                                        string, string[]>> K = new Dictionary<string, SortedDictionary<string, string[]>>(); bK L; ScreenFormatter M; foreach (bK d in aC["ORE"].
-                                                 Values) d.minimum = d.amount == 0L ? 0L : Math.Max(d.minimum, d.amount); foreach (IMyTextPanel panel in aU.Keys)
+            bool c = aZ.Contains("quotas");
+            int e, f, g, h, j, k, l, m, n, o;
+            long p, q, r;
+            float t;
+            bool u;
+            string v, w, x; 
+            string[] y, z = new string[1] { " " };
+            string[][] C; 
+            IMyTextPanel D; 
+            IMySlimBlock E; 
+            Matrix F; 
+            StringBuilder G = new StringBuilder();
+            List<string> H = new List<string>(), I = new List<string>(), J = new List<string>();
+            Dictionary<string, SortedDictionary<string, string[]>> K = new Dictionary<string, SortedDictionary<string, string[]>>(); 
+            bK L; 
+            ScreenFormatter M; 
+            foreach (bK d in aC["ORE"].Values) d.minimum = d.amount == 0L ? 0L : Math.Max(d.minimum, d.amount);
+            foreach (IMyTextPanel panel in aU.Keys)
             {
-                h = panel.BlockDefinition.
-SubtypeName.EndsWith("Wide") ? 2 : 1; j = panel.BlockDefinition.SubtypeName.StartsWith("Small") ? 3 : 1; k = l = 1; if (b8.ContainsKey(panel))
+                h = panel.BlockDefinition.SubtypeName.EndsWith("Wide") ? 2 : 1; 
+                j = panel.BlockDefinition.SubtypeName.StartsWith("Small") ? 3 : 1;
+                k = l = 1;
+                if (b8.ContainsKey(panel))
                 {
-                    k = b8[
-panel].A; l = b8[panel].B;
+                    k = b8[panel].A;
+                    l = b8[panel].B;
                 }
-                C = new string[k][]; panel.Orientation.GetMatrix(out F); G.Clear(); for (g = 0; g < l; g++)
+                C = new string[k][]; 
+                panel.Orientation.GetMatrix(out F); 
+                G.Clear();
+                for (g = 0; g < l; g++)
                 {
-                    m = 0; for (f = 0; f < k; f++)
+                    m = 0;
+                    for (f = 0; f < k; f++)
                     {
-                        C[f] =
-z; E = panel.CubeGrid.GetCubeBlock(new Vector3I(panel.Position + f * h * j * F.Right + g * j * F.Down)); D = E != null ? E.FatBlock as IMyTextPanel : null;
+                        C[f] = z;
+                        E = panel.CubeGrid.GetCubeBlock(new Vector3I(panel.Position + f * h * j * F.Right + g * j * F.Down)); 
+                        D = E != null ? E.FatBlock as IMyTextPanel : null;
                         if (D != null && "" + D.BlockDefinition == "" + panel.BlockDefinition & D.GetPublicTitle().ToUpper().Contains("QUOTAS"))
                         {
-                            C[f] = D.GetText().Split
-('\n'); m = Math.Max(m, C[f].Length);
+                            C[f] = D.GetText().Split('\n');
+                            m = Math.Max(m, C[f].Length);
                         }
                     }
-                    for (e = 0; e < m; e++) { for (f = 0; f < k; f++) G.Append(e < C[f].Length ? C[f][e] : " "); G.Append("\n"); }
+                    for (e = 0; e < m; e++) 
+                    {
+                        for (f = 0; f < k; f++) G.Append(e < C[f].Length ? C[f][e] : " ");
+                        G.Append("\n"); 
+                    }
                 }
-                o = aU[
-panel]; v = ""; H.Clear(); K.Clear(); I.Clear(); foreach (string line in G.ToString().Split('\n'))
+                o = aU[panel];
+                v = "";
+                H.Clear();
+                K.Clear(); 
+                I.Clear(); 
+                foreach (string line in G.ToString().Split('\n'))
                 {
-                    y = line.ToUpper().Split(ap, 4, ao); if (y.
-Length >= 1)
+                    y = line.ToUpper().Split(ap, 4, ao);
+                    if (y.Length >= 1)
                     {
                         if (bs(null, y, v, out w, out x, out n, out p, out t, out u) & w == v & w != "" & x != "")
                         {
-                            L = aC[w][x]; K[w][x] = new[]{L.label,""+Math.Round(p/
-1e6,2),""+Math.Round(t*100.0f,2)+"%"}; if ((o > 0 & (o < L.qpriority | L.qpriority <= 0)) | (o == 0 & L.qpriority < 0))
+                            L = aC[w][x];
+                            K[w][x] = new[]{L.label,""+Math.Round(p/1e6,2),""+Math.Round(t*100.0f,2)+"%"}; 
+                            if ((o > 0 & (o < L.qpriority | L.qpriority <= 0)) | (o == 0 & L.qpriority < 0))
                             {
-                                L.qpriority = o; L.minimum = p; L.
-ratio = t;
+                                L.qpriority = o;
+                                L.minimum = p; 
+                                L.ratio = t;
                             }
-                            else if (o == L.qpriority) { L.minimum = Math.Max(L.minimum, p); L.ratio = Math.Max(L.ratio, t); }
+                            else if (o == L.qpriority)
+                            {
+                                L.minimum = Math.Max(L.minimum, p);
+                                L.ratio = Math.Max(L.ratio, t); 
+                            }
                         }
-                        else if (bs(null, y, "", out w, out x,
-out n, out p, out t, out u) & w != v & w != "" & x == "") { if (!K.ContainsKey(v = w)) { H.Add(v); K[v] = new SortedDictionary<string, string[]>(); } }
-                        else if
-(v != "") { K[v][y[0]] = y; }
-                        else { I.Add(line); }
+                        else if (bs(null, y, "", out w, out x, out n, out p, out t, out u) & w != v & w != "" & x == "") 
+                        {
+                            if (!K.ContainsKey(v = w))
+                            {
+                                H.Add(v);
+                                K[v] = new SortedDictionary<string, string[]>();
+                            }
+                        }
+                        else if (v != "")
+                        {
+                            K[v][y[0]] = y; 
+                        }
+                        else
+                        {
+                            I.Add(line);
+                        }
                     }
                 }
-                M = new ScreenFormatter(4, 2); M.SetAlign(1, 1); M.SetAlign(2, 1); if (H.Count == 0 & aV[panel].Count
-== 0) aV[panel].AddRange(av); foreach (string qtype in aV[panel])
+                M = new ScreenFormatter(4, 2); 
+                M.SetAlign(1, 1);
+                M.SetAlign(2, 1);
+                if (H.Count == 0 & aV[panel].Count == 0) aV[panel].AddRange(av); 
+                foreach (string qtype in aV[panel])
                 {
                     if (!K.ContainsKey(qtype))
                     {
-                        H.Add(qtype); K[qtype] = new SortedDictionary
-<string, string[]>();
+                        H.Add(qtype); K[qtype] = new SortedDictionary <string, string[]>();
                     }
                 }
                 foreach (string qtype in H)
                 {
-                    if (qtype == "ORE") continue; if (M.GetNumRows() > 0) M.AddBlankRow(); M.Add(0, aw[qtype],
-true); M.Add(1, "  Min", true); M.Add(2, "  Pct", true); M.Add(3, "", true); M.AddBlankRow(); foreach (bK d in aC[qtype].Values)
+                    if (qtype == "ORE") continue;
+                    if (M.GetNumRows() > 0) M.AddBlankRow(); 
+                    M.Add(0, aw[qtype], true); 
+                    M.Add(1, "  Min", true);
+                    M.Add(2, "  Pct", true); 
+                    M.Add(3, "", true); 
+                    M.AddBlankRow();
+                    foreach (bK d in aC[qtype].Values)
                     {
-                        if (!K[qtype].
-ContainsKey(d.subType)) K[qtype][d.subType] = new[] { d.label, "" + Math.Round(d.minimum / 1e6, 2), "" + Math.Round(d.ratio * 100.0f, 2) + "%" };
+                        if (!K[qtype].ContainsKey(d.subType)) K[qtype][d.subType] = new[] { d.label, "" + Math.Round(d.minimum / 1e6, 2), "" + Math.Round(d.ratio * 100.0f, 2) + "%" };
                     }
                     foreach (string qsub in K[qtype].Keys)
                     {
-                        y = K[qtype][qsub]; M.Add(0, aC[qtype].ContainsKey(qsub) ? y[0] : y[0].ToLower(), true); M.Add(1, y.
-Length > 1 ? y[1] : "", true); M.Add(2, y.Length > 2 ? y[2] : "", true); M.Add(3, y.Length > 3 ? y[3] : "", true);
+                        y = K[qtype][qsub];
+                        M.Add(0, aC[qtype].ContainsKey(qsub) ? y[0] : y[0].ToLower(), true); 
+                        M.Add(1, y.Length > 1 ? y[1] : "", true); 
+                        M.Add(2, y.Length > 2 ? y[2] : "", true);
+                        M.Add(3, y.Length > 3 ? y[3] : "", true);
                     }
                 }
-                bI("TIM Quotas", M, panel, true, I.Count == 0
-? "" : String.Join("\n", I).Trim().ToLower() + "\n\n");
+                bI("TIM Quotas", M, panel, true, I.Count == 0 ? "" : String.Join("\n", I).Trim().ToLower() + "\n\n");
             }
             foreach (string qtype in av)
             {
-                q = 1L; if (!FRACTIONAL_TYPES.Contains(qtype)) q = 1000000L
-; r = ay[qtype]; if (b & r > 0L)
+                q = 1L;
+                if (!FRACTIONAL_TYPES.Contains(qtype)) q = 1000000L;
+                r = ay[qtype];
+                if (b & r > 0L)
                 {
-                    J.Clear(); foreach (bK d in aC[qtype].Values)
+                    J.Clear();
+                    foreach (bK d in aC[qtype].Values)
                     {
                         if (d.ratio > 0.0f & r >= (long)(d.minimum / d.ratio)) J.Add(d.subType);
                     }
                     if (J.Count > 0)
                     {
-                        J.Sort((N, O) =>
-                        {
+                        J.Sort((N, O) => {
                             bK P = aC[qtype][N], Q = aC[qtype][O]; long R = (long)(P.amount / P.ratio), S = (long)(Q.amount / Q.ratio); return R
               == S ? P.ratio.CompareTo(Q.ratio) : R.CompareTo(S);
                         }); x = J[(J.Count - 1) / 2]; L = aC[qtype][x]; r = (long)(L.amount / L.ratio + 0.5f); if (c)
@@ -836,105 +1092,161 @@ aA[qsub] + " @ " + L.amount / 1e6 + " / " + L.ratio + " => " + (long)(L.amount /
                 }
                 foreach (bK d in aC[qtype].Values)
                 {
-                    p = Math.
-Max(d.quota, Math.Max(d.minimum, (long)(d.ratio * r + 0.5f))); d.quota = p / q * q;
+                    p = Math.Max(d.quota, Math.Max(d.minimum, (long)(d.ratio * r + 0.5f)));
+                    d.quota = p / q * q;
                 }
             }
         }
         void bq()
         {
             StringBuilder b = new StringBuilder();
-            IMyTextPanel c; IMyRefinery e; IMyAssembler f; System.Text.RegularExpressions.Match g; int h, j, k, l; string[] m, n; string o, p, q; long r;
-            float t; bool u, v, w = false; foreach (IMyTerminalBlock block in b1.Keys)
+            IMyTextPanel c;
+            IMyRefinery e; 
+            IMyAssembler f;
+            System.Text.RegularExpressions.Match g; 
+            int h, j, k, l; 
+            string[] m, n; 
+            string o, p, q; 
+            long r;
+            float t;
+            bool u, v, w = false; 
+            foreach (IMyTerminalBlock block in b1.Keys)
             {
-                g = b1[block]; m = g.Groups[1].Captures[0].Value.Split(at, ao); b.
-Clear(); if (!(u = b0.ContainsKey(block))) { b.Append(block.CustomName, 0, g.Index); b.Append(ac); if (ae != "") b.Append(ae + " "); }
-                if ((c = block
-as IMyTextPanel) != null)
+                g = b1[block]; 
+                m = g.Groups[1].Captures[0].Value.Split(at, ao); 
+                b.Clear();
+                if (!(u = b0.ContainsKey(block))) 
+                {
+                    b.Append(block.CustomName, 0, g.Index); 
+                    b.Append(ac);
+                    if (ae != "") b.Append(ae + " "); 
+                }
+                if ((c = block as IMyTextPanel) != null)
                 {
                     foreach (string a in m)
                     {
-                        o = a.ToUpper(); n = o.Split(aq); o = n[0]; if (o.Length >= 4 & "STATUS".StartsWith(o))
+                        o = a.ToUpper();
+                        n = o.Split(aq);
+                        o = n[0]; 
+                        if (o.Length >= 4 & "STATUS".StartsWith(o))
                         {
-                            if (c.
-Enabled) aX.Add(c); b.Append("STATUS ");
+                            if (c.Enabled) aX.Add(c);
+                            b.Append("STATUS ");
                         }
-                        else if (o.Length >= 5 & "DEBUGGING".StartsWith(o)) { if (c.Enabled) aY.Add(c); b.Append("DEBUG "); }
+                        else if (o.Length >= 5 & "DEBUGGING".StartsWith(o)) 
+                        {
+                            if (c.Enabled) aY.Add(c);
+                            b.Append("DEBUG ");
+                        }
                         else if (o == "SPAN")
                         {
                             if (n.Length >= 3 && int.TryParse(n[1], out k) & int.TryParse(n[2], out l) & k >= 1 & l >= 1)
                             {
-                                b8[c] = new a9(k, l); b.Append("SPAN:"
-+ k + ":" + l + " ");
+                                b8[c] = new a9(k, l);
+                                b.Append("SPAN:" + k + ":" + l + " ");
                             }
-                            else { b.Append((o = String.Join(":", n).ToLower()) + " "); a_.Add("Invalid panel span rule: " + o); }
+                            else
+                            {
+                                b.Append((o = String.Join(":", n).ToLower()) + " ");
+                                a_.Add("Invalid panel span rule: " + o);
+                            }
                         }
                         else if (o == "THE")
                         {
-                            w =
-true;
+                            w = true;
                         }
                         else if (o == "ENCHANTER" & w)
                         {
-                            w = false; c.SetValueFloat("FontSize", 0.2f); c.WritePublicTitle("TIM the Enchanter"); ((IMyTextSurface)
-  c).ContentType = ContentType.TEXT_AND_IMAGE; b.Append("THE ENCHANTER ");
+                            w = false;
+                            c.SetValueFloat("FontSize", 0.2f);
+                            c.WritePublicTitle("TIM the Enchanter");
+                            ((IMyTextSurface) c).ContentType = ContentType.TEXT_AND_IMAGE;
+                            b.Append("THE ENCHANTER ");
                         }
                         else if (o.Length >= 3 & "QUOTAS".StartsWith(o))
                         {
-                            if (c.Enabled & !aU
-.ContainsKey(c)) aU[c] = 0; if (c.Enabled & !aV.ContainsKey(c)) aV[c] = new List<string>(); b.Append("QUOTA"); h = 0; while (++h < n.Length)
+                            if (c.Enabled & !aU.ContainsKey(c)) aU[c] = 0; 
+                            if (c.Enabled & !aV.ContainsKey(c)) aV[c] = new List<string>(); 
+                            b.Append("QUOTA");
+                            h = 0;
+                            while (++h < n.Length)
                             {
-                                if (br(
-null, true, n[h], "", out p, out q) & p != "ORE" & q == "") { if (c.Enabled) aV[c].Add(p); b.Append(":" + aw[p]); }
-                                else if (n[h].StartsWith("P") & int.
-TryParse(n[h].Substring(Math.Min(1, n[h].Length)), out j)) { if (c.Enabled) aU[c] = Math.Max(0, j); if (j > 0) b.Append(":P" + j); }
+                                if (br(null, true, n[h], "", out p, out q) & p != "ORE" & q == "")
+                                {
+                                    if (c.Enabled) aV[c].Add(p);
+                                    b.Append(":" + aw[p]); 
+                                }
+                                else if (n[h].StartsWith("P") & int.TryParse(n[h].Substring(Math.Min(1, n[h].Length)), out j)) 
+                                {
+                                    if (c.Enabled) aU[c] = Math.Max(0, j); 
+                                    if (j > 0) b.Append(":P" + j);
+                                }
                                 else
                                 {
-                                    b.Append(
-":" + n[h].ToLower()); a_.Add("Invalid quota panel rule: " + n[h].ToLower());
+                                    b.Append(":" + n[h].ToLower()); 
+                                    a_.Add("Invalid quota panel rule: " + n[h].ToLower());
                                 }
                             }
                             b.Append(" ");
                         }
-                        else if (o.Length >= 3 & "INVENTORY".
-StartsWith(o))
+                        else if (o.Length >= 3 & "INVENTORY".StartsWith(o))
                         {
-                            if (c.Enabled & !aW.ContainsKey(c)) aW[c] = new List<string>(); b.Append("INVEN"); h = 0; while (++h < n.Length)
+                            if (c.Enabled & !aW.ContainsKey(c)) aW[c] = new List<string>(); 
+                            b.Append("INVEN"); h = 0; 
+                            while (++h < n.Length)
                             {
-                                if (br(null, true,
-n[h], "", out p, out q) & q == "") { if (c.Enabled) aW[c].Add(p); b.Append(":" + aw[p]); }
+                                if (br(null, true, n[h], "", out p, out q) & q == "")
+                                {
+                                    if (c.Enabled) aW[c].Add(p);
+                                    b.Append(":" + aw[p]);
+                                }
                                 else
                                 {
-                                    b.Append(":" + n[h].ToLower()); a_.Add(
-"Invalid inventory panel rule: " + n[h].ToLower());
+                                    b.Append(":" + n[h].ToLower());
+                                    a_.Add("Invalid inventory panel rule: " + n[h].ToLower());
                                 }
                             }
                             b.Append(" ");
                         }
                         else
                         {
-                            b.Append((o = String.Join(":", n).ToLower()) + " "); a_.Add(
-"Invalid panel attribute: " + o);
+                            b.Append((o = String.Join(":", n).ToLower()) + " ");
+                            a_.Add("Invalid panel attribute: " + o);
                         }
                     }
                 }
                 else
                 {
-                    e = block as IMyRefinery; f = block as IMyAssembler; foreach (string a in m)
+                    e = block as IMyRefinery;
+                    f = block as IMyAssembler; 
+                    foreach (string a in m)
                     {
-                        o = a.ToUpper(); n = o.
-Split(aq); o = n[0]; if ((o.Length >= 4 & "LOCKED".StartsWith(o)) | o == "EXEMPT")
+                        o = a.ToUpper();
+                        n = o.Split(aq); 
+                        o = n[0];
+                        if ((o.Length >= 4 & "LOCKED".StartsWith(o)) | o == "EXEMPT")
                         {
-                            h = block.InventoryCount; while (h-- > 0) b2.Add(block.GetInventory
-(h)); b.Append(o + " ");
+                            h = block.InventoryCount;
+                            while (h-- > 0) b2.Add(block.GetInventory(h)); 
+                            b.Append(o + " ");
                         }
-                        else if (o == "HIDDEN") { h = block.InventoryCount; while (h-- > 0) b3.Add(block.GetInventory(h)); b.Append("HIDDEN "); }
-                        else if (block is IMyShipConnector & o == "DOCK") { b.Append(String.Join(":", n) + " "); }
+                        else if (o == "HIDDEN")
+                        {
+                            h = block.InventoryCount;
+                            while (h-- > 0) b3.Add(block.GetInventory(h));
+                            b.Append("HIDDEN ");
+                        }
+                        else if (block is IMyShipConnector & o == "DOCK") 
+                        {
+                            b.Append(String.Join(":", n) + " ");
+                        }
                         else if ((e != null | f != null) & o == "AUTO")
                         {
-                            b.Append(
-"AUTO"); HashSet<string> x, y = e == null | n.Length > 1 ? new HashSet<string>() : bi(e, "ORE"); HashSet<ak> z, C = new HashSet<ak>(); h = 0; while (++h < n.
-Length)
+                            b.Append("AUTO");
+                            HashSet<string> x, y = e == null | n.Length > 1 ? new HashSet<string>() : bi(e, "ORE");
+                            HashSet<ak> z, C = new HashSet<ak>();
+                            h = 0;
+                            while (++h < n.Length)
                             {
                                 if (br(null, true, n[h], e != null ? "ORE" : "", out p, out q) & e != null == (p == "ORE") & (e != null | p != "INGOT"))
                                 {
@@ -942,154 +1254,257 @@ Length)
                                     {
                                         if (e != null)
                                         {
-                                            y.
-UnionWith(ax[p]);
+                                            y.UnionWith(ax[p]);
                                         }
-                                        else { foreach (string s in ax[p]) C.Add(new ak(p, s)); }
+                                        else 
+                                        { 
+                                            foreach (string s in ax[p]) C.Add(new ak(p, s));
+                                        }
                                         b.Append(":" + aw[p]);
                                     }
                                     else
                                     {
-                                        if (e != null) { y.Add(q); }
+                                        if (e != null)
+                                        {
+                                            y.Add(q);
+                                        }
                                         else
                                         {
-                                            C.Add(
-new ak(p, q));
+                                            C.Add(new ak(p, q));
                                         }
                                         b.Append(":" + (e == null & aB[q].Count > 1 ? aw[p] + "/" : "") + aA[q]);
                                     }
                                 }
                                 else
                                 {
-                                    b.Append(":" + n[h].ToLower()); a_.Add(
-"Unrecognized or ambiguous item: " + n[h].ToLower());
+                                    b.Append(":" + n[h].ToLower()); 
+                                    a_.Add("Unrecognized or ambiguous item: " + n[h].ToLower());
                                 }
                             }
                             if (e != null)
                             {
-                                if (e.Enabled) (b4.TryGetValue(e, out x) ? x : b4[e] = new HashSet<string>
-()).UnionWith(y);
+                                if (e.Enabled) (b4.TryGetValue(e, out x) ? x : b4[e] = new HashSet<string>()).UnionWith(y);
                             }
-                            else if (f.Enabled) (b5.TryGetValue(f, out z) ? z : b5[f] = new HashSet<ak>()).UnionWith(C); b.Append(" ");
+                            else if (f.Enabled) (b5.TryGetValue(f, out z) ? z : b5[f] = new HashSet<ak>()).UnionWith(C); 
+                            b.Append(" ");
                         }
-                        else if (!bs(
-block, n, "", out p, out q, out j, out r, out t, out v))
+                        else if (!bs(block, n, "", out p, out q, out j, out r, out t, out v))
                         {
-                            b.Append((o = String.Join(":", n).ToLower()) + " "); a_.Add(
-"Unrecognized or ambiguous item: " + o);
+                            b.Append((o = String.Join(":", n).ToLower()) + " ");
+                            a_.Add("Unrecognized or ambiguous item: " + o);
                         }
-                        else if (!block.HasInventory | (block is IMySmallMissileLauncher & !(block is
-IMySmallMissileLauncherReload | block.BlockDefinition.SubtypeName == "LargeMissileLauncher")) | block is IMyLargeInteriorTurret)
+                        else if (!block.HasInventory |
+                            (block is IMySmallMissileLauncher & 
+                            !(block is IMySmallMissileLauncherReload | 
+                            block.BlockDefinition.SubtypeName == "LargeMissileLauncher")) |
+                            block is IMyLargeInteriorTurret)
                         {
-                            b.
-Append(String.Join(":", n).ToLower() + " "); a_.Add("Cannot sort items to " + block.CustomName + ": no conveyor-connected inventory");
+                            b.Append(String.Join(":", n).ToLower() + " "); 
+                            a_.Add("Cannot sort items to " + block.CustomName + ": no conveyor-connected inventory");
                         }
                         else
                         {
-                            if (q == "") { foreach (string s in v ? (IEnumerable<string>)ax[p] : (IEnumerable<string>)bi(block, p)) bt(block, 0, p, s, j, r); }
+                            if (q == "") 
+                            {
+                                foreach (string s in v ? (IEnumerable<string>)ax[p] : (IEnumerable<string>)bi(block, p)) bt(block, 0, p, s, j, r); 
+                            }
                             else
                             {
-                                bt(
-block, 0, p, q, j, r);
+                                bt(block, 0, p, q, j, r);
                             }
                             if (aa & !u)
                             {
-                                if (v) { b.Append("FORCE:" + aw[p]); if (q != "") b.Append("/" + aA[q]); }
-                                else if (q == "") { b.Append(aw[p]); }
-                                else if (
-aB[q].Count == 1 || bj(block, q) == p) { b.Append(aA[q]); }
-                                else { b.Append(aw[p] + "/" + aA[q]); }
-                                if (j > 0 & j < int.MaxValue) b.Append(":P" + j); if (r >= 0L) b
-.Append(":" + r / 1e6); b.Append(" ");
+                                if (v) 
+                                { 
+                                    b.Append("FORCE:" + aw[p]);
+                                    if (q != "") b.Append("/" + aA[q]);
+                                }
+                                else if (q == "")
+                                { 
+                                    b.Append(aw[p]); 
+                                }
+                                else if (aB[q].Count == 1 || bj(block, q) == p)
+                                { 
+                                    b.Append(aA[q]);
+                                }
+                                else 
+                                {
+                                    b.Append(aw[p] + "/" + aA[q]);
+                                }
+                                if (j > 0 & j < int.MaxValue) b.Append(":P" + j); 
+                                if (r >= 0L) b.Append(":" + r / 1e6); 
+                                b.Append(" ");
                             }
                         }
                     }
                 }
                 if (aa & !u)
                 {
-                    if (b[b.Length - 1] == ' ') b.Length--; b.Append(ad).Append(block.CustomName, g.Index + g.
-Length, block.CustomName.Length - g.Index - g.Length); block.CustomName = b.ToString();
+                    if (b[b.Length - 1] == ' ') b.Length--; 
+                    b.Append(ad).Append(block.CustomName, g.Index + g.Length, block.CustomName.Length - g.Index - g.Length); 
+                    block.CustomName = b.ToString();
                 }
-                if (block.GetUserRelationToOwner(Me.OwnerId) !=
-MyRelationsBetweenPlayerAndBlock.Owner & block.GetUserRelationToOwner(Me.OwnerId) != MyRelationsBetweenPlayerAndBlock.FactionShare) a_.
-Add("Cannot control \"" + block.CustomName + "\" due to differing ownership");
+                if (block.GetUserRelationToOwner(Me.OwnerId) != MyRelationsBetweenPlayerAndBlock.Owner & 
+                    block.GetUserRelationToOwner(Me.OwnerId) != MyRelationsBetweenPlayerAndBlock.FactionShare) a_.Add("Cannot control \"" + block.CustomName + "\" due to differing ownership");
             }
         }
-        bool br(IMyCubeBlock b, bool c, string e, string f, out
-string g, out string h)
+        bool br(IMyCubeBlock b, bool c, string e, string f, out string g, out string h)
         {
-            int j, k, l; string[] m; g = ""; h = ""; l = 0; m = e.Trim().Split('/'); if (m.Length >= 2)
+            int j, k, l;
+            string[] m; 
+            g = "";
+            h = ""; 
+            l = 0;
+            m = e.Trim().Split('/'); 
+            if (m.Length >= 2)
             {
-                m[0] = m[0].Trim(); m[1] = m[1].Trim();
-                if (ax.ContainsKey(m[0]) && m[1] == "" | aC[m[0]].ContainsKey(m[1])) { if (c || bh(b, m[0], m[1])) { l = 1; g = m[0]; h = m[1]; } }
+                m[0] = m[0].Trim(); 
+                m[1] = m[1].Trim();
+                if (ax.ContainsKey(m[0]) && m[1] == "" | aC[m[0]].ContainsKey(m[1]))
+                {
+                    if (c || bh(b, m[0], m[1])) 
+                    {
+                        l = 1;
+                        g = m[0]; 
+                        h = m[1]; 
+                    }
+                }
                 else
                 {
-                    j = av.BinarySearch(m[
-0]); j = Math.Max(j, ~j); while (l < 2 & j < av.Count && av[j].StartsWith(m[0]))
+                    j = av.BinarySearch(m[0]);
+                    j = Math.Max(j, ~j);
+                    while (l < 2 & j < av.Count && av[j].StartsWith(m[0]))
                     {
-                        k = ax[av[j]].BinarySearch(m[1]); k = Math.Max(k, ~k); while (l < 2 & k < ax[
-av[j]].Count && ax[av[j]][k].StartsWith(m[1])) { if (c || bh(b, av[j], ax[av[j]][k])) { l++; g = av[j]; h = ax[av[j]][k]; } k++; }
-                        if (l == 0 & av[j] ==
-"INGOT" & "GRAVEL".StartsWith(m[1]) & (c || bh(b, "INGOT", "STONE"))) { l++; g = "INGOT"; h = "STONE"; }
+                        k = ax[av[j]].BinarySearch(m[1]);
+                        k = Math.Max(k, ~k);
+                        while (l < 2 & k < ax[av[j]].Count && ax[av[j]][k].StartsWith(m[1])) 
+                        {
+                            if (c || bh(b, av[j], ax[av[j]][k]))
+                            {
+                                l++; 
+                                g = av[j];
+                                h = ax[av[j]][k]; 
+                            }
+                            k++; 
+                        }
+                        if (l == 0 & av[j] == "INGOT" & "GRAVEL".StartsWith(m[1]) & (c || bh(b, "INGOT", "STONE"))) 
+                        {
+                            l++; 
+                            g = "INGOT"; 
+                            h = "STONE"; 
+                        }
                         j++;
                     }
                 }
             }
             else if (ax.ContainsKey(m[0]))
             {
-                if (c ||
-bh(b, m[0], "")) { l++; g = m[0]; h = ""; }
+                if (c || bh(b, m[0], "")) 
+                {
+                    l++; 
+                    g = m[0];
+                    h = ""; 
+                }
             }
             else if (aB.ContainsKey(m[0]))
             {
-                if (f != "" && aC[f].ContainsKey(m[0])) { l++; g = f; h = m[0]; }
+                if (f != "" && aC[f].ContainsKey(m[0])) 
+                {
+                    l++;
+                    g = f; 
+                    h = m[0]; 
+                }
                 else
                 {
-                    j = aB[m[0]].
-Count; while (l < 2 & j-- > 0) { if (c || bh(b, aB[m[0]][j], m[0])) { l++; g = aB[m[0]][j]; h = m[0]; } }
+                    j = aB[m[0]].Count;
+                    while (l < 2 & j-- > 0) { if (c || bh(b, aB[m[0]][j], m[0]))
+                        {
+                            l++; 
+                            g = aB[m[0]][j]; 
+                            h = m[0]; 
+                        }
+                    }
                 }
             }
             else if (f != "")
             {
-                k = ax[f].BinarySearch(m[0]); k = Math
-.Max(k, ~k); while (l < 2 & k < ax[f].Count && ax[f][k].StartsWith(m[0])) { l++; g = f; h = ax[f][k]; k++; }
-                if (l == 0 & f == "INGOT" & "GRAVEL".StartsWith(m[0]
-)) { l++; g = "INGOT"; h = "STONE"; }
+                k = ax[f].BinarySearch(m[0]);
+                k = Math.Max(k, ~k); 
+                while (l < 2 & k < ax[f].Count && ax[f][k].StartsWith(m[0])) 
+                {
+                    l++;
+                    g = f;
+                    h = ax[f][k]; 
+                    k++;
+                }
+                if (l == 0 & f == "INGOT" & "GRAVEL".StartsWith(m[0]))
+                {
+                    l++;
+                    g = "INGOT";
+                    h = "STONE"; 
+                }
             }
             else
             {
-                j = av.BinarySearch(m[0]); j = Math.Max(j, ~j); while (l < 2 & j < av.Count && av[j].StartsWith(m[0]))
+                j = av.BinarySearch(m[0]); 
+                j = Math.Max(j, ~j);
+                while (l < 2 & j < av.Count && av[j].StartsWith(m[0]))
                 {
-                    if (c || bh(
-b, av[j], "")) { l++; g = av[j]; h = ""; }
+                    if (c || bh(b, av[j], ""))
+                    {
+                        l++; 
+                        g = av[j];
+                        h = "";
+                    }
                     j++;
                 }
-                k = az.BinarySearch(m[0]); k = Math.Max(k, ~k); while (l < 2 & k < az.Count && az[k].StartsWith(m[0]))
+                k = az.BinarySearch(m[0]);
+                k = Math.Max(k, ~k);
+                while (l < 2 & k < az.Count && az[k].StartsWith(m[0]))
                 {
-                    j = aB[az
-[k]].Count; while (l < 2 & j-- > 0)
+                    j = aB[az[k]].Count; 
+                    while (l < 2 & j-- > 0)
                     {
                         if (c || bh(b, aB[az[k]][j], az[k]))
                         {
-                            if (l != 1 || g != aB[az[k]][j] | h != "" | ax[g].Count != 1) l++; g = aB[az[k]][j]; h = az[
-k];
+                            if (l != 1 || g != aB[az[k]][j] | h != "" | ax[g].Count != 1) l++;
+                            g = aB[az[k]][j]; 
+                            h = az[k];
                         }
                     }
                     k++;
                 }
-                if (l == 0 & "GRAVEL".StartsWith(m[0]) & (c || bh(b, "INGOT", "STONE"))) { l++; g = "INGOT"; h = "STONE"; }
+                if (l == 0 & "GRAVEL".StartsWith(m[0]) & (c || bh(b, "INGOT", "STONE")))
+                {
+                    l++; 
+                    g = "INGOT";
+                    h = "STONE";
+                }
             }
             if (!c & b != null & l == 1 & h == "")
             {
-                HashSet<string> n = bi(b, g); if (n.Count == 1) h = n.First();
+                HashSet<string> n = bi(b, g); 
+                if (n.Count == 1) h = n.First();
             }
             return l == 1;
         }
-        bool bs(IMyCubeBlock b, string[] c, string e, out string f, out string
-g, out int h, out long j, out float k, out bool l)
+        bool bs(IMyCubeBlock b, string[] c, string e, out string f, out stringg, out int h, out long j, out float k, out bool l)
         {
-            int m, n; double o, p; f = ""; g = ""; h = 0; j = -1L; k = -1.0f; l = b == null; m = 0; if (c[0].Trim() ==
-"FORCE") { if (c.Length == 1) return false; l = true; m = 1; }
+            int m, n;
+            double o, p;
+            f = ""; 
+            g = ""; 
+            h = 0; 
+            j = -1L;
+            k = -1.0f;
+            l = b == null;
+            m = 0;
+            if (c[0].Trim() == "FORCE")
+            { if (c.Length == 1)
+                    return false;
+                l = true; 
+                m = 1;
+            }
             if (!br(b, l, c[m], e, out f, out g)) return false; while (++m < c.Length)
             {
                 c[m] = c[m].Trim();
@@ -1097,25 +1512,21 @@ g, out int h, out long j, out float k, out bool l)
                 {
                     if (c[m] == "IGNORE") { j = 0L; }
                     else if (c[m] == "OVERRIDE" | c[m] == "SPLIT") { }
-                    else if (c[m][n - 1] == '%' & double.TryParse(c[
-m].Substring(0, n - 1), out o)) { k = Math.Max(0.0f, (float)(o / 100.0)); }
+                    else if (c[m][n - 1] == '%' & double.TryParse(c[m].Substring(0, n - 1), out o)) { k = Math.Max(0.0f, (float)(o / 100.0)); }
                     else if (c[m][0] == 'P' & double.TryParse(c[m].Substring(1), out o))
                     {
-                        h =
-Math.Max(1, (int)(o + 0.5));
+                        h = Math.Max(1, (int)(o + 0.5));
                     }
                     else
                     {
                         p = 1.0; if (c[m][n - 1] == 'K') { n--; p = 1e3; } else if (c[m][n - 1] == 'M') { n--; p = 1e6; }
-                        if (double.TryParse(c[m].
-Substring(0, n), out o)) j = Math.Max(0L, (long)(o * p * 1e6 + 0.5));
+                        if (double.TryParse(c[m].Substring(0, n), out o)) j = Math.Max(0L, (long)(o * p * 1e6 + 0.5));
                     }
                 }
             }
             return true;
         }
-        void bt(IMyTerminalBlock b, int c, string e, string f, int g,
-long h)
+        void bt(IMyTerminalBlock b, int c, string e, string f, int g, long h)
         {
             long j; Dictionary<string, Dictionary<string, Dictionary<IMyInventory, long>>> k; Dictionary<string, Dictionary<IMyInventory, long
           >> l; Dictionary<IMyInventory, long> m; if (g == 0) g = int.MaxValue; k = aT.TryGetValue(g, out k) ? k : aT[g] = new Dictionary<string, Dictionary<
@@ -1124,47 +1535,47 @@ long h)
             aC[e][f].quota += Math.Min(0L, -j) + Math.Max(0L, h); if (n.Owner != null)
             {
                 if (b is IMyRefinery && (b as IMyProductionBlock).UseConveyorSystem)
-                { b.GetActionWithName("UseConveyor").Apply(b); a_.Add("Disabling conveyor system for " + b.CustomName); }
-                if (b is IMyGasGenerator && (b as
-IMyGasGenerator).UseConveyorSystem)
+                { b.GetActionWithName("UseConveyor").Apply(b); 
+                    a_.Add("Disabling conveyor system for " + b.CustomName);
+                }
+                if (b is IMyGasGenerator && (b as IMyGasGenerator).UseConveyorSystem)
                 {
-                    b.GetActionWithName("UseConveyor").Apply(b); a_.Add("Disabling conveyor system for " + b.
-CustomName);
+                    b.GetActionWithName("UseConveyor").Apply(b); 
+                    a_.Add("Disabling conveyor system for " + b.CustomName);
                 }
                 if (b is IMyReactor && (b as IMyReactor).UseConveyorSystem)
                 {
-                    b.GetActionWithName("UseConveyor").Apply(b); a_.Add(
-"Disabling conveyor system for " + b.CustomName);
+                    b.GetActionWithName("UseConveyor").Apply(b);
+                    a_.Add("Disabling conveyor system for " + b.CustomName);
                 }
-                if (b is IMyLargeConveyorTurretBase && ((IMyLargeConveyorTurretBase)b).
-UseConveyorSystem) { b.GetActionWithName("UseConveyor").Apply(b); a_.Add("Disabling conveyor system for " + b.CustomName); }
-                if (b is
-IMySmallGatlingGun && ((IMySmallGatlingGun)b).UseConveyorSystem)
+                if (b is IMyLargeConveyorTurretBase && ((IMyLargeConveyorTurretBase)b).UseConveyorSystem)
                 {
-                    b.GetActionWithName("UseConveyor").Apply(b); a_.Add(
-"Disabling conveyor system for " + b.CustomName);
+                    b.GetActionWithName("UseConveyor").Apply(b); 
+                    a_.Add("Disabling conveyor system for " + b.CustomName);
+                }
+                if (b is IMySmallGatlingGun && ((IMySmallGatlingGun)b).UseConveyorSystem)
+                {
+                    b.GetActionWithName("UseConveyor").Apply(b); 
+                    a_.Add("Disabling conveyor system for " + b.CustomName);
                 }
                 if (b is IMySmallMissileLauncher && ((IMySmallMissileLauncher)b).UseConveyorSystem)
                 {
-                    b
-.GetActionWithName("UseConveyor").Apply(b); a_.Add("Disabling conveyor system for " + b.CustomName);
+                    b.GetActionWithName("UseConveyor").Apply(b);
+                    a_.Add("Disabling conveyor system for " + b.CustomName);
                 }
             }
         }
-        List<int> bu; int bv; List<string
-> bw; int bx; List<string> by; int bz; void bA(bool b)
+        List<int> bu; int bv; List<string> bw; int bx; List<string> by; int bz; void bA(bool b)
         {
             if (bu == null) { bu = new List<int>(aT.Keys); bu.Sort(); bv = 0; }
             for (; bv < bu.Count; bv++)
             {
-                if (
-bw == null) { bw = new List<string>(aT[bu[bv]].Keys); bx = 0; }
+                if (bw == null) { bw = new List<string>(aT[bu[bv]].Keys); bx = 0; }
                 for (; bx < bw.Count; bx++)
                 {
                     if (by == null)
                     {
-                        by = new List<string>(aT[bu[bv]][bw[bx]].
-Keys); bz = 0;
+                        by = new List<string>(aT[bu[bv]][bw[bx]].Keys); bz = 0;
                     }
                     bool c = false; for (; bz < by.Count; bz++) { if (c) bf(); bB(b, bu[bv], bw[bx], by[bz]); c = true; }
                     by = null;
@@ -1177,8 +1588,7 @@ Keys); bz = 0;
                 {
                     foreach (bK data in aC[itype].Values)
                     {
-                        if (data.avail > 0L) a_.Add("No place to put " + bk(data.avail) + " " + aw[
-itype] + "/" + aA[data.subType] + ", containers may be full");
+                        if (data.avail > 0L) a_.Add("No place to put " + bk(data.avail) + " " + aw[itype] + "/" + aA[data.subType] + ", containers may be full");
                     }
                 }
             }
@@ -1186,22 +1596,33 @@ itype] + "/" + aA[data.subType] + ", containers may be full");
         void bB(bool b, int c, string e, string f)
         {
             bool g = aZ.Contains("sorting");
-            int h, j; long k, l, m, n, o, p, q; List<IMyInventory> r = null; Dictionary<IMyInventory, long> t; if (g) a_.Add("sorting " + aw[e] + "/" + aA[f] + " lim=" +
-                              b + " p=" + c); q = 1L; if (!FRACTIONAL_TYPES.Contains(e)) q = 1000000L; t = new Dictionary<IMyInventory, long>(); bK u = aC[e][f]; k = 0L; foreach (
-                                                     IMyInventory reqInven in aT[c][e][f].Keys)
+            int h, j;
+            long k, l, m, n, o, p, q;
+            List<IMyInventory> r = null;
+            Dictionary<IMyInventory, long> t;
+            if (g) a_.Add("sorting " + aw[e] + "/" + aA[f] + " lim=" + b + " p=" + c); q = 1L; 
+            if (!FRACTIONAL_TYPES.Contains(e)) q = 1000000L;
+            t = new Dictionary<IMyInventory, long>(); 
+            bK u = aC[e][f]; 
+            k = 0L;
+            foreach (IMyInventory reqInven in aT[c][e][f].Keys)
             {
-                m = aT[c][e][f][reqInven]; if (m != 0L & b == m >= 0L)
+                m = aT[c][e][f][reqInven]; 
+                if (m != 0L & b == m >= 0L)
                 {
                     if (m < 0L)
                     {
-                        m = 1000000L; if (reqInven.MaxVolume !=
-VRage.MyFixedPoint.MaxValue) m = (long)((double)reqInven.MaxVolume * 1e6);
+                        m = 1000000L; 
+                        if (reqInven.MaxVolume != VRage.MyFixedPoint.MaxValue) m = (long)((double)reqInven.MaxVolume * 1e6);
                     }
                     t[reqInven] = m; k += m;
                 }
             }
-            if (g) a_.Add("total req=" + k / 1e6); if (k <=
-0L) return; l = u.avail + u.locked; if (g) a_.Add("total avail=" + l / 1e6); if (l > 0L)
+            if (g) a_.Add("total req=" + k / 1e6); 
+            if (k <= 0L) return; 
+            l = u.avail + u.locked;
+            if (g) a_.Add("total avail=" + l / 1e6); 
+            if (l > 0L)
             {
                 r = new List<IMyInventory>(u.invenTotal.Keys); do
                 {
@@ -1210,11 +1631,19 @@ VRage.MyFixedPoint.MaxValue) m = (long)((double)reqInven.MaxVolume * 1e6);
                     {
                         n = u.invenTotal[amtInven]; if (n > 0L & b2.Contains(amtInven))
                         {
-                            h++; t.TryGetValue(amtInven, out m); o = (
-long)((double)m / k * l); if (b) o = Math.Min(o, m); o = o / q * q; if (n >= o)
+                            h++; 
+                            t.TryGetValue(amtInven, out m);
+                            o = (long)((double)m / k * l); 
+                            if (b) o = Math.Min(o, m); o = o / q * q; 
+                            if (n >= o)
                             {
-                                if (g) a_.Add("locked " + (amtInven.Owner == null ? "???" : (amtInven.Owner as
-IMyTerminalBlock).CustomName) + " gets " + o / 1e6 + ", has " + n / 1e6); j++; k -= m; t[amtInven] = 0L; l -= n; u.locked -= n; u.invenTotal[amtInven] = 0L;
+                                if (g) a_.Add("locked " + (amtInven.Owner == null ? "???" : (amtInven.Owner as IMyTerminalBlock).CustomName) + " gets " + o / 1e6 + ", has " + n / 1e6); 
+                                j++;
+                                k -= m; 
+                                t[amtInven] = 0L;
+                                l -= n; 
+                                u.locked -= n; 
+                                u.invenTotal[amtInven] = 0L;
                             }
                         }
                     }
@@ -1375,8 +1804,7 @@ TryGetValue(rfn, out r))
             if (m.
 Count > 0 & u.Count > 0)
             {
-                m.Sort((v, w) =>
-                {
+                m.Sort((v, w) => {
                     string x, y; if (!ORE_PRODUCT.TryGetValue(v, out x)) x = v; if (!ORE_PRODUCT.TryGetValue(w, out y)) y = w;
                     return -1 * aC["INGOT"][x].quota.CompareTo(aC["INGOT"][y].quota);
                 }); u.Sort((z, C) => b4[z].Count.CompareTo(b4[C].Count)); foreach (
@@ -1494,89 +1922,149 @@ MaxValue; foreach (ak i in l) { if (m[i] < Math.Min(e, n[i]) & b5[asm].Contains(
         }
         void bG()
         {
-            string b, c, e; Dictionary<string, List<
-IMyTextPanel>> f = new Dictionary<string, List<IMyTextPanel>>(); ScreenFormatter g; long h, j; foreach (IMyTextPanel panel in aW.Keys)
+            string b, c, e;
+            Dictionary<string, List<IMyTextPanel>> f = new Dictionary<string, List<IMyTextPanel>>(); 
+            ScreenFormatter g;
+            long h, j; 
+            foreach (IMyTextPanel panel in aW.Keys)
             {
-                b =
-String.Join("/", aW[panel]); if (f.ContainsKey(b)) f[b].Add(panel); else f[b] = new List<IMyTextPanel>() { panel };
+                b = String.Join("/", aW[panel]);
+                if (f.ContainsKey(b)) f[b].Add(panel); 
+                else f[b] = new List<IMyTextPanel>() { panel };
             }
-            foreach (List<
-IMyTextPanel> panels in f.Values)
+            foreach (List<IMyTextPanel> panels in f.Values)
             {
-                g = new ScreenFormatter(6); g.SetBar(0); g.SetFill(0); g.SetAlign(2, 1); g.SetAlign(3, 1); g.SetAlign(4, 1)
-; g.SetAlign(5, 1); h = j = 0L; foreach (string itype in aW[panels[0]].Count > 0 ? aW[panels[0]] : av)
+                g = new ScreenFormatter(6);
+                g.SetBar(0); 
+                g.SetFill(0); 
+                g.SetAlign(2, 1);
+                g.SetAlign(3, 1); 
+                g.SetAlign(4, 1);
+                g.SetAlign(5, 1); 
+                h = j = 0L;
+                foreach (string itype in aW[panels[0]].Count > 0 ? aW[panels[0]] : av)
                 {
-                    c = " Asm "; e = "Quota"; if (itype == "INGOT")
+                    c = " Asm ";
+                    e = "Quota"; 
+                    if (itype == "INGOT")
                     {
-                        c =
-" Ref ";
+                        c = " Ref ";
                     }
-                    else if (itype == "ORE") { c = " Ref "; e = "Max"; }
-                    if (g.GetNumRows() > 0) g.AddBlankRow(); g.Add(0, ""); g.Add(1, aw[itype], true); g.Add(2,
-c, true); g.Add(3, "Qty", true); g.Add(4, " / ", true); g.Add(5, e, true); g.AddBlankRow(); foreach (bK data in aC[itype].Values)
+                    else if (itype == "ORE") 
                     {
-                        g.Add(0, data.
-amount == 0L ? "0.0" : "" + (double)data.amount / data.quota); g.Add(1, data.label, true); b = data.producers.Count > 0 ? data.producers.Count + " " + (
-data.producers.All(k => !(k is IMyProductionBlock) || (k as IMyProductionBlock).IsProducing) ? " " : "!") : data.hold > 0 ? "-  " : ""; g.Add(2, b,
-true); g.Add(3, data.amount > 0L | data.quota > 0L ? bk(data.amount) : ""); g.Add(4, data.quota > 0L ? " / " : "", true); g.Add(5, data.quota > 0L ? bk(data.
-quota) : ""); h = Math.Max(h, data.amount); j = Math.Max(j, data.quota);
+                        c = " Ref ";
+                        e = "Max"; 
+                    }
+                    if (g.GetNumRows() > 0) g.AddBlankRow();
+                    g.Add(0, "");
+                    g.Add(1, aw[itype], true);
+                    g.Add(2, c, true); 
+                    g.Add(3, "Qty", true);
+                    g.Add(4, " / ", true); 
+                    g.Add(5, e, true); 
+                    g.AddBlankRow(); 
+                    foreach (bK data in aC[itype].Values)
+                    {
+                        g.Add(0, data.amount == 0L ? "0.0" : "" + (double)data.amount / data.quota);
+                        g.Add(1, data.label, true);
+                        b = data.producers.Count > 0 ? data.producers.Count + " " + (data.producers.All(k => !(k is IMyProductionBlock) || (k as IMyProductionBlock).IsProducing) ? " " : "!") : data.hold > 0 ? "-  " : "";
+                        g.Add(2, b, true);
+                        g.Add(3, data.amount > 0L | data.quota > 0L ? bk(data.amount) : "");
+                        g.Add(4, data.quota > 0L ? " / " : "", true);
+                        g.Add(5, data.quota > 0L ? bk(data.quota) : ""); 
+                        h = Math.Max(h, data.amount); 
+                        j = Math.Max(j, data.quota);
                     }
                 }
-                g.SetWidth(3, ScreenFormatter.GetWidth("8.88" + (h >= 1000000000000L ?
-" M" : h >= 1000000000L ? " K" : ""), true)); g.SetWidth(5, ScreenFormatter.GetWidth("8.88" + (j >= 1000000000000L ? " M" : j >= 1000000000L ? " K" : ""),
-true)); foreach (IMyTextPanel panel in panels) bI("TIM Inventory", g, panel);
+                g.SetWidth(3, ScreenFormatter.GetWidth("8.88" + (h >= 1000000000000L ? " M" : h >= 1000000000L ? " K" : ""), true));
+                g.SetWidth(5, ScreenFormatter.GetWidth("8.88" + (j >= 1000000000000L ? " M" : j >= 1000000000L ? " K" : ""), true));
+                foreach (IMyTextPanel panel in panels) bI("TIM Inventory", g, panel);
             }
         }
         void bH()
         {
-            long b; StringBuilder c; if (aX.Count > 0)
+            long b; 
+            StringBuilder c;
+            if (aX.Count > 0)
             {
-                c = new
-StringBuilder(); c.Append(aE); for (b = Math.Max(1, aI - aF.Length + 1); b <= aI; b++) c.Append(aF[b % aF.Length]); foreach (IMyTextPanel panel in aX
-)
+                c = new StringBuilder();
+                c.Append(aE); 
+                for (b = Math.Max(1, aI - aF.Length + 1); b <= aI; b++) c.Append(aF[b % aF.Length]);
+                foreach (IMyTextPanel panel in aX)
                 {
-                    panel.WritePublicTitle("Script Status"); if (b8.ContainsKey(panel)) a_.Add("Status panels cannot be spanned"); panel.WriteText(c.
-                      ToString()); ((IMyTextSurface)panel).ContentType = ContentType.TEXT_AND_IMAGE;
+                    panel.WritePublicTitle("Script Status");
+                    if (b8.ContainsKey(panel)) a_.Add("Status panels cannot be spanned");
+                    panel.WriteText(c.ToString()); 
+                    ((IMyTextSurface)panel).ContentType = ContentType.TEXT_AND_IMAGE;
                 }
             }
             if (aY.Count > 0)
             {
-                foreach (IMyTerminalBlock blockFrom in
-b9.Keys)
+                foreach (IMyTerminalBlock blockFrom in b9.Keys)
                 {
-                    foreach (IMyTerminalBlock blockTo in b9[blockFrom]) a_.Add("No conveyor connection from " + blockFrom.CustomName + " to " +
-             blockTo.CustomName);
+                    foreach (IMyTerminalBlock blockTo in b9[blockFrom]) a_.Add("No conveyor connection from " + blockFrom.CustomName + " to " + blockTo.CustomName);
                 }
                 foreach (IMyTextPanel panel in aY)
                 {
-                    panel.WritePublicTitle("Script Debugging"); if (b8.ContainsKey(panel)) a_.Add(
-"Debug panels cannot be spanned"); panel.WriteText(String.Join("\n", a_)); ((IMyTextSurface)panel).ContentType = ContentType.
-TEXT_AND_IMAGE;
+                    panel.WritePublicTitle("Script Debugging");
+                    if (b8.ContainsKey(panel)) a_.Add("Debug panels cannot be spanned");
+                    panel.WriteText(String.Join("\n", a_));
+                    ((IMyTextSurface)panel).ContentType = ContentType.TEXT_AND_IMAGE;
                 }
             }
             b9.Clear();
         }
         void bI(string b, ScreenFormatter c, IMyTextPanel e, bool f = true, string g = "", string h = "")
         {
-            int j, k, l, m, n,
-o, p; int q, r, t; float u; string[][] v; string w; Matrix x; IMySlimBlock y; IMyTextPanel z; m = e.BlockDefinition.SubtypeName.EndsWith("Wide")
-? 2 : 1; n = e.BlockDefinition.SubtypeName.StartsWith("Small") ? 3 : 1; j = k = 1; if (f & b8.ContainsKey(e)) { j = b8[e].A; k = b8[e].B; }
-            q = c.GetMinWidth();
-            q = q / j + (q % j > 0 ? 1 : 0); r = c.GetNumRows(); r = r / k + (r % k > 0 ? 1 : 0); o = 646 * m; u = e.GetValueFloat("FontSize"); if (u < 0.25f) u = 1.0f; if (q > 0) u = Math.Min(u,
-                                                                Math.Max(0.5f, o * 100 / q / 100.0f)); if (r > 0) u = Math.Min(u, Math.Max(0.5f, 1760 / r / 100.0f)); o = (int)(o / u); p = (int)(17.6f / u); if (j > 1 | k > 1)
+            int j, k, l, m, n,o, p;
+            int q, r, t; 
+            float u; 
+            string[][] v; 
+            string w; 
+            Matrix x;
+            IMySlimBlock y;
+            IMyTextPanel z;
+            m = e.BlockDefinition.SubtypeName.EndsWith("Wide")? 2 : 1; 
+            n = e.BlockDefinition.SubtypeName.StartsWith("Small") ? 3 : 1;
+            j = k = 1;
+            if (f & b8.ContainsKey(e)) 
             {
-                v = c.
-ToSpan(o, j); e.Orientation.GetMatrix(out x); for (q = 0; q < j; q++)
+                j = b8[e].A; 
+                k = b8[e].B; 
+            }
+            q = c.GetMinWidth();
+            q = q / j + (q % j > 0 ? 1 : 0);
+            r = c.GetNumRows();
+            r = r / k + (r % k > 0 ? 1 : 0);
+            o = 646 * m; 
+            u = e.GetValueFloat("FontSize");
+            if (u < 0.25f) u = 1.0f; 
+            if (q > 0) u = Math.Min(u, Math.Max(0.5f, o * 100 / q / 100.0f));
+            if (r > 0) u = Math.Min(u, Math.Max(0.5f, 1760 / r / 100.0f));
+            o = (int)(o / u);
+            p = (int)(17.6f / u);
+            if (j > 1 | k > 1)
+            {
+                v = c.ToSpan(o, j);
+                e.Orientation.GetMatrix(out x); 
+                for (q = 0; q < j; q++)
                 {
-                    t = 0; for (r = 0; r < k; r++)
+                    t = 0; 
+                    for (r = 0; r < k; r++)
                     {
-                        y = e.CubeGrid.GetCubeBlock(new Vector3I(e.Position
-+ q * m * n * x.Right + r * n * x.Down)); if (y != null && y.FatBlock is IMyTextPanel && "" + y.FatBlock.BlockDefinition == "" + e.BlockDefinition)
+                        y = e.CubeGrid.GetCubeBlock(new Vector3I(e.Position + q * m * n * x.Right + r * n * x.Down));
+                        if (y != null && y.FatBlock is IMyTextPanel && "" + y.FatBlock.BlockDefinition == "" + e.BlockDefinition)
                         {
-                            z = y.
-FatBlock as IMyTextPanel; l = Math.Max(0, v[q].Length - t); if (r + 1 < k) l = Math.Min(l, p); w = ""; if (t < v[q].Length) w = String.Join("\n", v[q], t, l);
-                            if (q == 0) w += r == 0 ? g : r + 1 == k ? h : ""; z.SetValueFloat("FontSize", u); z.WritePublicTitle(b + " (" + (q + 1) + "," + (r + 1) + ")"); z.WriteText(w); ((
-                                                                   IMyTextSurface)z).ContentType = ContentType.TEXT_AND_IMAGE;
+                            z = y.FatBlock as IMyTextPanel;
+                            l = Math.Max(0, v[q].Length - t);
+                            if (r + 1 < k) l = Math.Min(l, p);
+                            w = "";
+                            if (t < v[q].Length) w = String.Join("\n", v[q], t, l);
+                            if (q == 0) w += r == 0 ? g : r + 1 == k ? h : "";
+                            z.SetValueFloat("FontSize", u);
+                            z.WritePublicTitle(b + " (" + (q + 1) + "," + (r + 1) + ")"); 
+                            z.WriteText(w);
+                            ((IMyTextSurface)z).ContentType = ContentType.TEXT_AND_IMAGE;
                         }
                         t += p;
                     }
@@ -1584,23 +2072,39 @@ FatBlock as IMyTextPanel; l = Math.Max(0, v[q].Length - t); if (r + 1 < k) l = M
             }
             else
             {
-                e.SetValueFloat("FontSize", u); e.WritePublicTitle(b); e.
-WriteText(g + c.ToString(o) + h); ((IMyTextSurface)e).ContentType = ContentType.TEXT_AND_IMAGE;
+                e.SetValueFloat("FontSize", u);
+                e.WritePublicTitle(b);
+                e.WriteText(g + c.ToString(o) + h);
+                ((IMyTextSurface)e).ContentType = ContentType.TEXT_AND_IMAGE;
             }
         }
         public class ScreenFormatter
         {
-            private
-static Dictionary<char, byte> U = new Dictionary<char, byte>(); private static Dictionary<string, int> V = new Dictionary<string, int>();
-            private static byte W; private static byte X; public static int GetWidth(string b, bool c = false)
+            private static Dictionary<char, byte> U = new Dictionary<char, byte>();
+            private static Dictionary<string, int> V = new Dictionary<string, int>();
+            private static byte W;
+            private static byte X; 
+            public static int GetWidth(string b, bool c = false)
             {
-                int e; if (!V.TryGetValue(b, out e))
+                int e; 
+                if (!V.TryGetValue(b, out e))
                 {
-                    Dictionary<char, byte> f = U; string g = b + "\0\0\0\0\0\0\0"; int h = g.Length - g.Length % 8; byte j, k, l, m, n, o, p, q; while (h > 0)
+                    Dictionary<char, byte> f = U;
+                    string g = b + "\0\0\0\0\0\0\0";
+                    int h = g.Length - g.Length % 8;
+                    byte j, k, l, m, n, o, p, q; 
+                    while (h > 0)
                     {
-                        f.TryGetValue(g[h - 1
-], out j); f.TryGetValue(g[h - 2], out k); f.TryGetValue(g[h - 3], out l); f.TryGetValue(g[h - 4], out m); f.TryGetValue(g[h - 5], out n); f.
-TryGetValue(g[h - 6], out o); f.TryGetValue(g[h - 7], out p); f.TryGetValue(g[h - 8], out q); e += j + k + l + m + n + o + p + q; h -= 8;
+                        f.TryGetValue(g[h - 1], out j); 
+                        f.TryGetValue(g[h - 2], out k); 
+                        f.TryGetValue(g[h - 3], out l);
+                        f.TryGetValue(g[h - 4], out m);
+                        f.TryGetValue(g[h - 5], out n); 
+                        f.TryGetValue(g[h - 6], out o); 
+                        f.TryGetValue(g[h - 7], out p);
+                        f.TryGetValue(g[h - 8], out q);
+                        e += j + k + l + m + n + o + p + q; 
+                        h -= 8;
                     }
                     if (c) V[b] = e;
                 }
@@ -1608,118 +2112,282 @@ TryGetValue(g[h - 6], out o); f.TryGetValue(g[h - 7], out p); f.TryGetValue(g[h 
             }
             public static string Format(string b, int c, out int e, int f = -1, bool g = false)
             {
-                int h, j; e = c - GetWidth(b, g); if (e <= W / 2) return b; h = e / W; j = 0
-; e -= h * W; if (2 * e <= W + h * (X - W)) { j = Math.Min(h, (int)((float)e / (X - W) + 0.4999f)); h -= j; e -= j * (X - W); } else if (e > W / 2) { h++; e -= W; }
-                if (f > 0) return new
-String(' ', h) + new String('\u00AD', j) + b; if (f < 0) return b + new String('\u00AD', j) + new String(' ', h); if (h % 2 > 0 & j % 2 == 0) return new String(
-' ', h / 2) + new String('\u00AD', j / 2) + b + new String('\u00AD', j / 2) + new String(' ', h - h / 2); return new String(' ', h - h / 2) + new String(
-'\u00AD', j / 2) + b + new String('\u00AD', j - j / 2) + new String(' ', h / 2);
+                int h, j;
+                e = c - GetWidth(b, g);
+                if (e <= W / 2) return b;
+                h = e / W; 
+                j = 0;
+                e -= h * W;
+                if (2 * e <= W + h * (X - W)) 
+                {
+                    j = Math.Min(h, (int)((float)e / (X - W) + 0.4999f)); 
+                    h -= j; 
+                    e -= j * (X - W);
+                }
+                else if (e > W / 2)
+                {
+                    h++;
+                    e -= W; 
+                }
+                if (f > 0) return new String(' ', h) + new String('\u00AD', j) + b;
+                if (f < 0) return b + new String('\u00AD', j) + new String(' ', h); 
+                if (h % 2 > 0 & j % 2 == 0) return new String(' ', h / 2) + new String('\u00AD', j / 2) + b + new String('\u00AD', j / 2) + new String(' ', h - h / 2);
+                return new String(' ', h - h / 2) + new String('\u00AD', j / 2) + b + new String('\u00AD', j - j / 2) + new String(' ', h / 2);
             }
             public static string Format(double b, int c, out int e)
             {
-                int f, g; b =
-Math.Min(Math.Max(b, 0.0f), 1.0f); f = c / W; g = (int)(f * b + 0.5f); e = c - f * W; return new String('I', g) + new String(' ', f - g);
+                int f, g;
+                b = Math.Min(Math.Max(b, 0.0f), 1.0f); 
+                f = c / W; 
+                g = (int)(f * b + 0.5f);
+                e = c - f * W; 
+                return new String('I', g) + new String(' ', f - g);
             }
-            public static void
-Init()
+            public static void Init()
             {
-                Y(0, "\u2028\u2029\u202F"); Y(7, "'|\u00A6\u02C9\u2018\u2019\u201A"); Y(8, "\u0458"); Y(9,
-               " !I`ijl\u00A0\u00A1\u00A8\u00AF\u00B4\u00B8\u00CC\u00CD\u00CE\u00CF\u00EC\u00ED\u00EE\u00EF\u0128\u0129\u012A\u012B\u012E\u012F\u0130\u0131\u0135\u013A\u013C\u013E\u0142\u02C6\u02C7\u02D8\u02D9\u02DA\u02DB\u02DC\u02DD\u0406\u0407\u0456\u0457\u2039\u203A\u2219"
-               ); Y(10, "(),.1:;[]ft{}\u00B7\u0163\u0165\u0167\u021B"); Y(11, "\"-r\u00AA\u00AD\u00BA\u0140\u0155\u0157\u0159"); Y(12,
-                    "*\u00B2\u00B3\u00B9"); Y(13, "\\\u00B0\u201C\u201D\u201E"); Y(14, "\u0491"); Y(15, "/\u0133\u0442\u044D\u0454"); Y(16,
-                           "L_vx\u00AB\u00BB\u0139\u013B\u013D\u013F\u0141\u0413\u0433\u0437\u043B\u0445\u0447\u0490\u2013\u2022"); Y(17,
-                            "7?Jcz\u00A2\u00BF\u00E7\u0107\u0109\u010B\u010D\u0134\u017A\u017C\u017E\u0403\u0408\u0427\u0430\u0432\u0438\u0439\u043D\u043E\u043F\u0441\u044A\u044C\u0453\u0455\u045C"
-                            ); Y(18,
-                             "3FKTabdeghknopqsuy\u00A3\u00B5\u00DD\u00E0\u00E1\u00E2\u00E3\u00E4\u00E5\u00E8\u00E9\u00EA\u00EB\u00F0\u00F1\u00F2\u00F3\u00F4\u00F5\u00F6\u00F8\u00F9\u00FA\u00FB\u00FC\u00FD\u00FE\u00FF\u00FF\u0101\u0103\u0105\u010F\u0111\u0113\u0115\u0117\u0119\u011B\u011D\u011F\u0121\u0123\u0125\u0127\u0136\u0137\u0144\u0146\u0148\u0149\u014D\u014F\u0151\u015B\u015D\u015F\u0161\u0162\u0164\u0166\u0169\u016B\u016D\u016F\u0171\u0173\u0176\u0177\u0178\u0219\u021A\u040E\u0417\u041A\u041B\u0431\u0434\u0435\u043A\u0440\u0443\u0446\u044F\u0451\u0452\u045B\u045E\u045F"
-                             ); Y(19,
-                              "+<=>E^~\u00AC\u00B1\u00B6\u00C8\u00C9\u00CA\u00CB\u00D7\u00F7\u0112\u0114\u0116\u0118\u011A\u0404\u040F\u0415\u041D\u042D\u2212")
-                              ; Y(20,
-                               "#0245689CXZ\u00A4\u00A5\u00C7\u00DF\u0106\u0108\u010A\u010C\u0179\u017B\u017D\u0192\u0401\u040C\u0410\u0411\u0412\u0414\u0418\u0419\u041F\u0420\u0421\u0422\u0423\u0425\u042C\u20AC"
-                               ); Y(21,
-                                "$&GHPUVY\u00A7\u00D9\u00DA\u00DB\u00DC\u00DE\u0100\u011C\u011E\u0120\u0122\u0124\u0126\u0168\u016A\u016C\u016E\u0170\u0172\u041E\u0424\u0426\u042A\u042F\u0436\u044B\u2020\u2021"
-                                ); Y(22,
-                                 "ABDNOQRS\u00C0\u00C1\u00C2\u00C3\u00C4\u00C5\u00D0\u00D1\u00D2\u00D3\u00D4\u00D5\u00D6\u00D8\u0102\u0104\u010E\u0110\u0143\u0145\u0147\u014C\u014E\u0150\u0154\u0156\u0158\u015A\u015C\u015E\u0160\u0218\u0405\u040A\u0416\u0444"
-                                 ); Y(23, "\u0459"); Y(24, "\u044E"); Y(25, "%\u0132\u042B"); Y(26, "@\u00A9\u00AE\u043C\u0448\u045A"); Y(27, "M\u041C\u0428"); Y(28,
-                                            "mw\u00BC\u0175\u042E\u0449"); Y(29, "\u00BE\u00E6\u0153\u0409"); Y(30, "\u00BD\u0429"); Y(31, "\u2122"); Y(32,
-                                                   "W\u00C6\u0152\u0174\u2014\u2026\u2030"); W = U[' ']; X = U['\u00AD'];
+                Y(0, "\u2028\u2029\u202F");
+                Y(7, "'|\u00A6\u02C9\u2018\u2019\u201A");
+                Y(8, "\u0458"); 
+                Y(9, " !I`ijl\u00A0\u00A1\u00A8\u00AF\u00B4\u00B8\u00CC\u00CD\u00CE\u00CF\u00EC\u00ED\u00EE\u00EF\u0128\u0129\u012A\u012B\u012E\u012F\u0130\u0131\u0135\u013A\u013C\u013E\u0142\u02C6\u02C7\u02D8\u02D9\u02DA\u02DB\u02DC\u02DD\u0406\u0407\u0456\u0457\u2039\u203A\u2219");
+                Y(10, "(),.1:;[]ft{}\u00B7\u0163\u0165\u0167\u021B"); 
+                Y(11, "\"-r\u00AA\u00AD\u00BA\u0140\u0155\u0157\u0159"); 
+                Y(12, "*\u00B2\u00B3\u00B9");
+                Y(13, "\\\u00B0\u201C\u201D\u201E");
+                Y(14, "\u0491");
+                Y(15, "/\u0133\u0442\u044D\u0454");
+                Y(16, "L_vx\u00AB\u00BB\u0139\u013B\u013D\u013F\u0141\u0413\u0433\u0437\u043B\u0445\u0447\u0490\u2013\u2022");
+                Y(17, "7?Jcz\u00A2\u00BF\u00E7\u0107\u0109\u010B\u010D\u0134\u017A\u017C\u017E\u0403\u0408\u0427\u0430\u0432\u0438\u0439\u043D\u043E\u043F\u0441\u044A\u044C\u0453\u0455\u045C");
+                Y(18, "3FKTabdeghknopqsuy\u00A3\u00B5\u00DD\u00E0\u00E1\u00E2\u00E3\u00E4\u00E5\u00E8\u00E9\u00EA\u00EB\u00F0\u00F1\u00F2\u00F3\u00F4\u00F5\u00F6\u00F8\u00F9\u00FA\u00FB\u00FC\u00FD\u00FE\u00FF\u00FF\u0101\u0103\u0105\u010F\u0111\u0113\u0115\u0117\u0119\u011B\u011D\u011F\u0121\u0123\u0125\u0127\u0136\u0137\u0144\u0146\u0148\u0149\u014D\u014F\u0151\u015B\u015D\u015F\u0161\u0162\u0164\u0166\u0169\u016B\u016D\u016F\u0171\u0173\u0176\u0177\u0178\u0219\u021A\u040E\u0417\u041A\u041B\u0431\u0434\u0435\u043A\u0440\u0443\u0446\u044F\u0451\u0452\u045B\u045E\u045F"); 
+                Y(19, "+<=>E^~\u00AC\u00B1\u00B6\u00C8\u00C9\u00CA\u00CB\u00D7\u00F7\u0112\u0114\u0116\u0118\u011A\u0404\u040F\u0415\u041D\u042D\u2212");
+                Y(20, "#0245689CXZ\u00A4\u00A5\u00C7\u00DF\u0106\u0108\u010A\u010C\u0179\u017B\u017D\u0192\u0401\u040C\u0410\u0411\u0412\u0414\u0418\u0419\u041F\u0420\u0421\u0422\u0423\u0425\u042C\u20AC"); 
+                Y(21, "$&GHPUVY\u00A7\u00D9\u00DA\u00DB\u00DC\u00DE\u0100\u011C\u011E\u0120\u0122\u0124\u0126\u0168\u016A\u016C\u016E\u0170\u0172\u041E\u0424\u0426\u042A\u042F\u0436\u044B\u2020\u2021");
+                Y(22, "ABDNOQRS\u00C0\u00C1\u00C2\u00C3\u00C4\u00C5\u00D0\u00D1\u00D2\u00D3\u00D4\u00D5\u00D6\u00D8\u0102\u0104\u010E\u0110\u0143\u0145\u0147\u014C\u014E\u0150\u0154\u0156\u0158\u015A\u015C\u015E\u0160\u0218\u0405\u040A\u0416\u0444");
+                Y(23, "\u0459"); 
+                Y(24, "\u044E");
+                Y(25, "%\u0132\u042B");
+                Y(26, "@\u00A9\u00AE\u043C\u0448\u045A"); 
+                Y(27, "M\u041C\u0428");
+                Y(28, "mw\u00BC\u0175\u042E\u0449");
+                Y(29, "\u00BE\u00E6\u0153\u0409");
+                Y(30, "\u00BD\u0429");
+                Y(31, "\u2122");
+                Y(32, "W\u00C6\u0152\u0174\u2014\u2026\u2030");
+                W = U[' '];
+                X = U['\u00AD'];
             }
             private static void Y(byte b, string c)
             {
                 Dictionary<char, byte> e = U;
-                string f = c + "\0\0\0\0\0\0\0"; byte g = Math.Max((byte)0, b); int h = f.Length - f.Length % 8; while (h > 0)
+                string f = c + "\0\0\0\0\0\0\0";
+                byte g = Math.Max((byte)0, b);
+                int h = f.Length - f.Length % 8; 
+                while (h > 0)
                 {
-                    e[f[--h]] = g; e[f[--h]] = g; e[f[--h]] = g; e[
-f[--h]] = g; e[f[--h]] = g; e[f[--h]] = g; e[f[--h]] = g; e[f[--h]] = g;
+                    e[f[--h]] = g; 
+                    e[f[--h]] = g;
+                    e[f[--h]] = g; 
+                    e[f[--h]] = g; 
+                    e[f[--h]] = g;
+                    e[f[--h]] = g; 
+                    e[f[--h]] = g; 
+                    e[f[--h]] = g;
                 }
                 e['\0'] = 0;
             }
-            private int Z; private int _; private int a0; private List<
-string>[] a1; private List<int>[] a2; private int[] a3; private int[] a4; private bool[] a5; private int[] a6; public ScreenFormatter(int b,
-int c = 1)
+            private int Z;
+            private int _;
+            private int a0;
+            private List<string>[] a1;
+            private List<int>[] a2; 
+            private int[] a3;
+            private int[] a4; 
+            private bool[] a5;
+            private int[] a6; 
+            public ScreenFormatter(int b, int c = 1)
             {
-                this.Z = b; _ = 0; this.a0 = c; a1 = new List<string>[b]; a2 = new List<int>[b]; a3 = new int[b]; a4 = new int[b]; a5 = new bool[b]; a6 = new int[b
-                               ]; for (int e = 0; e < b; e++) { a1[e] = new List<string>(); a2[e] = new List<int>(); a3[e] = -1; a4[e] = 0; a5[e] = false; a6[e] = 0; }
+                this.Z = b; _ = 0; 
+                this.a0 = c; 
+                a1 = new List<string>[b];
+                a2 = new List<int>[b]; 
+                a3 = new int[b]; 
+                a4 = new int[b]; 
+                a5 = new bool[b];
+                a6 = new int[b]; 
+                for (int e = 0; e < b; e++) 
+                {
+                    a1[e] = new List<string>();
+                    a2[e] = new List<int>(); 
+                    a3[e] = -1;
+                    a4[e] = 0;
+                    a5[e] = false;
+                    a6[e] = 0; 
+                }
             }
-            public void Add(int b
-, string c, bool e = false)
+            public void Add(int b, string c, bool e = false)
             {
-                int f = 0; a1[b].Add(c); if (a5[b] == false) { f = GetWidth(c, e); a6[b] = Math.Max(a6[b], f); }
-                a2[b].Add(f); _ = Math.Max(_,
-a1[b].Count);
+                int f = 0; 
+                a1[b].Add(c);
+                if (a5[b] == false) 
+                {
+                    f = GetWidth(c, e); 
+                    a6[b] = Math.Max(a6[b], f);
+                }
+                a2[b].Add(f); _ = Math.Max(_, a1[b].Count);
             }
-            public void AddBlankRow() { for (int b = 0; b < Z; b++) { a1[b].Add(""); a2[b].Add(0); } _++; }
-            public int GetNumRows() { return _; }
-            public int GetMinWidth() { int b = a0 * W; for (int c = 0; c < Z; c++) b += a0 * W + a6[c]; return b; }
-            public void SetAlign(int b, int c) { a3[b] = c; }
-            public
-void SetFill(int b, int c = 1)
-            { a4[b] = c; }
-            public void SetBar(int b, bool c = true) { a5[b] = c; }
-            public void SetWidth(int b, int c) { a6[b] = c; }
+            public void AddBlankRow() 
+            {
+                for (int b = 0; b < Z; b++) 
+                {
+                    a1[b].Add("");
+                    a2[b].Add(0); 
+                }
+                _++; 
+            }
+            public int GetNumRows()
+            {
+                return _;
+            }
+            public int GetMinWidth() 
+            {
+                int b = a0 * W;
+                for (int c = 0; c < Z; c++) b += a0 * W + a6[c]; 
+                return b; 
+            }
+            public void SetAlign(int b, int c) 
+            {
+                a3[b] = c; 
+            }
+            public void SetFill(int b, int c = 1)
+            {
+                a4[b] = c; 
+            }
+            public void SetBar(int b, bool c = true)
+            {
+                a5[b] = c; 
+            }
+            public void SetWidth(int b, int c) 
+            {
+                a6[b] = c; 
+            }
             public string[][] ToSpan(int b = 0, int c = 1)
             {
-                int e, f, g, h, j, k, l, m; int[] n; byte o; double p; string q; StringBuilder r; string[][] t; n = (int[])
-this.a6.Clone(); l = b * c - a0 * W; m = 0; for (e = 0; e < Z; e++) { l -= a0 * W; if (a4[e] == 0) l -= n[e]; m += a4[e]; }
+                int e, f, g, h, j, k, l, m;
+                int[] n; 
+                byte o;
+                double p;
+                string q;
+                StringBuilder r; 
+                string[][] t; 
+                n = (int[])this.a6.Clone();
+                l = b * c - a0 * W;
+                m = 0;
+                for (e = 0; e < Z; e++)
+                {
+                    l -= a0 * W;
+                    if (a4[e] == 0) l -= n[e];
+                    m += a4[e];
+                }
                 for (e = 0; e < Z & m > 0; e++)
                 {
                     if (a4[e] > 0)
                     {
-                        n[e] = Math.
-Max(n[e], a4[e] * l / m); l -= n[e]; m -= a4[e];
+                        n[e] = Math.Max(n[e], a4[e] * l / m);
+                        l -= n[e];
+                        m -= a4[e];
                     }
                 }
-                t = new string[c][]; for (g = 0; g < c; g++) t[g] = new string[_]; c--; h = 0; r = new StringBuilder(); for (f = 0;
-f < _; f++)
+                t = new string[c][];
+                for (g = 0; g < c; g++) t[g] = new string[_];
+                c--; h = 0;
+                r = new StringBuilder();
+                for (f = 0; f < _; f++)
                 {
-                    r.Clear(); g = 0; m = b; l = 0; for (e = 0; e < Z; e++)
+                    r.Clear(); 
+                    g = 0; 
+                    m = b;
+                    l = 0;
+                    for (e = 0; e < Z; e++)
                     {
-                        l += a0 * W; if (f >= a1[e].Count || a1[e][f] == "") { l += n[e]; }
+                        l += a0 * W;
+                        if (f >= a1[e].Count || a1[e][f] == "")
+                        {
+                            l += n[e]; 
+                        }
                         else
                         {
-                            q = a1[e][f]; U.TryGetValue(q[
-0], out o); k = a2[e][f]; if (a5[e]) { if (double.TryParse(q, out p)) p = Math.Min(Math.Max(p, 0.0), 1.0); h = (int)(n[e] / W * p + 0.5); o = W; k = h * W; }
-                            if (a3[
-e] > 0) { l += n[e] - k; }
-                            else if (a3[e] == 0) { l += (n[e] - k) / 2; } while (g < c & l > m - o) { r.Append(' '); t[g][f] = r.ToString(); r.Clear(); g++; l -= m; m = b; }
-                            m -= l
-; r.Append(Format("", l, out l)); m += l; if (a3[e] < 0) { l += n[e] - k; } else if (a3[e] == 0) { l += n[e] - k - (n[e] - k) / 2; }
+                            q = a1[e][f];
+                            U.TryGetValue(q[0], out o);
+                            k = a2[e][f]; 
+                            if (a5[e]) 
+                            {
+                                if (double.TryParse(q, out p)) p = Math.Min(Math.Max(p, 0.0), 1.0);
+                                h = (int)(n[e] / W * p + 0.5); 
+                                o = W; 
+                                k = h * W;
+                            }
+                            if (a3[e] > 0)
+                            {
+                                l += n[e] - k;
+                            }
+                            else if (a3[e] == 0) 
+                            {
+                                l += (n[e] - k) / 2;
+                            } 
+                            while (g < c & l > m - o)
+                            {
+                                r.Append(' ');
+                                t[g][f] = r.ToString(); 
+                                r.Clear();
+                                g++;
+                                l -= m; 
+                                m = b;
+                            }
+                            m -= l; 
+                            r.Append(Format("", l, out l)); 
+                            m += l;
+                            if (a3[e] < 0)
+                            {
+                                l += n[e] - k;
+                            } 
+                            else if (a3[e] == 0) 
+                            {
+                                l += n[e] - k - (n[e] - k) / 2;
+                            }
                             if (a5[e])
                             {
                                 while (g < c & k > m)
                                 {
-                                    j = m / W; m
--= j * W; k -= j * W; r.Append(new String('I', j)); t[g][f] = r.ToString(); r.Clear(); g++; l -= m; m = b; h -= j;
+                                    j = m / W; 
+                                    m -= j * W;
+                                    k -= j * W; 
+                                    r.Append(new String('I', j));
+                                    t[g][f] = r.ToString();
+                                    r.Clear(); 
+                                    g++;
+                                    l -= m;
+                                    m = b;
+                                    h -= j;
                                 }
                                 q = new String('I', h);
                             }
                             else
                             {
-                                while (g < c & k > m
-)
+                                while (g < c & k > m)
                                 {
-                                    h = 0; while (m >= o) { m -= o; k -= o; U.TryGetValue(q[++h], out o); }
-                                    r.Append(q, 0, h); t[g][f] = r.ToString(); r.Clear(); g++; l -= m; m = b; q = q.Substring
-(h);
+                                    h = 0; 
+                                    while (m >= o) 
+                                    {
+                                        m -= o; 
+                                        k -= o;
+                                        U.TryGetValue(q[++h], out o);
+                                    }
+                                    r.Append(q, 0, h);
+                                    t[g][f] = r.ToString();
+                                    r.Clear();
+                                    g++; 
+                                    l -= m;
+                                    m = b;
+                                    q = q.Substring(h);
                                 }
                             }
                             m -= k; r.Append(q);
@@ -1729,7 +2397,10 @@ e] > 0) { l += n[e] - k; }
                 }
                 return t;
             }
-            public string ToString(int b = 0) { return String.Join("\n", ToSpan(b)[0]); }
+            public string ToString(int b = 0) 
+            {
+                return String.Join("\n", ToSpan(b)[0]);
+            }
         }
         //------------END--------------
     }

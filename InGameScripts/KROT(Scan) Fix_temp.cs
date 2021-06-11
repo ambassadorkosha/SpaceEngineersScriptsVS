@@ -1,5 +1,3 @@
-         //------------BEGIN--------------
-
         const float max_speed_flight = 39.0f; //макс скорость полета
         const float max_speed_drill = 3f; //макс скорость проходки
         const float max_hover_h = 25.0f; //макс высота ховера
@@ -412,5 +410,3 @@
                 hover.SetValueFloat("Hover_MinHeight", h);
             }
         }
-        //------------END--------------
- 

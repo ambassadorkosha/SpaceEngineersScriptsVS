@@ -12,6 +12,9 @@ using VRage.Collections;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Game.ModAPI.Ingame;
 using SpaceEngineers.Game.ModAPI.Ingame;
+using VRage.Game.GUI.TextPanel;
+using System.Linq;
+
 namespace Script1
 {
     public sealed class Program : MyGridProgram
