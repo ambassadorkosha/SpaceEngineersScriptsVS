@@ -1027,8 +1027,8 @@ namespace Taledens_Inventory_Manager
                 inven.GetItems(g); 
                 foreach (MyInventoryItem stack in g)
                 {
-                    b = "" + stack.Type.TypeId
-                        b = b.Substring(b.LastIndexOf('_') + 1).ToUpper();
+                    b = "" + stack.Type.TypeId;
+                    b = b.Substring(b.LastIndexOf('_') + 1).ToUpper();
                     c = stack.Type.SubtypeId.ToUpper();
                     e = (long)((double)stack.Amount * 1e6);
                     f = aC[b][c];
@@ -1594,7 +1594,7 @@ aA[qsub] + " @ " + L.amount / 1e6 + " / " + L.ratio + " => " + (long)(L.amount /
             }
             return l == 1;
         }
-        bool bs(IMyCubeBlock b, string[] c, string e, out string f, out stringg, out int h, out long j, out float k, out bool l)
+        bool bs(IMyCubeBlock b, string[] c, string e, out string f, out string g, out int h, out long j, out float k, out bool l)
         {
             int m, n;
             double o, p;
@@ -1606,8 +1606,8 @@ aA[qsub] + " @ " + L.amount / 1e6 + " / " + L.ratio + " => " + (long)(L.amount /
             l = b == null;
             m = 0;
             if (c[0].Trim() == "FORCE")
-            { if (c.Length == 1)
-                    return false;
+            {
+                if (c.Length == 1) return false;
                 l = true; 
                 m = 1;
             }

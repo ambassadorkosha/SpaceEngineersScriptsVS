@@ -585,8 +585,7 @@ namespace IsysInventoryManager
 						if (scriptMode == "station")
 						{ Ƿ = true; }
 						else if (Me.CubeGrid.IsStatic && scriptMode != "ship") { Ƿ = true; }
-						Echo("Setting script mode to: " + (Ƿ ? "station.." :
-"ship..")); if (ɯ == 7) Me.CustomData = (Ƿ ? Ƕ : ǵ) + Me.CustomData.Replace(Ƕ, "").Replace(ǵ, "");
+						Echo("Setting script mode to: " + (Ƿ ? "station.." : "ship..")); if (ɯ == 7) Me.CustomData = (Ƿ ? Ƕ : ǵ) + Me.CustomData.Replace(Ƕ, "").Replace(ǵ, "");
 					}
 					if (ɯ >= 8) { Echo("Starting script.."); }
 					if (ɯ >= 9)
@@ -598,8 +597,7 @@ namespace IsysInventoryManager
 				{
 					if (ɱ > 0)
 					{
-						Ǖ(
-"Dynamic script speed control"); É(".."); ɱ--; return;
+						Ǖ("Dynamic script speed control"); É(".."); ɱ--; return;
 					}
 				}
 				if (ɰ < extraScriptTicks) { Runtime.UpdateFrequency = UpdateFrequency.Update1; ɰ++; return; }
@@ -625,25 +623,16 @@ namespace IsysInventoryManager
 				Runtime.UpdateFrequency = UpdateFrequency.Update10; ɭ = true; if (ɯ == 1) { Õ(); }
 				if (ɯ == 2) { è(); }
 				if (ɯ == 3) { if (enableNameCorrection) ȿ(); }
-				if (ɯ
-== 4) { if (autoContainerAssignment) { if (unassignEmptyContainers) Ȯ(); if (assignNewContainers) ȴ(); } }
+				if (ɯ == 4) { if (autoContainerAssignment) { if (unassignEmptyContainers) Ȯ(); if (assignNewContainers) ȴ(); } }
 				if (ɯ == 5) { if (ʕ.Count != 0) Α(); }
 				if (ɯ == 6) { Ξ(); }
 				if (ɯ == 7) { if (balanceTypeContainers) ʷ(); }
 				if (ɯ == 8) { Τ(); }
 				if (ɯ == 9) { τ(ʉ); τ(ʕ); }
 				if (ɯ == 10) { Ʒ(); }
-				if (ɯ == 11)
-				{
-					if (
-enableAutocrafting || enableAutodisassembling) Ɵ();
-				}
+				if (ɯ == 11) { if (enableAutocrafting || enableAutodisassembling) Ɵ(); }
 				if (ɯ == 12) { if (enableAutocrafting || enableAutodisassembling) μ(); }
-				if (ɯ == 13)
-				{
-					if (
-splitAssemblerTasks) ˬ(); if (sortAssemblerQueue) ͱ();
-				}
+				if (ɯ == 13) { if (splitAssemblerTasks) ˬ(); if (sortAssemblerQueue) ͱ(); }
 				if (ɯ == 14)
 				{
 					if (enableAssemblerCleanup) Ͱ(); if (enableBasicIngotCrafting)
@@ -669,34 +658,28 @@ splitAssemblerTasks) ˬ(); if (sortAssemblerQueue) ͱ();
 				if (ɯ == 19)
 				{
 					if (enableUraniumBalancing) { â("uraniumBalancing", "true"); ę(); }
-					else if (!
-enableUraniumBalancing && ä("uraniumBalancing") == "true") { â("uraniumBalancing", "false"); foreach (IMyReactor ĉ in ɼ) { ĉ.UseConveyorSystem = true; } }
+					else if (!enableUraniumBalancing && ä("uraniumBalancing") == "true") { â("uraniumBalancing", "false"); foreach (IMyReactor ĉ in ɼ) { ĉ.UseConveyorSystem = true; } }
 				}
-				Ǖ(
-ǯ[ɯ]); É(); ɱ = (int)Math.Floor((ǂ > 20 ? 20 : ǂ) / maxCurrentMs); if (ɯ >= 19)
+				Ǖ(ǯ[ɯ]); É(); ɱ = (int)Math.Floor((ǂ > 20 ? 20 : ǂ) / maxCurrentMs); if (ɯ >= 19)
 				{
-					ɯ = 0; ɳ = new HashSet<string>(ɲ); ɲ.Clear(); if (ɸ > 0) ɸ--; if (ɳ.
-Count == 0) Ŀ = null;
+					ɯ = 0; ɳ = new HashSet<string>(ɲ); ɲ.Clear(); if (ɸ > 0) ɸ--; if (ɳ.Count == 0) Ŀ = null;
 				}
 				else { ɯ++; }
 			}
 			catch (NullReferenceException e)
 			{
-				ɸ++; ɵ = true; ʐ = false; ɷ = e.ToString(); ƹ(
-"Execution of script step aborted:\n" + ǯ[ɯ] + " (ID: " + ɯ + ")\n\nCached block not available..");
+				ɸ++; ɵ = true; ʐ = false; ɷ = e.ToString(); ƹ("Execution of script step aborted:\n" + ǯ[ɯ] + " (ID: " + ɯ + ")\n\nCached block not available..");
 			}
 			catch (Exception e)
 			{
-				ɸ++; ɵ = true; ʐ = false; ɷ = e.ToString(); ƹ(
-"Critical error in script step:\n" + ǯ[ɯ] + " (ID: " + ɯ + ")\n\n" + e);
+				ɸ++; ɵ = true; ʐ = false; ɷ = e.ToString(); ƹ("Critical error in script step:\n" + ǯ[ɯ] + " (ID: " + ɯ + ")\n\n" + e);
 			}
 		}
 		bool Ȇ(string ǳ)
 		{
 			if (ǳ.Contains("pauseThisPB"))
 			{
-				Echo("Script execution paused!\n"); var ȅ = ǳ.
-Split(';'); if (ȅ.Length == 3)
+				Echo("Script execution paused!\n"); var ȅ = ǳ.Split(';'); if (ȅ.Length == 3)
 				{
 					Echo("Found:"); Echo("'" + ȅ[1] + "'"); Echo("on grid:"); Echo("'" + ȅ[2] + "'"); Echo(
 	 "also running the script.\n"); Echo("Type container protection: " + (protectTypeContainers ? "ON" : "OFF") + "\n"); Echo(
