@@ -1027,8 +1027,8 @@ namespace Taledens_Inventory_Manager
                 inven.GetItems(g); 
                 foreach (MyInventoryItem stack in g)
                 {
-                    b = "" + stack.Type.TypeId
-                        b = b.Substring(b.LastIndexOf('_') + 1).ToUpper();
+                    b = "" + stack.Type.TypeId;
+                    b = b.Substring(b.LastIndexOf('_') + 1).ToUpper();
                     c = stack.Type.SubtypeId.ToUpper();
                     e = (long)((double)stack.Amount * 1e6);
                     f = aC[b][c];
@@ -1606,12 +1606,13 @@ aA[qsub] + " @ " + L.amount / 1e6 + " / " + L.ratio + " => " + (long)(L.amount /
             l = b == null;
             m = 0;
             if (c[0].Trim() == "FORCE")
-            { if (c.Length == 1)
-                    return false;
+            {
+                if (c.Length == 1) return false;
                 l = true; 
                 m = 1;
             }
-            if (!br(b, l, c[m], e, out f, out g)) return false; while (++m < c.Length)
+            if (!br(b, l, c[m], e, out f, out g)) return false;
+            while (++m < c.Length)
             {
                 c[m] = c[m].Trim();
                 n = c[m].Length; if (n != 0)
