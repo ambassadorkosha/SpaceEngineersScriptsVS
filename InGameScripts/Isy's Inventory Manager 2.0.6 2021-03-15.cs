@@ -400,7 +400,7 @@ namespace IsysInventoryManager
 		HashSet<string> ɲ = new HashSet<string>();
 		int ɱ = 0;
 		int ɰ = 0;
-		int ɯ = 0;
+		int stepId = 0;
 		bool ɮ = true;
 		bool ɭ = false;
 		int ɬ = 0;
@@ -496,7 +496,7 @@ namespace IsysInventoryManager
 		string ǲ = "";
 		string Ǳ = "";
 		DateTime ǰ;
-		string[] ǯ = {
+		string[] stepName = {
 			"Get inventory blocks","Find new items","Create item lists","Name correction","Assign containers",
 			"Fill special containers","Sort items","Container balancing","Internal sorting",
 			"Add fill level to names","Get global item amount","Get assembler queue",
@@ -513,24 +513,24 @@ namespace IsysInventoryManager
 		{
 			if (ɸ >= 10)
 			{
-				throw new Exception("Too many errors in script step " + ɯ + ":\n" + ǯ[ɯ] +
+				throw new Exception("Too many errors in script stepId " + stepId + ":\n" + stepName[stepId] +
 			"\n\nPlease recompile!\nScript stoppped!\n\nLast error:\n" + ɷ + "\n");
 			}
 			try
 			{
 				if (ɮ)
 				{
-					if (ɯ > 0) Echo("Initializing script.. (" + (ɯ + 1) + "/10) \n");
-					if (ɯ >= 2)
+					if (stepId > 0) Echo("Initializing script.. (" + (stepId + 1) + "/10) \n");
+					if (stepId >= 2)
 					{
 						Echo("Getting inventory blocks..");
-						if (ɯ == 2) Ʉ();
+						if (stepId == 2) Ʉ();
 						if (ʐ) return;
 					}
-					if (ɯ >= 3)
+					if (stepId >= 3)
 					{
 						Echo("Loading saved items..");
-						if (ɯ == 3)
+						if (stepId == 3)
 						{
 							if (!Ó())
 							{
@@ -545,10 +545,10 @@ namespace IsysInventoryManager
 							Echo("-> Autocrafting deactivated!");
 						}
 					}
-					if (ɯ >= 4)
+					if (stepId >= 4)
 					{
 						Echo("Clearing assembler queues..");
-						if (ɯ == 4 && (enableAutocrafting || enableAutodisassembling))
+						if (stepId == 4 && (enableAutocrafting || enableAutodisassembling))
 						{
 							GridTerminalSystem.GetBlocksOfType<IMyTextPanel>(ʍ, u => u.IsSameConstructAs(Me) && u.CustomName.Contains(autocraftingKeyword));
 							if (ʍ.Count > 0)
@@ -563,10 +563,10 @@ namespace IsysInventoryManager
 							}
 						}
 					}
-					if (ɯ >= 5)
+					if (stepId >= 5)
 					{
 						Echo("Checking blueprints..");
-						if (ɯ == 5)
+						if (stepId == 5)
 						{
 							foreach (var M in ȧ)
 							{
@@ -574,25 +574,24 @@ namespace IsysInventoryManager
 							}
 						}
 					}
-					if (ɯ >= 6)
+					if (stepId >= 6)
 					{
 						Echo("Checking type containers..");
-						if (ɯ == 6) ɔ();
-						if (ɯ == 6) ɍ();
+						if (stepId == 6) ɔ();
+						if (stepId == 6) ɍ();
 					}
-					if (ɯ >= 7)
+					if (stepId >= 7)
 					{
 						if (scriptMode == "station")
 						{ Ƿ = true; }
 						else if (Me.CubeGrid.IsStatic && scriptMode != "ship") { Ƿ = true; }
-						Echo("Setting script mode to: " + (Ƿ ? "station.." : "ship..")); if (ɯ == 7) Me.CustomData = (Ƿ ? Ƕ : ǵ) + Me.CustomData.Replace(Ƕ, "").Replace(ǵ, "");
+						Echo("Setting script mode to: " + (Ƿ ? "station.." : "ship..")); if (stepId == 7) Me.CustomData = (Ƿ ? Ƕ : ǵ) + Me.CustomData.Replace(Ƕ, "").Replace(ǵ, "");
 					}
-					if (ɯ >= 8) { Echo("Starting script.."); }
-					if (ɯ >= 9)
-					{ ɯ = 0; ɮ = false; return; }
-					ɯ++; return;
+					if (stepId >= 8) { Echo("Starting script.."); }
+					if (stepId >= 9)	{ stepId = 0; ɮ = false; return; }
+					stepId++; return;
 				}
-				if (ǳ != "") { Ǳ = ǳ; ɯ = 1; ǲ = ""; ǰ = DateTime.Now; }
+				if (ǳ != "") { Ǳ = ǳ; stepId = 1; ǲ = ""; ǰ = DateTime.Now; }
 				if (useDynamicScriptSpeed)
 				{
 					if (ɱ > 0)
@@ -606,7 +605,7 @@ namespace IsysInventoryManager
 					if (ɬ == 0)
 						ĥ(); if (ɬ == 1) Ł(); if (ɬ == 2) ņ(); if (ɬ == 3) Ņ(); if (ɬ > 3) ɬ = 0; ɭ = false; return;
 				}
-				if (ɯ == 0 || ɵ || ʐ)
+				if (stepId == 0 || ɵ || ʐ)
 				{
 					if (!ɴ) Ʉ(); if (ʐ) return; ɵ = false; ɴ = false;
 					if (!Ǔ(30))
@@ -616,24 +615,24 @@ namespace IsysInventoryManager
 							 defaultFont, defaultFontSize, defaultPadding);
 					}
 					else { ɵ = true; ɴ = true; }
-					if (ɯ == 0) { Ǖ(ǯ[ɯ]); É(); ɯ++; }
+					if (stepId == 0) { Ǖ(stepName[stepId]); É(); stepId++; }
 					return;
 				}
 				if (!Ƿ) ȁ(); if (Ȇ(Ǳ)) return; ɰ = 0;
-				Runtime.UpdateFrequency = UpdateFrequency.Update10; ɭ = true; if (ɯ == 1) { Õ(); }
-				if (ɯ == 2) { è(); }
-				if (ɯ == 3) { if (enableNameCorrection) ȿ(); }
-				if (ɯ == 4) { if (autoContainerAssignment) { if (unassignEmptyContainers) Ȯ(); if (assignNewContainers) ȴ(); } }
-				if (ɯ == 5) { if (ʕ.Count != 0) Α(); }
-				if (ɯ == 6) { Ξ(); }
-				if (ɯ == 7) { if (balanceTypeContainers) ʷ(); }
-				if (ɯ == 8) { Τ(); }
-				if (ɯ == 9) { τ(ʉ); τ(ʕ); }
-				if (ɯ == 10) { Ʒ(); }
-				if (ɯ == 11) { if (enableAutocrafting || enableAutodisassembling) Ɵ(); }
-				if (ɯ == 12) { if (enableAutocrafting || enableAutodisassembling) μ(); }
-				if (ɯ == 13) { if (splitAssemblerTasks) ˬ(); if (sortAssemblerQueue) ͱ(); }
-				if (ɯ == 14)
+				Runtime.UpdateFrequency = UpdateFrequency.Update10; ɭ = true; if (stepId == 1) { Õ(); }
+				if (stepId == 2) { è(); }
+				if (stepId == 3) { if (enableNameCorrection) ȿ(); }
+				if (stepId == 4) { if (autoContainerAssignment) { if (unassignEmptyContainers) Ȯ(); if (assignNewContainers) ȴ(); } }
+				if (stepId == 5) { if (ʕ.Count != 0) Α(); }
+				if (stepId == 6) { Ξ(); }
+				if (stepId == 7) { if (balanceTypeContainers) ʷ(); }
+				if (stepId == 8) { Τ(); }
+				if (stepId == 9) { τ(ʉ); τ(ʕ); }
+				if (stepId == 10) { Ʒ(); }
+				if (stepId == 11) { if (enableAutocrafting || enableAutodisassembling) Ɵ(); }
+				if (stepId == 12) { if (enableAutocrafting || enableAutodisassembling) μ(); }
+				if (stepId == 13) { if (splitAssemblerTasks) ˬ(); if (sortAssemblerQueue) ͱ(); }
+				if (stepId == 14)
 				{
 					if (enableAssemblerCleanup) Ͱ(); if (enableBasicIngotCrafting)
 					{
@@ -644,9 +643,9 @@ namespace IsysInventoryManager
 						else { ʺ(); }
 					}
 				}
-				if (ɯ == 15) { Ú(); }
-				if (ɯ == 16) { ʲ(); }
-				if (ɯ == 17)
+				if (stepId == 15) { Ú(); }
+				if (stepId == 16) { ʲ(); }
+				if (stepId == 17)
 				{
 					if (enableOreBalancing) ʠ(); if (sortRefiningQueue)
 					{
@@ -654,25 +653,35 @@ namespace IsysInventoryManager
 );
 					}
 				}
-				if (ɯ == 18) { if (enableIceBalancing) ǭ(); }
-				if (ɯ == 19)
+				if (stepId == 18) { if (enableIceBalancing) ǭ(); }
+				if (stepId == 19)
 				{
 					if (enableUraniumBalancing) { â("uraniumBalancing", "true"); ę(); }
 					else if (!enableUraniumBalancing && ä("uraniumBalancing") == "true") { â("uraniumBalancing", "false"); foreach (IMyReactor ĉ in ɼ) { ĉ.UseConveyorSystem = true; } }
 				}
-				Ǖ(ǯ[ɯ]); É(); ɱ = (int)Math.Floor((ǂ > 20 ? 20 : ǂ) / maxCurrentMs); if (ɯ >= 19)
+				Ǖ(stepName[stepId]); 
+				É();
+				ɱ = (int)Math.Floor((ǂ > 20 ? 20 : ǂ) / maxCurrentMs);
+				if (stepId >= 19)
 				{
-					ɯ = 0; ɳ = new HashSet<string>(ɲ); ɲ.Clear(); if (ɸ > 0) ɸ--; if (ɳ.Count == 0) Ŀ = null;
+					stepId = 0;
+					ɳ = new HashSet<string>(ɲ);
+					ɲ.Clear();
+					if (ɸ > 0) ɸ--;
+					if (ɳ.Count == 0) Ŀ = null;
 				}
-				else { ɯ++; }
+				else 
+				{
+					stepId++; 
+				}
 			}
 			catch (NullReferenceException e)
 			{
-				ɸ++; ɵ = true; ʐ = false; ɷ = e.ToString(); ƹ("Execution of script step aborted:\n" + ǯ[ɯ] + " (ID: " + ɯ + ")\n\nCached block not available..");
+				ɸ++; ɵ = true; ʐ = false; ɷ = e.ToString(); ƹ("Execution of script stepId aborted:\n" + stepName[stepId] + " (ID: " + stepId + ")\n\nCached block not available..");
 			}
 			catch (Exception e)
 			{
-				ɸ++; ɵ = true; ʐ = false; ɷ = e.ToString(); ƹ("Critical error in script step:\n" + ǯ[ɯ] + " (ID: " + ɯ + ")\n\n" + e);
+				ɸ++; ɵ = true; ʐ = false; ɷ = e.ToString(); ƹ("Critical error in script stepId:\n" + stepName[stepId] + " (ID: " + stepId + ")\n\n" + e);
 			}
 		}
 		bool Ȇ(string ǳ)
@@ -2843,8 +2852,8 @@ ContentType.TEXT_AND_IMAGE;
 			}
 			StringBuilder º = new StringBuilder(); 
 			º.Append("Script is running in " + (Ƿ ? "station" : "ship") + " mode\n\n");
-			º.Append("Task: " + ǯ[ɯ] + È + "\n");
-			º.Append("Script step: " + ɯ + " / " + (ǯ.Length - 1) + "\n\n"); 
+			º.Append("Task: " + stepName[stepId] + È + "\n");
+			º.Append("Script stepId: " + stepId + " / " + (stepName.Length - 1) + "\n\n"); 
 			º.Append(ƿ);
 			if (ʝ.Count > 0)
 			{

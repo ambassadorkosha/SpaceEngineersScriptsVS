@@ -23,12 +23,18 @@ namespace Inventory
 
         public Program()
         {
-        
+            Echo("Script ready to be launched..\n");
+            //assembleMargin /= 100;
+            //disassembleMargin /= 100;
+            Runtime.UpdateFrequency = UpdateFrequency.Update10;
         }
 
         public void Main(string args)
         {
+            try
+            { 
 
+            }
         }
 
         public void Save()
