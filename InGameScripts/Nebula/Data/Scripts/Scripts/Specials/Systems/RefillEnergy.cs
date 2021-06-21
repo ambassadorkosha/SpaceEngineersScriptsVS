@@ -12,9 +12,9 @@ using SpaceEngineers.Game.ModAPI;
 using System;
 using System.Linq;
 using VRage.Game.ModAPI;
-using VRageMath;
 
-namespace Scripts.Specials {
+namespace Scripts.Specials
+{
     class RefillEnergy : Action1<long> {
         AutoTimer at = new AutoTimer(30); //frames
 

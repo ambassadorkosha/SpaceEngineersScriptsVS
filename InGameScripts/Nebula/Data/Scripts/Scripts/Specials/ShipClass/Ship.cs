@@ -1,5 +1,3 @@
-using Digi;
-using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using Scripts;
@@ -18,13 +16,11 @@ using Scripts.Specials;
 using Scripts.Specials.Wings;
 using Slime;
 using Scripts.Specials.Blocks.StackableMultipliers;
-using Sandbox.Game;
-using Scripts.Shared;
 using VRage.Game.Components;
 using Scripts.Specials.Blocks;
-using Scripts.Specials.ExtraInfo;
 using Scripts.Specials.Blocks.ShipSkills;
 using Scripts.Specials.ShipSkills;
+using Scripts.Specials.SlimGarage;
 
 namespace ServerMod
 {
@@ -66,6 +62,7 @@ namespace ServerMod
         public MyPlanet closestPlanet;
         public ShipInfo radarInfo = new ShipInfo().Init();
         public HashSet<MyShipController> Cockpits = new HashSet<MyShipController>();
+        public HashSet<IMyShipController> AllShipControllers = new HashSet<IMyShipController>();
         public HashSet<BlockReactionsOnKeys> BlocksWithReactions = new HashSet<BlockReactionsOnKeys>();
 
 		
@@ -81,12 +78,21 @@ namespace ServerMod
         public HashSet<Afterburner> afterburners = new HashSet<Afterburner>();
         public HashSet<ArmorModule> armorModules = new HashSet<ArmorModule>();
         public HashSet<Stabilizator> Stabilizators = new HashSet<Stabilizator>();
+        public HashSet<GarageBlockLogic> Garages = new HashSet<GarageBlockLogic>();
 
+        public HashSet<IMyTerminalBlock> TerminalBlocks = new HashSet<IMyTerminalBlock>();
+        public HashSet<IMyProductionBlock> ProductionBlock = new HashSet<IMyProductionBlock>();
+        public HashSet<IMyAirVent> AirVents = new HashSet<IMyAirVent>();
+        public HashSet<IMyOxygenFarm> OxygenFarms = new HashSet<IMyOxygenFarm>();
+        public HashSet<IMyBatteryBlock> Battery = new HashSet<IMyBatteryBlock>();
+        public HashSet<IMyJumpDrive> JumpDrives = new HashSet<IMyJumpDrive>();
         public HashSet<IMyBeacon> beacons = new HashSet<IMyBeacon>();
         public HashSet<IMyTextPanel> TextPanels = new HashSet<IMyTextPanel>();
         public HashSet<IMyCargoContainer> CargoBoxes  = new HashSet<IMyCargoContainer>();
+        public HashSet<IMyTerminalBlock> AllWithInventory  = new HashSet<IMyTerminalBlock>();
         public HashSet<IMyGasTank> GasTank = new HashSet<IMyGasTank>();
         public HashSet<IMyPowerProducer> PowerProducers = new HashSet<IMyPowerProducer>();
+        public HashSet<IMyShipConnector> Connectors = new HashSet<IMyShipConnector>();
         
         public Vector3 CurrentCockpitWingSumVector = Vector3.Zero;
         public Vector3 CurrentCockpitWingStopForce = Vector3.Zero;
@@ -309,7 +315,6 @@ namespace ServerMod
                     }
                 }
 
-                
                 RegisterUnregisterGameLogic(fat, added, afterburners);
                 RegisterUnregisterGameLogic(fat, added, thruster360s);
                 RegisterUnregisterGameLogic(fat, added, elerons);
@@ -322,10 +327,9 @@ namespace ServerMod
 
                 RegisterUnregisterGameLogic(fat, added, armorModules);
                 RegisterUnregisterGameLogic(fat, added, Stabilizators);
-
-
+                RegisterUnregisterGameLogic(fat, added, Garages);
                 
-
+                
                 var sl = fat as IMySolarPanel;
                 if (sl != null) { if (added) { new SolarPanelAllwaysMaxOutput(sl); } }
                 
@@ -334,14 +338,30 @@ namespace ServerMod
                 {
                     RegisterUnregisterType(fat, added, Cockpits);
                 }
-               
+
+                var ti = fat as IMyTerminalBlock;
+                if (ti != null && ti.InventoryCount >= 1)
+                {
+                    RegisterUnregisterType (fat, added, AllWithInventory);
+                }
+                
+                RegisterUnregisterType (fat, added, AllShipControllers);
+                RegisterUnregisterType (fat, added, TerminalBlocks);
                 RegisterUnregisterType (fat, added, thrusters);
                 RegisterUnregisterType (fat, added, gyros);
                 RegisterUnregisterType (fat, added, TextPanels);
                 RegisterUnregisterType (fat, added, CargoBoxes);
                 RegisterUnregisterType (fat, added, GasTank);
                 RegisterUnregisterType (fat, added, PowerProducers);
+                RegisterUnregisterType (fat, added, ProductionBlock);
+                RegisterUnregisterType (fat, added, Battery);
+                RegisterUnregisterType (fat, added, JumpDrives);
+                RegisterUnregisterType (fat, added, Connectors);
                 RegisterUnregisterType (fat, added, beacons);
+                RegisterUnregisterType (fat, added, AirVents);
+                RegisterUnregisterType (fat, added, OxygenFarms);
+                
+                
             }
         }
 
@@ -395,7 +415,8 @@ namespace ServerMod
             
 			var connected = grid.GetConnectedGrids (GridLinkTypeEnum.Physical, connectedGridsBuffer, true);
 			var isRavcor = closestPlanet == null ? false : closestPlanet.Generator.Id.SubtypeName == "Ravcor";
-			var newforcesMultiplier = isRavcor ? 0.2f : 1f;            //Log.ChatError("OnClosestPlanetChanged:" + newforcesMultiplier + " Connected:" + connected.Count);
+			var newforcesMultiplier = isRavcor ? 0.2f : 1f;
+            //Log.ChatError("OnClosestPlanetChanged:" + newforcesMultiplier + " Connected:" + connected.Count);
             foreach (var g in connected)
 			{
 				var ship = g.GetShip();
@@ -419,7 +440,8 @@ namespace ServerMod
 						}
 					}
 				}
-			}
+			}
+
 		}
 
         public void updateClosestPlanet() {

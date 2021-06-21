@@ -77,6 +77,7 @@ namespace Slime {
             base.UpdateBeforeSimulation100();
             if (needSave)
             {
+                needSave = false;
                 SaveSettings();
             }
         }

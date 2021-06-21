@@ -134,9 +134,8 @@ namespace Scripts.Shared
         {
             var tt = (GameLogicWithSyncAndSettings<DynamicSettings, StaticSettings, FinalClass>)block;
 
-            if (isFromServer)
+            if (isFromServer && !MyAPIGateway.Session.IsServer)
             {
-                // Hate C# for bad generics
                 tt.Settings = settings;
                 tt.OnSettingsChanged();
             }
@@ -153,13 +152,13 @@ namespace Scripts.Shared
         /// <summary>
         /// Must be called on client side, in Gui elements, or on Server side where data from client is arrived;
         /// </summary>
-        public void NotifyAndSave()
+        public void NotifyAndSave(byte type=255)
         {
             try
             {
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    GetSync().SendMessageToOthers(Entity.EntityId, Settings);
+                    GetSync().SendMessageToOthers(Entity.EntityId, Settings, type: type);
                     SaveSettings();
                 }
                 else
@@ -167,8 +166,27 @@ namespace Scripts.Shared
                     var sync = GetSync();
                     if (sync != null)
                     {
-                        sync.SendMessageToServer(Entity.EntityId, Settings);
+                        sync.SendMessageToServer(Entity.EntityId, Settings, type: type);
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.ChatError("NotifyAndSave Exception " + ex.ToString() + ex.StackTrace);
+            }
+        }
+
+        /// <summary>
+        /// Must be called on client side, in Gui elements, or on Server side where data from client is arrived;
+        /// </summary>
+        public void Notify(DynamicSettings data, byte type = 255)
+        {
+            try
+            {
+                var sync = GetSync();
+                if (sync != null)
+                {
+                    sync.SendMessageToServer(Entity.EntityId, data, type: type);
                 }
             }
             catch (Exception ex)
@@ -197,7 +215,7 @@ namespace Scripts.Shared
         }
         
         public void SaveSettings()
-        {
+        {             
             if (MyAPIGateway.Session.IsServer)
             {
                 Entity.SetStorageData(GetGuid(), Settings);

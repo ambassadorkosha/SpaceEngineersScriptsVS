@@ -33,7 +33,7 @@ namespace Scripts.Specials {
                 controls.FindAndMove(3, (x)=>x.Id == "RemoveBtn");
                 controls.FindAndMove(4, (x)=>x.Id == "SelectedTarget");
                 controls.FindAndMove(5, (x)=>x.Id == "JumpDistance");
-            } else if (name.Contains ("Zone")) {
+            } /*else if (name.Contains ("Zone")) {
                 try {
                     controls.FindAndMove(0, (x)=>x.Id == "SafeZoneColor");
                     controls.FindAndMove(0, (x)=>x.Id == "SafeZoneTextureCombo");
@@ -89,7 +89,7 @@ namespace Scripts.Specials {
                 } catch (Exception e) {
                     Log.Error (e);
                 }
-            }
+            }*/
         }                          
     }
 }

@@ -19,8 +19,7 @@ using VRageMath;
 namespace Scripts.Specials.Dungeon.AirDrops
 {
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
-    public class AirDropSystem
-        : SessionComponentWithSettings<List<AirDropSettings>>
+    public class AirDropSystem : SessionComponentWithSettings<List<AirDropSettings>>
     {
         static MyObjectBuilderType Component = MyObjectBuilderType.Parse("MyObjectBuilder_Component");
         public static string GPSmark = "~airdropgpsid:";
@@ -61,6 +60,8 @@ namespace Scripts.Specials.Dungeon.AirDrops
             }
         }
 
+        
+
         public override void UpdateAfterSimulation()
         {
             base.UpdateAfterSimulation();
@@ -81,44 +82,7 @@ namespace Scripts.Specials.Dungeon.AirDrops
                     {
                         if (x.SpawnTimer.tick())
                         {
-                            Log.Info($"[AIR DROP] {x.Gps.GPSName} triggered!");
-                            var actTime = random.Next(x.MinTriggerIntervalInSeconds * 60, x.MaxTriggerIntervalInSeconds * 60);
-                            x.SpawnTimer = new AutoTimer(actTime, actTime);
-                            Log.Info($"[AIR DROP] Next activation in: {(actTime / 60)} seconds, interval set to: {(actTime / 60)}");
-                            if (x.Prefabs.Count == 0)
-                            {
-                                Log.Info($"[AIR DROP] Prefabs not found!");
-                                return;
-                            }
-                            var prefab = random.NextWithChance(x.Prefabs, (yx) => yx.Chance, true);
-                            var pos = CoordinatesFunction(x, prefab);
-                            if (!pos.HasValue)
-                            {
-                                Log.Info($"[AIR DROP] Position for spawn not found!");
-                                return;
-                            }
-                            var spawnAt = pos.Value;
-                            var gps = x.Gps;
-                            if (gps != null)
-                            {
-                                //Entry point, AirDrop will dropped in 00:00:00
-                                if (GPSCache.Count >= MAXPENDINGDROPS)
-                                {
-                                    Log.Info($"[AIR DROP] Max pending AirDrops reached!");
-                                    return;
-                                }
-                                var id = GenUnicId();
-                                string unicdesc = GPSmark + id + "~";
-                                Log.Info($"[AIR DROP] add GPS id: {id}");
-                                MyVisualScriptLogicProvider.AddGPSForAll(gps.GPSName + " spawn soon.", unicdesc, spawnAt, gps.GPSColor);
-                                FrameExecutor.addDelayedLogic(x.BeforeSpawnDelayInSeconds * 60, new DelayedSpawn(x, prefab, spawnAt));
-                                GPSCache.Add(id, new AirDropGPSItem()
-                                { GPSName = gps.GPSName, Position = spawnAt, Color = gps.GPSColor, GPSDescription = unicdesc, AfterSpawnRemoveDelay = x.AfterSpawnDelayInSeconds, SpawnTime = DateTime.UtcNow + TimeSpan.FromSeconds(x.BeforeSpawnDelayInSeconds) }); ;
-                            }
-                            else
-                            {
-                                Spawn(x, prefab, spawnAt);
-                            }
+                            Spawn (x);
                         }
                     }
 
@@ -131,6 +95,50 @@ namespace Scripts.Specials.Dungeon.AirDrops
                 {
                     Log.ChatError(e);
                 }
+            }
+        }
+
+        
+
+        public void Spawn(AirDropSettings settings)
+        {
+            Log.Info($"[AIR DROP] {settings.Gps.GPSName} triggered!");
+            var actTime = random.Next(settings.MinTriggerIntervalInSeconds * 60, settings.MaxTriggerIntervalInSeconds * 60);
+            settings.SpawnTimer = new AutoTimer(actTime, actTime);
+            Log.Info($"[AIR DROP] Next activation in: {(actTime / 60)} seconds, interval set to: {(actTime / 60)}");
+            if (settings.Prefabs.Count == 0)
+            {
+                Log.Info($"[AIR DROP] Prefabs not found!");
+                return;
+            }
+            var prefab = random.NextWithChance(settings.Prefabs, (yx) => yx.Chance, true);
+            var pos = CoordinatesFunction(settings, prefab);
+            if (!pos.HasValue)
+            {
+                Log.Info($"[AIR DROP] Position for spawn not found!");
+                return;
+            }
+            var spawnAt = pos.Value;
+            var gps = settings.Gps;
+            if (gps != null)
+            {
+                //Entry point, AirDrop will dropped in 00:00:00
+                if (GPSCache.Count >= MAXPENDINGDROPS)
+                {
+                    Log.Info($"[AIR DROP] Max pending AirDrops reached!");
+                    return;
+                }
+                var id = GenUnicId();
+                string unicdesc = GPSmark + id + "~";
+                Log.Info($"[AIR DROP] add GPS id: {id}");
+                MyVisualScriptLogicProvider.AddGPSForAll(gps.GPSName + " spawn soon.", unicdesc, spawnAt, gps.GPSColor);
+                FrameExecutor.addDelayedLogic(settings.BeforeSpawnDelayInSeconds * 60, new DelayedSpawn(settings, prefab, spawnAt));
+                GPSCache.Add(id, new AirDropGPSItem()
+                { GPSName = gps.GPSName, Position = spawnAt, Color = gps.GPSColor, GPSDescription = unicdesc, AfterSpawnRemoveDelay = settings.AfterSpawnDelayInSeconds, SpawnTime = DateTime.UtcNow + TimeSpan.FromSeconds(settings.BeforeSpawnDelayInSeconds) }); ;
+            }
+            else
+            {
+                Spawn(settings, prefab, spawnAt);
             }
         }
 
@@ -390,7 +398,7 @@ namespace Scripts.Specials.Dungeon.AirDrops
             s.SpawnOptions.GetAllSpawnPoints(points);
             if (points.Count == 0) return null;
             //return random.NextVector(s.Radius, s.Radius, s.Radius);
-            for (var attempts = 10; attempts > 0; attempts--)
+            for (var attempts = 25; attempts > 0; attempts--)
             {
                 var spawnPoint = random.Next(points);
                 var vector = spawnPoint.Center + random.NextVector(spawnPoint.Radius, spawnPoint.Radius, spawnPoint.Radius);
@@ -408,10 +416,32 @@ namespace Scripts.Specials.Dungeon.AirDrops
                     if (!dropVariant.CanSpawnOnPlanets) continue;
                     vector = pl.GetClosestSurfacePointGlobal(vector);
                     var v = (vector - pl.WorldMatrix.Translation);
+
+                    var l = v.Length() / pl.MinimumRadius;
+                    if (l > dropVariant.MaxSpawnPlanetRadius)
+                    {
+                        continue;
+                    } else if (l < dropVariant.MinSpawnPlanetRadius)
+                    {
+                        continue;
+                    }
                     return vector;
                 }
             }
             return null;
         }
+
+        /*public void TestPlanetRadius ()
+        {
+            if (FrameExecutor.currentFrame % 60 == 0)
+            {
+                var vec = MyAPIGateway.Session.Player.Character.WorldMatrix.Translation;
+                var pl = GameBase.GetClosestPlanet(vec);
+                var vector = pl.GetClosestSurfacePointGlobal(vec);
+                var v = (vector - pl.WorldMatrix.Translation);
+
+                Log.ChatError(v.Length() + "/" + pl.MinimumRadius + "/" + pl.MaximumRadius);
+            }
+         }*/
     }
 }

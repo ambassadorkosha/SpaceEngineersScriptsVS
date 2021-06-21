@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Digi;
 using DrawSprites;
 using Sandbox.Definitions;
 using Sandbox.Game.GameSystems.TextSurfaceScripts;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Scripts.Base;
+using Scripts.Shared;
 using Scripts.Shared.GUI;
 using Scripts.Specials.SlimGarage;
 using ServerMod;
@@ -31,6 +31,7 @@ namespace Scripts.Specials.LCDScripts
         private MySpriteDrawFrame frame;
         private readonly IMyCubeBlock _Block;
         private readonly IMyTerminalBlock _terminalBlock;
+        private Ship ship;
         private IMyGridTerminalSystem GTS;
         private readonly Vector2 _size;
         private readonly RectangleF _viewport;
@@ -41,6 +42,22 @@ namespace Scripts.Specials.LCDScripts
         private readonly Dictionary<string,Pair<float,int>> HScrollDict = new Dictionary<string, Pair<float,int>>();
 
         private int LinesOffScree, MaxLinesOnScreen, LinesBehind, i, LastLine;
+        private enum Collection
+        {
+            All,
+            AllControls,
+            Cargo,
+            CargoAll,
+            Connectors,
+            Prod,
+            PowerProd,
+            Battery,
+            GasTanks,
+            OxygenFarms,
+            AirVents,
+            JumpDrives,
+            Garage
+        }
         
         private AutoLCDBuffer Buffer = new AutoLCDBuffer();
         private readonly List<MyPhysicalItemDefinition> InventoryItems;
@@ -91,10 +108,11 @@ namespace Scripts.Specials.LCDScripts
                 m_sb.Append("[");
                 lineHeight = _surface.MeasureStringInPixels(m_sb, m_fontId, TextSize).Y * 1.2f;
                 InDivisionsWidth = _surface.MeasureStringInPixels(m_sb, m_fontId, TextSize).X;
-
-                GTS = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid(_Block.CubeGrid);
-                if (GTS == null) return;
-
+                
+                if (GTS == null) GTS = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid(_Block.CubeGrid);
+                if (ship == null) ship = _Block.CubeGrid.GetShip();
+                if (GTS == null || ship == null) return;
+                
                 GetCustomData();
                 
                 LastLine = 0;
@@ -119,7 +137,7 @@ namespace Scripts.Specials.LCDScripts
 
         private void Scroll()
         {
-            var MouseScrollWheelInput = MyAPIGateway.Input.DeltaMouseScrollWheelValue();
+            var MouseScrollWheelInput = CacheOfEveryTick.ScrollСache;
             
             if (IsScrolling)
             {
@@ -131,7 +149,7 @@ namespace Scripts.Specials.LCDScripts
                     
                     if (ProjectedPoint.isRayOnScreen(m_size) && MouseScrollWheelInput != 0)
                     {
-                        var ToScroll = MouseScrollWheelInput / 30;
+                        var ToScroll = (int) MouseScrollWheelInput;
                         if (LinesOffScree + ToScroll < 0) LinesBehind -= LinesOffScree;
                         else LinesBehind -= ToScroll;
                         ScrollPause = DateTime.Now + TimeSpan.FromSeconds(10);
@@ -166,21 +184,21 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateCargoSprites(int InOrder)
         {
             var set = Buffer.CargoSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, true, b => b.FatBlock is IMyCargoContainer);
+            var blocks = GetBlocks<IMyCargoContainer>(Collection.Cargo, set.Where, set.isGroup, set.IsOnSameGrid);
             var CargoFill = UpdateCargo(blocks, set.IsSeparate, set.Name);
             LastLine = frame.DrawDefaultAUTOLCD(CargoFill,LastLine,new Vector2(_size.X, LastLine * lineHeight + _viewport.Y),m_foregroundColor,TextSize,lineHeight,_SideOffset,InDivisionsWidth, set.isProgBarCubeVisible, _PercentageOffset, set.SType);
         }
         private void UpdateCargoALLSprites(int InOrder)
         {
             var set = Buffer.CargoAllSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid,true, b => b.FatBlock is IMyCargoContainer || b.FatBlock is IMyShipConnector ||  b.FatBlock is IMyAssembler ||  b.FatBlock is IMyRefinery || b.FatBlock is IMyReactor);
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.CargoAll, set.Where, set.isGroup, set.IsOnSameGrid);
             var CargoFill = UpdateCargo(blocks, set.IsSeparate, set.Name);
             LastLine = frame.DrawDefaultAUTOLCD(CargoFill,LastLine,new Vector2(_size.X, LastLine * lineHeight + _viewport.Y),m_foregroundColor,TextSize,lineHeight,_SideOffset,InDivisionsWidth,set.isProgBarCubeVisible, _PercentageOffset, set.SType);
         }
         private void UpdatePowerSprites(int InOrder)
         {
             var set = Buffer.PowerSort[InOrder];
-            var blocks = GetBlocks(set.Where,set.isGroup,set.IsOnSameGrid,true,b=> b.FatBlock is IMyPowerProducer);
+            var blocks = GetBlocks<IMyPowerProducer>(Collection.PowerProd, set.Where, set.isGroup, set.IsOnSameGrid);
             var totalOutput = 0d;
             var MaxOutput = 0d;
             
@@ -204,10 +222,8 @@ namespace Scripts.Specials.LCDScripts
             var MaxBatteryTotalStorage = 0d;
             var BAmount = 0;
             
-            foreach (var b in blocks)
+            foreach (var block in blocks)
             {
-                var block = b.FatBlock as IMyPowerProducer;
-                if (block == null) return;
                 if (block is IMyReactor)
                 {
                     reactorTotalOutput += block.CurrentOutput;
@@ -268,16 +284,15 @@ namespace Scripts.Specials.LCDScripts
         private void UpdatePowerStoredSprites(int InOrder)
         {
             var set = Buffer.PowerStoredSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid,true, b => b.FatBlock is IMyBatteryBlock);
+            var blocks = GetBlocks<IMyBatteryBlock>(Collection.Battery, set.Where, set.isGroup, set.IsOnSameGrid);
             var list = new List<Pair<string, double[]>>();
             
             var batteryTotalStorage = 0d;
             var MaxBatteryTotalStorage = 0d;
             var BAmount = 0;
-            foreach (var block in blocks)
+            
+            foreach (var battery in blocks)
             {
-                var battery = block.FatBlock as IMyBatteryBlock;
-                if(battery == null) return;
                 if(set.IsSeparate)list.Add(new Pair<string, double[]>(battery.DisplayNameText, new double[] {battery.CurrentStoredPower, battery.MaxStoredPower}));
                 else
                 {
@@ -293,12 +308,12 @@ namespace Scripts.Specials.LCDScripts
         private void UpdatePowerUsedSprites(int InOrder)
         {
             var set = Buffer.PowerUsedSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid);
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.All, set.Where, set.isGroup, set.IsOnSameGrid, false);
             var list = new List<Pair<string, double[]>>();
             var CurrentPowerUse = 0d;
             var MaxRequiredPowerUse = 0d;
             
-            foreach (var block in blocks.Select(b => b.FatBlock))
+            foreach (var block in blocks)
             {
                 if(block.MaxRequiredPowerInput() <= 0) continue;
                 if(set.IsSeparate)list.Add(new Pair<string, double[]>(block.DisplayNameText, new double[] {block.CurrentPowerInput(), block.MaxRequiredPowerInput()}));
@@ -322,7 +337,9 @@ namespace Scripts.Specials.LCDScripts
         {
             var set = Buffer.PowerTimeSort[InOrder];
             
-            var PowerBlocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, true, b => b.FatBlock is IMyPowerProducer).Select(b => b.FatBlock as IMyPowerProducer).ToArray();
+            var PowerBlocks = GetBlocks<IMyPowerProducer>(Collection.PowerProd, set.Where, set.isGroup, set.IsOnSameGrid);
+            var CargoBlocks = GetBlocks<IMyCargoContainer>(Collection.Cargo, set.Where, set.isGroup, set.IsOnSameGrid);
+            var GasTanks = GetBlocks<IMyGasTank>(Collection.GasTanks, set.Where, set.isGroup, set.IsOnSameGrid);
 
             //float MaxReactorTime = 0;
             foreach (var reactor in PowerBlocks.Where(b => b is IMyReactor))
@@ -346,15 +363,14 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateChargeSprites(int InOrder)
         {
             var set = Buffer.ChargeSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, true, b => b.FatBlock is IMyJumpDrive);
+            var blocks = GetBlocks<IMyJumpDrive>(Collection.JumpDrives, set.Where, set.isGroup, set.IsOnSameGrid);
             var list = new List<Pair<string, double[]>>();
             var CurrentCharge = 0d;
             var MaxCharge = 0d;
             float MaxTimeToCharge = 0;
 
-            foreach (var block in blocks)
+            foreach (var jumpDrive in blocks)
             {
-                var jumpDrive = block.FatBlock as IMyJumpDrive;
                 if (jumpDrive == null) return;
                 if (set.IsSeparate)
                 {
@@ -384,9 +400,15 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateDamageSprites(int InOrder)
         {
             var set = Buffer.DamageSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, false,b => !b.IsFullIntegrity);
-            var list = new List<Pair<string, double[]>>();
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.All, set.Where, set.isGroup, set.IsOnSameGrid,false);
+            var DamagedBlocks = new List<IMySlimBlock>();
             foreach (var block in blocks)
+            {
+                var SlimBlock = block.SlimBlock;
+                if(!SlimBlock.IsFullIntegrity) DamagedBlocks.Add(SlimBlock);
+            }
+            var list = new List<Pair<string, double[]>>();
+            foreach (var block in DamagedBlocks)
             {
                 list.Add(new Pair<string, double[]>(block.FatBlock.DisplayNameText, new double[] {block.Integrity, block.MaxIntegrity}));
             }
@@ -400,11 +422,16 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateDockedSprites(int InOrder)
         {
             var set = Buffer.DockedSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, true, true, b=> b.FatBlock is IMyShipConnector);
+            var blocks = GetBlocks<IMyShipConnector>(Collection.Connectors, set.Where, set.isGroup, true);
             var list = new List<Pair<string, string>>();
-            foreach (var block in blocks)
+
+            if (blocks.Count == 0)
             {
-                var Connector = block.FatBlock as IMyShipConnector;
+                frame.DrawText("No connectors found.",_SideOffset,LastLine * lineHeight,m_foregroundColor,TextSize * SpriteGI.TextHeight, TextAlignment.LEFT, m_fontId);
+                LastLine++;
+            }
+            foreach (var Connector in blocks)
+            {
                 if(Connector == null) continue;
                 var txt = "";
                 if(Connector.Enabled)
@@ -428,11 +455,10 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateBlockCountSprites(int InOrder)
         {
             var set = Buffer.BlockCountSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, false);
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.All, set.Where, set.isGroup, set.IsOnSameGrid,false);
             var DicList = new Dictionary<string,int[]>();
-            foreach (var b in blocks)
+            foreach (var block in blocks)
             {
-                var block = b.FatBlock;
                 var blockSubtypeName = block.DefinitionDisplayNameText;
                 if (!DicList.ContainsKey(blockSubtypeName)) DicList.Add(blockSubtypeName,new []{1});
                 else DicList[blockSubtypeName][0]++;
@@ -442,12 +468,10 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateProdCountSprites(int InOrder)
         {
             var set = Buffer.ProdCountSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, true, b => b.FatBlock is IMyProductionBlock);
+            var blocks = GetBlocks<IMyProductionBlock>(Collection.Prod, set.Where, set.isGroup, set.IsOnSameGrid);
             var DicList = new Dictionary<string,int[]>();
-            foreach (var b in blocks)
+            foreach (var block in blocks)
             {
-                var block = b.FatBlock as IMyProductionBlock;
-                if (block == null) return;
                 var blockSubtypeName = block.DefinitionDisplayNameText;
                 if (!DicList.ContainsKey(blockSubtypeName))
                 {
@@ -464,11 +488,10 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateEnableCountSprites(int InOrder)
         {
             var set = Buffer.EnabledCountSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, false);
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.All, set.Where, set.isGroup, set.IsOnSameGrid,false);
             var DicList = new Dictionary<string,int[]>();
-            foreach (var b in blocks)
+            foreach (var block in blocks)
             {
-                var block = b.FatBlock;
                 var blockSubtypeName = block.DefinitionDisplayNameText;
                 if (!DicList.ContainsKey(blockSubtypeName))
                 {
@@ -486,60 +509,59 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateWorkingSprites(int InOrder)
         {
             var set = Buffer.WorkingSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, false);
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.All, set.Where, set.isGroup, set.IsOnSameGrid, false);
             var list = new List<Pair<string, string>>();
             foreach (var block in blocks)
             {
-                var FatBlock = block.FatBlock;
-                var Prod = FatBlock as IMyProductionBlock;
+                var Prod = block as IMyProductionBlock;
                 if (Prod != null)
                 {
                     list.Add(new Pair<string, string>(Prod.DisplayNameText, Prod.Enabled ? Prod.IsProducing ? "Working" : "Idle" : "Off"));
                     continue;
                 }
-                var GasGen = FatBlock as IMyGasGenerator;
+                var GasGen = block as IMyGasGenerator;
                 if (GasGen != null)
                 {
                     list.Add(new Pair<string, string>(GasGen.DisplayNameText, GasGen.Enabled  ? "On" : "Off"));
                     continue;
                 }
-                var door = FatBlock as IMyDoor;
+                var door = block as IMyDoor;
                 if (door != null)
                 {
                     list.Add(new Pair<string, string>(door.DisplayNameText, door.Enabled ? door.Status.ToString() : "Off"));
                     continue;
                 }
-                var Battery = FatBlock as IMyBatteryBlock;
+                var Battery = block as IMyBatteryBlock;
                 if (Battery != null)
                 {
                     list.Add(new Pair<string, string>(Battery.DisplayNameText, Battery.Enabled ? Battery.ChargeMode.ToString() : "Off"));
                     continue;
                 }
-                var Power = FatBlock as IMyPowerProducer;
+                var Power = block as IMyPowerProducer;
                 if (Power != null)
                 {
                     list.Add(new Pair<string, string>(Power.DisplayNameText, Power.Enabled ?  ((double)Power.CurrentOutput).toHumanQuantityEnergy() : "Off"));
                     continue;
                 }
-                var AirVent = FatBlock as IMyAirVent;
+                var AirVent = block as IMyAirVent;
                 if (AirVent != null)
                 {
                     list.Add(new Pair<string, string>(AirVent.DisplayNameText, AirVent.Enabled ? AirVent.CanPressurize ? AirVent.Depressurize ? "Depressurize On" : "Depressurize Off" : "Leaking" : "Off"));
                     continue;
                 }
-                var GasTank = FatBlock as IMyGasTank;
+                var GasTank = block as IMyGasTank;
                 if (GasTank != null)
                 {
                     list.Add(new Pair<string, string>(GasTank.DisplayNameText, GasTank.Enabled ? (GasTank.Stockpile ? "Stockpile On " : "Stockpile Off ") + GasTank.FilledRatio.ToString("0%") : "Off"));
                     continue;
                 }
-                var Projector = FatBlock as IMyProjector;
+                var Projector = block as IMyProjector;
                 if (Projector != null)
                 {
                     list.Add(new Pair<string, string>(Projector.DisplayNameText, Projector.Enabled ? Projector.IsProjecting ? "Projecting" : "Idle" : "Off"));
                     continue;
                 }
-                var Connector = FatBlock as IMyShipConnector;
+                var Connector = block as IMyShipConnector;
                 if (Connector != null)
                 {
                     list.Add(new Pair<string, string>(Connector.DisplayNameText, Connector.Enabled ? Connector.Status.ToString() : "Off"));
@@ -550,10 +572,9 @@ namespace Scripts.Specials.LCDScripts
         private void UpdatePropBoolSprites(int InOrder)
         {
             var set = Buffer.PropBoolSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, false);
-            foreach (var block in blocks)
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.All, set.Where, set.isGroup, set.IsOnSameGrid, false);
+            foreach (var terminalBlock in blocks)
             {
-                var terminalBlock = block.FatBlock as IMyTerminalBlock;
                 if (terminalBlock == null) return;
                 if (set.Name == "") LastLine = frame.DrawSimpleAUTOLCD(new List<Pair<string, string>> {new Pair<string, string>(terminalBlock.DisplayNameText,"")}, LastLine, new Vector2(_size.X, LastLine * lineHeight + _viewport.Y), m_foregroundColor, TextSize, lineHeight, _SideOffset);
                 
@@ -576,16 +597,14 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateDetailsSprites(int InOrder)
         {
             var set = Buffer.DetailsSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, false);
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.All, set.Where, set.isGroup, set.IsOnSameGrid, false);
             var Regex = new Regex(set.Name + "(?s).*");
             foreach (var block in blocks)
             {
-                var term = block.FatBlock as IMyTerminalBlock;
-                if(term == null) return;
-                var Details = Buffer.RegexParse(Regex, term.DetailedInfo, false);
+                var Details = Buffer.RegexParse(Regex, block.DetailedInfo, false);
                 if (!set.isZeroHidden)
                 {
-                    frame.DrawText(term.DisplayNameText,_SideOffset*2,LastLine * lineHeight, m_foregroundColor,TextSize * SpriteGI.TextHeight, InFontId: m_fontId);
+                    frame.DrawText(block.DisplayNameText,_SideOffset*2,LastLine * lineHeight, m_foregroundColor,TextSize * SpriteGI.TextHeight, InFontId: m_fontId);
                     LastLine++;
                 }
                 frame.DrawText(Details,_SideOffset*5,LastLine * lineHeight, m_foregroundColor,TextSize * SpriteGI.TextHeight, InFontId: m_fontId);
@@ -600,37 +619,42 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateOxygenSprites(int InOrder)
         {
             var set = Buffer.OxygenSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, true, b => b.FatBlock is IMyAirVent || b.FatBlock is IMyOxygenFarm || b.FatBlock is IMyGasTank);
+            var AirVents = GetBlocks<IMyAirVent>(Collection.AirVents, set.Where, set.isGroup, set.IsOnSameGrid);
+            var OxygenFarm = GetBlocks<IMyOxygenFarm>(Collection.OxygenFarms, set.Where, set.isGroup, set.IsOnSameGrid);
+            var GasTanks = GetBlocks<IMyGasTank>(Collection.GasTanks, set.Where, set.isGroup, set.IsOnSameGrid);
             var oxygenCount = 0;
             var Oxy = 0d;
             var FarmCount = 0;
             var far = 0d;
-            foreach (var b in blocks)
+            foreach (var Vent in AirVents)
             {
-                var Vent = b.FatBlock as IMyAirVent;
-                if (Vent != null)
-                {
-                    frame.DrawText(Vent.DisplayNameText,_SideOffset*2,LastLine * lineHeight, m_foregroundColor,TextSize * SpriteGI.TextHeight, InFontId: m_fontId);
-                    frame.DrawText(Vent.Enabled ? Vent.CanPressurize ? $" {Vent.GetOxygenLevel() * 100 :F1}%" : "Leaking" : "Off",_size.X - _SideOffset*2,LastLine * lineHeight, m_foregroundColor,TextSize * SpriteGI.TextHeight, TextAlignment.RIGHT, m_fontId);
-                    LastLine++;
-                    frame.DrawProgressBarAUTOLCD(new double[]{Vent.GetOxygenLevel() * 10,  10}, new Vector2(_SideOffset*2, LastLine * lineHeight), m_foregroundColor, lineHeight, _size.X - _SideOffset*3, InDivisionsWidth, set.isProgBarCubeVisible);
-                    LastLine++;
-                }
-                var Farm = b.BlockDefinition as MyOxygenFarmDefinition;
-                var FarmB = b.FatBlock as IMyOxygenFarm;
-                if (Farm != null && FarmB != null)
+                frame.DrawText(Vent.DisplayNameText, _SideOffset * 2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, InFontId: m_fontId);
+                frame.DrawText(Vent.Enabled ? Vent.CanPressurize ? $" {Vent.GetOxygenLevel() * 100:F1}%" : "Leaking" : "Off", _size.X - _SideOffset * 2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.RIGHT, m_fontId);
+                LastLine++;
+                frame.DrawProgressBarAUTOLCD(new double[] {Vent.GetOxygenLevel() * 10, 10}, new Vector2(_SideOffset * 2, LastLine * lineHeight), m_foregroundColor, lineHeight, _size.X - _SideOffset * 3, InDivisionsWidth, set.isProgBarCubeVisible);
+                LastLine++;
+            }
+
+            foreach (var FarmB in OxygenFarm)
+            {
+                var Farm = FarmB.SlimBlock.BlockDefinition as MyOxygenFarmDefinition;
+                if (Farm != null)
                 {
                     far += FarmB.GetOutput();
                     FarmCount++;
                 }
-                var GasTank = b.FatBlock as IMyGasTank;
-                if (GasTank != null)
+            }
+
+            foreach (var GasTank in GasTanks)
+            {
+                var Def = GasTank.SlimBlock.BlockDefinition as MyGasTankDefinition;
+                if (Def != null && Def.StoredGasId.SubtypeName.Contains("Oxygen"))
                 {
                     Oxy += GasTank.FilledRatio;
                     oxygenCount++;
                 }
             }
-
+            
             if (FarmCount != 0)
             {
                 var prc = far / FarmCount;
@@ -654,14 +678,13 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateTanksSprites(int InOrder)
         {
             var set = Buffer.TanksSort[InOrder];
-            var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid, true, b => b.FatBlock is IMyGasTank);
+            var blocks = GetBlocks<IMyGasTank>(Collection.GasTanks, set.Where, set.isGroup, set.IsOnSameGrid);
             var List = new Dictionary<string,double[]>();
             var NList = new List<Pair<string, double[]>>();
-            foreach (var b in blocks)
+            foreach (var GasTank in blocks)
             {
-                var GasTank = b.FatBlock as IMyGasTank;
-                var GasTankDef = b.BlockDefinition as MyGasTankDefinition;
-                if (GasTank != null && GasTankDef != null)
+                var GasTankDef = GasTank.SlimBlock.BlockDefinition as MyGasTankDefinition;
+                if (GasTankDef != null)
                 {
                     if (!set.IsSeparate)
                     {
@@ -736,7 +759,7 @@ namespace Scripts.Specials.LCDScripts
             LastLine++;
 
         }
-        private void UpdateCustomDataSprites(int InOrder)
+        private void UpdateCustomDataSprites(int InOrder)//todo maybe change to get from Ship class
         {
             var set = Buffer.CustomDataSort[InOrder];
             var block = GTS.GetBlockWithName(set);
@@ -751,7 +774,7 @@ namespace Scripts.Specials.LCDScripts
                 LastLine++;
             }
         }
-        private void UpdateTextLCDSprites(int InOrder)
+        private void UpdateTextLCDSprites(int InOrder) //todo maybe change to get from Ship class
         {
             var set = Buffer.TextLCDSort[InOrder];
             var block = GTS.GetBlockWithName(set) as IMyTextPanel;
@@ -818,7 +841,7 @@ namespace Scripts.Specials.LCDScripts
             LastLine++;
             
         }
-        private void UpdatePosSprites(int InOrder)
+        private void UpdatePosSprites(int InOrder)//todo maybe change to get from Ship class
         {
             var set = Buffer.PosSort[InOrder];
             var block = GTS.GetBlockWithName(set.v);
@@ -963,7 +986,7 @@ namespace Scripts.Specials.LCDScripts
         {
             //var set = Buffer.StopSort[InOrder];
         }
-        private void UpdateShipMassSprites(int InOrder) // todo Complete this
+        private void UpdateShipMassSprites(int InOrder)
         {
             var set = Buffer.ShipMassSort[InOrder];
             var mass = (double)_Block.CubeGrid.Physics.Mass;
@@ -978,35 +1001,59 @@ namespace Scripts.Specials.LCDScripts
             }
             else
             {
-                frame.DrawText("ShipMassBase in progress", _size.X/2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.CENTER, m_fontId);
+                var blocks = GetBlocks<IMyTerminalBlock>(Collection.CargoAll, InGarageIgnore: false);
+                foreach (var block in blocks)
+                {
+                    for (var j = 0; j < block.InventoryCount; j++)
+                    {
+                        var inv = block.GetInventory(i);
+                        mass -= inv.CurrentMass.RawValue / 1000000d;
+                    }
+                }
+                frame.DrawText("Ship inventory mass:", _SideOffset *2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.LEFT, m_fontId);
+                frame.DrawText(mass.toHumanWeight(), _size.X - _SideOffset *2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.RIGHT, m_fontId);
+                LastLine++;
+                if (set.k <= 0) return;
+                frame.DrawProgressBarAUTOLCD(new []{mass,set.k},new Vector2(_SideOffset,LastLine * lineHeight),m_foregroundColor,lineHeight,_size.X - _SideOffset *2,InDivisionsWidth,true);
                 LastLine++;
             }
         }
-        private void UpdateMassSprites(int InOrder) // todo Complete this
+        private void UpdateMassSprites(int InOrder)
         {
             var set = Buffer.MassSort[InOrder];
-            frame.DrawText("Work in progress",_size.X/2,LastLine * lineHeight,m_foregroundColor,TextSize * SpriteGI.TextHeight, TextAlignment.CENTER, m_fontId);
-            LastLine++;
+            var mass = 0d;
+            var blocks = GetBlocks<IMyTerminalBlock>(Collection.CargoAll, set.Where, set.isGroup, set.IsOnSameGrid, false);
+            foreach (var block in blocks)
+            {
+                for (var j = 0; j < block.InventoryCount; j++)
+                {
+                    var inv = block.GetInventory(j);
+                    mass += inv.CurrentMass.RawValue / 1000000d;
+                }
+            }
+
+            var List = new List<Pair<string, double[]>> {new Pair<string, double[]>(set.Name == "" ? "Cargo Mass" : set.Name, new[] {mass, set.num})};
+            LastLine = frame.DrawDefaultAUTOLCD(List,LastLine,new Vector2(_size.X, LastLine * lineHeight + _viewport.Y),m_foregroundColor,TextSize,lineHeight,_SideOffset,InDivisionsWidth, set.isProgBarCubeVisible, _PercentageOffset, set.num > 0 ? ShowType.Default : ShowType.OnlyExactVolume);
+
         }
         private void UpdateOccupiedSprites(int InOrder)
         {
             var set = Buffer.OccupiedSort[InOrder];
-            var Blocks = GetBlocks(set.Where,set.isGroup,set.IsOnSameGrid,true,b => b.FatBlock is IMyShipController);
+            var Blocks = GetBlocks<IMyShipController>(Collection.AllControls, set.Where, set.isGroup, set.IsOnSameGrid);
             var List = new List<Pair<string,string>>();
-            foreach (var b in Blocks)
+            foreach (var block in Blocks)
             {
-                var block = b.FatBlock as IMyShipController;
                 if(block != null) List.Add(new Pair<string, string>(block.DisplayNameText,block.IsUnderControl ? block.Pilot.DisplayName : "Free"));
             }
             LastLine = frame.DrawSimpleAUTOLCD(List, LastLine, new Vector2(_size.X, LastLine * lineHeight + _viewport.Y), m_foregroundColor, TextSize, lineHeight, _SideOffset * 2);
         }
         private void UpdateDampenersSprites(int InOrder) // todo try without PilotCockpit
         {
-            var ship = _Block.CubeGrid.GetShip().PilotCockpit;
-            if (ship != null)
+            var pilotCockpit = ship.PilotCockpit;
+            if (pilotCockpit != null)
             {
                 frame.DrawText("Dampeners:", _SideOffset * 2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.LEFT, m_fontId);
-                frame.DrawText(ship.DampenersOverride ? "On" : "Off", _size.X - _SideOffset * 2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.RIGHT, m_fontId);
+                frame.DrawText(pilotCockpit.DampenersOverride ? "On" : "Off", _size.X - _SideOffset * 2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.RIGHT, m_fontId);
                 LastLine++;
             }
             else
@@ -1014,7 +1061,7 @@ namespace Scripts.Specials.LCDScripts
                 frame.DrawText("Cannot find control block", _SideOffset * 2, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.LEFT, m_fontId);
             }
         }
-        private void UpdateDistanceSprites(int InOrder) //todo check
+        private void UpdateDistanceSprites(int InOrder)
         {
             var set = Buffer.DistanceSort[InOrder];
             var MyPos = _Block.CubeGrid.Physics.CenterOfMassWorld;
@@ -1089,16 +1136,15 @@ namespace Scripts.Specials.LCDScripts
         private void UpdateGarageSprites(int InOrder)
         {
             var set = Buffer.GarageSort[InOrder];
-            var blocks = GetBlocks(set.Where,set.isGroup,set.IsOnSameGrid,false, block => block.FatBlock is IMyProjector);
-            foreach (var block in blocks)
+            var blocks = GetBlocks<GarageBlockLogic>(Collection.Garage,set.Where,set.isGroup,set.IsOnSameGrid,false);
+            foreach (var garage in blocks)
             {
-                var garage = block.FatBlock.GetAs<GarageBlockLogic>();
                 if(garage == null) continue;
                 
                 var Status = garage.m_currentStatus;
                 var txt = Status == BlockState.Contains_ReadyForLoad ? Buffer.RegexParse(Buffer.nameRegex, garage.ShipInfo) : Status == BlockState.Busy ? "Busy" : "Empty";
                 
-                frame.DrawText( block.FatBlock.DisplayNameText,_SideOffset,LastLine * lineHeight,m_foregroundColor,TextSize * SpriteGI.TextHeight, TextAlignment.LEFT, m_fontId);
+                frame.DrawText( garage.m_block.DisplayNameText,_SideOffset,LastLine * lineHeight,m_foregroundColor,TextSize * SpriteGI.TextHeight, TextAlignment.LEFT, m_fontId);
                 frame.DrawText(txt, _size.X, LastLine * lineHeight, m_foregroundColor, TextSize * SpriteGI.TextHeight, TextAlignment.RIGHT, m_fontId);
                 
                 LastLine++;
@@ -1351,7 +1397,7 @@ namespace Scripts.Specials.LCDScripts
 
             ClearAfterCollection();
         }
-        private static IEnumerable<Pair<string, double[]>> UpdateCargo(IEnumerable<IMySlimBlock> blocks, bool InMerge, string name)
+        private static IEnumerable<Pair<string, double[]>> UpdateCargo(IEnumerable<IMyTerminalBlock> blocks, bool InMerge, string name)
         {
             var CargoFill = new List<Pair<string, double[]>>();
             if (InMerge)
@@ -1360,7 +1406,7 @@ namespace Scripts.Specials.LCDScripts
                 long totalFill = 0;
                 foreach (var b in blocks)
                 {
-                    var box = b.FatBlock.GetInventory();
+                    var box = b.GetInventory();
                     totalMax += box.MaxVolume.RawValue;
                     totalFill += box.CurrentVolume.RawValue;
                 }
@@ -1370,9 +1416,8 @@ namespace Scripts.Specials.LCDScripts
             {
                 foreach (var box in blocks)
                 {
-                    var Fat = box.FatBlock;
-                    var inv = Fat.GetInventory();
-                    CargoFill.Add(new Pair<string, double[]>(Fat.DisplayNameText, new []{(double)inv.CurrentVolume.RawValue / 1000, (double)inv.MaxVolume.RawValue / 1000}));
+                    var inv = box.GetInventory();
+                    CargoFill.Add(new Pair<string, double[]>(box.DisplayNameText, new []{(double)inv.CurrentVolume.RawValue / 1000, (double)inv.MaxVolume.RawValue / 1000}));
                 }
             }
 
@@ -1383,7 +1428,7 @@ namespace Scripts.Specials.LCDScripts
             var NItems = new List<Pair<string, double[]>>();
             try
             {
-                var blocks = GetBlocks(set.Where, set.isGroup, set.IsOnSameGrid);
+                var blocks = GetBlocks<IMyTerminalBlock>(Collection.CargoAll, set.Where, set.isGroup, set.IsOnSameGrid);
                 foreach (var _item in set.items)
                 {
                     var removeItems = new List<MyPhysicalItemDefinition>();
@@ -1480,17 +1525,17 @@ namespace Scripts.Specials.LCDScripts
             foreach (var Item in InventoryItems) { if ((string.IsNullOrWhiteSpace(type) || Item.Id.TypeId.ToString().Contains(type)) && Item.Id.SubtypeName.Contains(subtype)) Items.Add(Item); }
             return Items;
         }
-        private static Dictionary<MyPhysicalItemDefinition, double> GetItems(List<IMySlimBlock> InBlocks, Type InType, string subtypeId = "")
+        private static Dictionary<MyPhysicalItemDefinition, double> GetItems(List<IMyTerminalBlock> InBlocks, Type InType, string subtypeId = "")
         {
             var items = new Dictionary<MyPhysicalItemDefinition, double>();
             switch (InType)
             {
-                case Type.all: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block.FatBlock, items, "", subtypeId, true)); break;
-                case Type.component: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block.FatBlock, items, "MyObjectBuilder_Component", subtypeId, true)); break;
-                case Type.ore: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block.FatBlock, items, "MyObjectBuilder_Ore", subtypeId, true)); break;
-                case Type.ingot: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block.FatBlock, items, "MyObjectBuilder_Ingot", subtypeId, true)); break;
-                case Type.ammo: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block.FatBlock, items, "MyObjectBuilder_AmmoMagazine", subtypeId, true)); break;
-                case Type.tool: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block.FatBlock, items, "MyObjectBuilder_PhysicalGunObject", subtypeId, true)); break;
+                case Type.all: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block, items, "", subtypeId, true)); break;
+                case Type.component: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block, items, "MyObjectBuilder_Component", subtypeId, true)); break;
+                case Type.ore: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block, items, "MyObjectBuilder_Ore", subtypeId, true)); break;
+                case Type.ingot: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block, items, "MyObjectBuilder_Ingot", subtypeId, true)); break;
+                case Type.ammo: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block, items, "MyObjectBuilder_AmmoMagazine", subtypeId, true)); break;
+                case Type.tool: InBlocks.ForEach(block => InventoryUtils.GetInventoryItems(block, items, "MyObjectBuilder_PhysicalGunObject", subtypeId, true)); break;
             }
             return items;
         }
@@ -1502,22 +1547,78 @@ namespace Scripts.Specials.LCDScripts
             if(num <= 0) return;
             TextSize = num;
         }
-        private List<IMySlimBlock> GetBlocks(string name = "", bool isGroup = false, bool isOneGrid = false, bool InGarageIgnore = true, Func<IMySlimBlock,bool> filter = null)
+        private HashSet<T> ShipBlocks<T>(Ship InShip, Collection Coll)
         {
-            var terminalBlocks = new List<IMyTerminalBlock>();
-            var ignoreName = "Bugagagaga";
-            if (InGarageIgnore) ignoreName = "Garage";
+            switch (Coll)
+            {
+                case Collection.All: return InShip.TerminalBlocks as HashSet<T>;
+                case Collection.AllControls: return InShip.AllShipControllers as HashSet<T>;
+                case Collection.Cargo: return InShip.CargoBoxes as HashSet<T>;
+                case Collection.CargoAll: return InShip.AllWithInventory as HashSet<T>;
+                case Collection.Connectors: return InShip.Connectors as HashSet<T>;
+                case Collection.Prod: return InShip.ProductionBlock as HashSet<T>;
+                case Collection.PowerProd: return InShip.PowerProducers as HashSet<T>;
+                case Collection.Battery: return InShip.Battery as HashSet<T>;
+                case Collection.GasTanks: return InShip.GasTank as HashSet<T>;
+                case Collection.OxygenFarms: return InShip.OxygenFarms as HashSet<T>;
+                case Collection.AirVents: return InShip.AirVents as HashSet<T>;
+                case Collection.JumpDrives: return InShip.JumpDrives as HashSet<T>;
+                case Collection.Garage: return InShip.Garages as HashSet<T>;
+
+                default: return InShip.TerminalBlocks as HashSet<T>;;
+            }
+        }
+        private List<T> GetBlocks<T>(Collection coll, string name = "",bool isGroup = false, bool isOneGrid = false, bool InGarageIgnore = true) where T : class
+        {
+            var selectedBlocks = new List<T>();
+
             if (isGroup)
             {
-                if (isOneGrid) GTS.GetBlockGroupWithName(name).GetBlocks(terminalBlocks, block => block.IsSameConstructAs(_terminalBlock) && !block.SubtypeName().Contains(ignoreName));
-                else GTS.GetBlockGroupWithName(name).GetBlocks(terminalBlocks, block => !block.SubtypeName().Contains(ignoreName));
-                return terminalBlocks.Select(b => b.SlimBlock).ToList();
+                var Blocks = new List<T>();
+                if (isOneGrid) GTS.GetBlockGroupWithName(name).GetBlocksOfType(Blocks, block => (block as IMyTerminalBlock).IsSameConstructAs(_terminalBlock));
+                else GTS.GetBlockGroupWithName(name).GetBlocksOfType(Blocks);
+                selectedBlocks = SortBlocks(Blocks, InGarageIgnore);
             }
-            GTS.GetBlocks(terminalBlocks);
-            return isOneGrid 
-                ? terminalBlocks.Where(b => b.IsSameConstructAs(_terminalBlock)).Select(b => b.SlimBlock).Where(block => (filter == null || filter.Invoke(block)) && block.FatBlock.DisplayNameText.Contains(name) && !block.FatBlock.SubtypeName().Contains(ignoreName)).ToList() 
-                : terminalBlocks.Select(b => b.SlimBlock).Where(block => (filter == null || filter.Invoke(block)) && block.FatBlock.DisplayNameText.Contains(name) && !block.FatBlock.SubtypeName().Contains(ignoreName)).ToList();
+            else
+            {
+                if (isOneGrid)
+                {
+                    var Blocks = ShipBlocks<T>(ship, coll);
+                    selectedBlocks = SortBlocks(Blocks, InGarageIgnore, name);
+                }
+                else
+                {
+                    foreach (var Grid in ship.connectedGrids)
+                    {
+                        var GridBlocks = ShipBlocks<T>(Grid.GetShip(), coll);
+                        selectedBlocks.AddRange(SortBlocks(GridBlocks, InGarageIgnore, name));
+                    }
+                }
+
+            }
+            return selectedBlocks;
         }
+        private List<T> SortBlocks<T>(IEnumerable<T> Blocks, bool InGarageIgnore, string name = "")
+        {
+            var NBlocks = new List<T>();
+            if (name != "")
+            {
+                foreach (var b in Blocks)
+                {
+                    var block = b as IMyTerminalBlock;
+                    if (block != null && block.DisplayNameText.Contains(name) && (!InGarageIgnore || !block.SubtypeName().Contains("Garage"))) NBlocks.Add(b);
+                }
+            }
+            else
+            {
+                foreach (var b in Blocks)
+                {
+                    if (!InGarageIgnore || !(b as IMyTerminalBlock).SubtypeName().Contains("Garage")) NBlocks.Add(b);
+                }
+            }
+            return NBlocks;
+        }
+        
         private static List<MyPhysicalItemDefinition> RemoveUnneeded(IEnumerable<MyPhysicalItemDefinition> x)
         {
             var removeList = new List<string>{"GoodAI Bot Feedback","CubePlacer"};

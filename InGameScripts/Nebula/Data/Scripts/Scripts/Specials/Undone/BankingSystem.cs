@@ -1,26 +1,15 @@
-﻿using Digi;
-using Sandbox.Definitions;
-using Sandbox.Game.EntityComponents;
-using Sandbox.ModAPI;
-using Sandbox.ModAPI.Interfaces.Terminal;
+﻿using Sandbox.ModAPI;
 using Scripts;
 using Scripts.Shared;
 using Scripts.Specials.Faction;
 using Scripts.Specials.Messaging;
-using ServerMod;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using VRage.Game;
-using VRage.Game.Components;
 using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRage.ObjectBuilders;
-using VRage.Utils;
 
-namespace ServerMod {
-
-    
+namespace ServerMod
+{
     public class BankingSystem : Action2<GameBase, long>, LastLoginTracker.Listener {
         public static double TAKE_PLAYER = -0.001d;
         public static double TAKE_PLAYER_OFFLINE = -0.001d;

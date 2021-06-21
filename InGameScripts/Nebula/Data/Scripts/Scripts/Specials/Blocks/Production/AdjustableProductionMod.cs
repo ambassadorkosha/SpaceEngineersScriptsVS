@@ -1,24 +1,15 @@
 ﻿using Digi;
-using Sandbox.Definitions;
-using Sandbox.Game.EntityComponents;
-using Sandbox.Game.Gui;
 using Sandbox.ModAPI;
-using Sandbox.ModAPI.Interfaces.Terminal;
-using Scripts.Shared;
-using Scripts.Specials.Messaging;
 using ServerMod;
 using Slime;
-using SpaceEngineers.Game.Entities.Blocks.SafeZone;
-using SpaceEngineers.Game.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRage.Game;
 using VRage.Game.Components;
-using VRage.ModAPI;
-using VRage.ObjectBuilders;
 using VRage.Utils;
 
-namespace Scripts.Specials.Production {
+namespace Scripts.Specials.Production
+{
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class AdjustableProductionMod : MySessionComponentBase {
         public static HashSet<String> IDs = new HashSet<string> () { "LargeAssembler", "LargeAssemblerMK", "LargeAssemblerADV", "LargeAssemblerULT", "LargeRefinery", "LargeRefineryVanilla" };
@@ -114,8 +105,6 @@ namespace Scripts.Specials.Production {
             try {
                 var entityId = BitConverter.ToInt64(obj, 0);
                 var playerId = BitConverter.ToUInt64(obj, 8);
-                
-                //Log.Info("AdjustableRefs->Request values " + entityId + " " + playerId);
 
                 if (!AdjustableRef.allRefs.ContainsKey(entityId)) {
                     Log.Info ("AdjustableRefs->No Such ID on server:"+entityId);
@@ -164,16 +153,18 @@ namespace Scripts.Specials.Production {
             public static void DispatchMessage(byte[] obj, String tag,  Action<long, int, int, int, Adjustable> todo) {
                 try {
                     var entityId = BitConverter.ToInt64(obj, 0);
+                    if (!Adjustable.allRefs.ContainsKey(entityId))
+                    {
+                        return;
+                    }
+
                     var speed = BitConverter.ToInt32(obj, 8);
                     var power = BitConverter.ToInt32(obj, 12);
                     var yeild = BitConverter.ToInt32(obj, 16);
 				
-                    if (!AdjustableRef.allRefs.ContainsKey(entityId)) {
-                        Log.Info ("AdjustableRefs->"+tag+" No Such ID:"+entityId);
-                        return;
-                    }
+                    
 
-                    var pp = AdjustableRef.allRefs[entityId];
+                    var pp = Adjustable.allRefs[entityId];
                 
                     todo.Invoke (entityId, speed, power, yeild, pp);
                 } catch (Exception e){

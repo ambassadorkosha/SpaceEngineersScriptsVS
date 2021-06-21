@@ -27,6 +27,7 @@ namespace Scripts.Specials.SlimGarage
     {
         public static readonly MyStringId Separator = MyStringId.GetOrCompute("—————— vVv Double click vVv ————");
         public static readonly MyStringId Separator2 = MyStringId.GetOrCompute("——————————————————————————————————— ");
+        public IMyFunctionalBlock m_block;
         public BlockState m_currentStatus;
         public string ShipInfo = "";
         
@@ -41,7 +42,7 @@ namespace Scripts.Specials.SlimGarage
         private MyEntitySubpart m_subpart3;
         private MyParticleEffect m_effect;
         private MyCubeGrid m_selectedGrid;
-        private IMyFunctionalBlock m_block;
+        
         private Dictionary<string, DateTime> m_btnCooldowns = new Dictionary<string, DateTime>();
         
 

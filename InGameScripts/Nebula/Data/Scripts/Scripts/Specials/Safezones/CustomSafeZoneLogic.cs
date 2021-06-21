@@ -26,9 +26,8 @@ namespace Scripts.Specials.Safezones
     Minimal distance: Скан в радиусе на наличие живых игроков (так же в кокпитах) (бегай по всем игрокам)
     Minimal other safezones: Скан в радиусе на наличие других активных сейфзон
     */
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_SafeZoneBlock), false, new string[] { "SafeZone", "SafeZoneT1", "SafeZoneT2", "SafeZoneT3", "SafeZoneT4", "SafeZoneT5", "SafeZoneT6", "SafeZoneT7","FactionSafeZoneBlock" })]
-    class CustomSafeZoneLogic : MyGameLogicComponent
-    {
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_SafeZoneBlock), false, new string[] { "SafeZone", "SafeZoneT1", "SafeZoneT2", "SafeZoneT3", "SafeZoneT4", "SafeZoneT5", "SafeZoneT6", "SafeZoneT7", "FactionSafeZoneBlock" })]
+    public class CustomSafeZoneLogic : MyGameLogicComponent {
         private static bool m_controlsCreated;
         private static readonly int MIN_FRIEND_SF_DISTANCE = 3000;
         private static readonly int MIN_OTHER_ENEMY_SF_DISTANCE = 6000;
@@ -38,7 +37,7 @@ namespace Scripts.Specials.Safezones
         private static readonly int m_distance_other_enemy_sf_sqr = MIN_OTHER_ENEMY_SF_DISTANCE * MIN_OTHER_ENEMY_SF_DISTANCE;
         private static readonly int m_distance_enemy_player__sqr = MIN_ENEMY_PLAYER_DISTANCE * MIN_ENEMY_PLAYER_DISTANCE;
         private static readonly List<string> AFFECTED_SUBTYPES = new List<string>() { "SafeZone", "SafeZoneT1", "SafeZoneT2", "SafeZoneT3", "SafeZoneT4", "SafeZoneT5", "SafeZoneT6", "SafeZoneT7","FactionSafeZoneBlock" };
-        private static readonly List<RestictedArea> RESTRICTED_AREAS = new List<RestictedArea>() { new RestictedArea(new Vector3D(0, 0, 0), "AdminZone", 15000f * 15000f) };
+        private static readonly List<RestictedArea> RESTRICTED_AREAS = new List<RestictedArea>() {  };
 
         private IMySafeZoneBlock m_block;
         private bool m_lastDetectedState;

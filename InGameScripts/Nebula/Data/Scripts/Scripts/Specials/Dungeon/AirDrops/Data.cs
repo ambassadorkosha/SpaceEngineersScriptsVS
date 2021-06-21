@@ -90,6 +90,9 @@ namespace Scripts.Specials.Dungeon.AirDrops
         public float MinAboveVoxels = 0;
         public float MaxAboveVoxels = 0;
 
+        public float MinSpawnPlanetRadius = 0;
+        public float MaxSpawnPlanetRadius = 2;
+
         public bool CanSpawnOnPlanets = true;
         public bool CanSpawnInSpace = true;
 

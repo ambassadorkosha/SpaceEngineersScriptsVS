@@ -37,7 +37,8 @@ namespace Scripts.Specials.LCDScripts
             PowerStored,
             PowerUsing,
             Time,
-            Volume
+            Volume,
+            Weight
         }
         private readonly Regex locationRegex = new Regex("\\{.*?\\}");
         public readonly Regex nameRegex = new Regex("\\[.*?\\]");
@@ -133,11 +134,10 @@ namespace Scripts.Specials.LCDScripts
             var isOneGrid = false;
             var isBarCubeOn = false;
 
-            foreach (var str in strings)
-            {
-                if (str.Contains("Cargo") || str.Contains("CargoAll"))
+
+                if (strings[0].StartsWith("Cargo") || strings[0].StartsWith("CargoAll"))
                 {
-                    var _str = str.ToLower().Replace("cargo", "").Replace("all","");
+                    var _str = strings[0].ToLower().Replace("cargo", "").Replace("all","");
                     if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
                     if (_str.Contains(TagSeparate)) isMerge = false;
                     if (_str.Contains(TagSameGrid)) isOneGrid = true;
@@ -147,7 +147,7 @@ namespace Scripts.Specials.LCDScripts
                     if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
                     if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
                 }
-            }
+            
             
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             var name = RegexParse(nameRegex,text);
@@ -167,18 +167,17 @@ namespace Scripts.Specials.LCDScripts
             var isOneGrid = false;
             var isBarCubeOn = false;
             
+            if (buffer[0].StartsWith("Inventory") || buffer[0].StartsWith("Missing"))
+            {
+                var _str = buffer[0].ToLower().Replace("inventory", "").Replace("missing", "");
+                if (_str.Contains(TagHideZero)) hideZero = true;
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
+                if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
+                if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
+            }
+            
             foreach (var str in buffer)
             {
-                if (str.Contains("Inventory") || str.Contains("Missing"))
-                {
-                    var _str = str.ToLower().Replace("inventory", "").Replace("missing", "");
-                    if (_str.Contains(TagHideZero)) hideZero = true;
-                    if (_str.Contains(TagGroup)) isOneGrid = true;
-                    if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
-                    if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
-
-                    continue;
-                }
                 double limit = 0;
 
                 if (str.StartsWith("+") && str.Length > 1)
@@ -214,20 +213,18 @@ namespace Scripts.Specials.LCDScripts
             var Type = ShowType.Default;
             var isOneGrid = false;
             var isBarCubeOn = false;
-
-            foreach (var str in strings)
+            
+            if (strings[0].StartsWith("Power"))
             {
-                if (str.Contains("Power"))
-                {
-                    var _str = str.ToLower().Replace("power", "");
-                    if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
+                var _str = strings[0].ToLower().Replace("power", "");
+                if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
 
-                    if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
-                    if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
-                    if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
-                }
+                if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
+                if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
+                if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             var name = RegexParse(nameRegex,text);
             if(!isStored) PowerSort.Add(line,new SortClass{Where = whereToSearch,Name = name,isGroup = isGroup,IsOnSameGrid = isOneGrid,isProgBarCubeVisible = isBarCubeOn,SType = Type});
@@ -243,20 +240,20 @@ namespace Scripts.Specials.LCDScripts
             var isTop = false;
             var NumberOfTops = 0;
             
+            if (strings[0].StartsWith("PowerUsed"))
+            {
+                var _str = strings[0].ToLower().Replace("powerused", "");
+                if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
+                if (_str.Contains("top")) isTop = true;
+                    
+                if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
+                if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
+                if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
+            }
+            
             foreach (var str in strings)
             {
-                if (str.Contains("PowerUsed"))
-                {
-                    var _str = str.ToLower().Replace("powerused", "");
-                    if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                    if (_str.Contains("top")) isTop = true;
-                    
-                    if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
-                    if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
-                    if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
-                    continue;
-                }
                 if (isTop) int.TryParse(str, out NumberOfTops);
             }
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
@@ -269,20 +266,18 @@ namespace Scripts.Specials.LCDScripts
             var isOneGrid = false;
             bool isGroup;
             var Type = ShowType.Default;
-            
-            foreach (var str in strings)
+
+            if (strings[0].StartsWith("PowerTime"))
             {
-                if (str.Contains("PowerTime"))
-                {
-                    var _str = str.ToLower().Replace("powertime", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                        
-                    if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
-                    if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
-                    if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
-                    if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
-                }
+                var _str = strings[0].ToLower().Replace("powertime", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
+
+                if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
+                if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
+                if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
+                if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             PowerTimeSort.Add(line,new SortClass{Where = whereToSearch, isGroup = isGroup, IsOnSameGrid = isOneGrid, SType = Type});
         }
@@ -296,11 +291,10 @@ namespace Scripts.Specials.LCDScripts
             var isSeparate = false;
             var isTime = false;
 
-            foreach (var str in strings)
-            {
-                if (str.Contains("Charge"))
+
+                if (strings[0].StartsWith("Charge"))
                 {
-                    var _str = str.ToLower().Replace("charge", "");
+                    var _str = strings[0].ToLower().Replace("charge", "");
                     if (_str.Contains("time"))
                     {
                         _str = _str.Replace("time", "");
@@ -314,7 +308,7 @@ namespace Scripts.Specials.LCDScripts
                     if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
                     if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
                 }
-            }
+            
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             ChargeSort.Add(line,new SortClass{Where = whereToSearch,isGroup = isGroup,IsOnSameGrid = isOneGrid,isProgBarCubeVisible = isBarCubeOn,SType = Type, IsSeparate = isSeparate, isZeroHidden = isTime});
         }
@@ -324,14 +318,12 @@ namespace Scripts.Specials.LCDScripts
             bool isGroup;
             var isOneGrid = false;
 
-            foreach (var str in strings)
+            if (strings[0].StartsWith("Damage"))
             {
-                if (str.Contains("Damage"))
-                {
-                    var _str = str.ToLower().Replace("damage", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                }
+                var _str = strings[0].ToLower().Replace("damage", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
             }
+
             var whereToSearch = RegexParse(locationRegex,text, out isGroup);
             DamageSort.Add(line,new SortClass{Where = whereToSearch,isGroup = isGroup,IsOnSameGrid = isOneGrid});
         }
@@ -348,14 +340,12 @@ namespace Scripts.Specials.LCDScripts
             bool isGroup;
             var isOneGrid = false;
 
-            foreach (var str in strings)
+            if (strings[0].StartsWith("BlockCount"))
             {
-                if (str.Contains("BlockCount"))
-                {
-                    var _str = str.ToLower().Replace("blockcount", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                }
+                var _str = strings[0].ToLower().Replace("blockcount", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             BlockCountSort.Add(line,new SortClass{Where = whereToSearch,isGroup = isGroup,IsOnSameGrid = isOneGrid});
         }
@@ -365,14 +355,12 @@ namespace Scripts.Specials.LCDScripts
             bool isGroup;
             var isOneGrid = false;
 
-            foreach (var str in strings)
+            if (strings[0].StartsWith("ProdCount"))
             {
-                if (str.Contains("ProdCount"))
-                {
-                    var _str = str.ToLower().Replace("prodcount", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                }
+                var _str = strings[0].ToLower().Replace("prodcount", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             ProdCountSort.Add(line,new SortClass{Where = whereToSearch,isGroup = isGroup,IsOnSameGrid = isOneGrid});
         }
@@ -382,14 +370,13 @@ namespace Scripts.Specials.LCDScripts
             bool isGroup;
             var isOneGrid = false;
 
-            foreach (var str in strings)
+
+            if (strings[0].Contains("EnableCount"))
             {
-                if (str.Contains("EnableCount"))
-                {
-                    var _str = str.ToLower().Replace("enablecount", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                }
+                var _str = strings[0].ToLower().Replace("enablecount", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             EnabledCountSort.Add(line,new SortClass{Where = whereToSearch,isGroup = isGroup,IsOnSameGrid = isOneGrid});
         }
@@ -399,34 +386,29 @@ namespace Scripts.Specials.LCDScripts
             bool isGroup;
             var isOneGrid = false;
 
-            foreach (var str in strings)
+
+            if (strings[0].Contains("Working"))
             {
-                if (str.Contains("Working"))
-                {
-                    var _str = str.ToLower().Replace("working", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                }
+                var _str = strings[0].ToLower().Replace("working", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             WorkingSort.Add(line,new SortClass{Where = whereToSearch,isGroup = isGroup,IsOnSameGrid = isOneGrid});
         }
         public void ParsePropBoolCommand(string text, int line)
         {
             var strings = text.Split(' ');
-
             bool isGroup;
             var isOneGrid = false;
-
             var words = new List<string>();
-
-            foreach (var str in strings)
+            
+            if (strings[0].Contains("PropBool"))
             {
-                if (str.Contains("PropBool"))
-                {
-                    var _str = str.ToLower().Replace("propbool", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                }
+                var _str = strings[0].ToLower().Replace("propbool", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             var name = RegexParse(nameRegex,text);
             PropBoolSort.Add(line,new SortClass{Where = whereToSearch, isGroup = isGroup, IsOnSameGrid = isOneGrid, Name = name, exceptions = words});
@@ -437,16 +419,14 @@ namespace Scripts.Specials.LCDScripts
             bool isGroup;
             var isOneGrid = false;
             var isBlockNameHidden = false;
-
-            foreach (var str in strings)
+            
+            if (strings[0].Contains("Details"))
             {
-                if (str.Contains("Details"))
-                {
-                    var _str = str.ToLower().Replace("details", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                    if (_str.Contains(TagHideZero)) isBlockNameHidden = true;
-                }
+                var _str = strings[0].ToLower().Replace("details", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
+                if (_str.Contains(TagHideZero)) isBlockNameHidden = true;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             var TextToLock = RegexParse(nameRegex,text);
             DetailsSort.Add(line,new SortClass{Where = whereToSearch,Name = TextToLock,isGroup = isGroup,IsOnSameGrid = isOneGrid, isZeroHidden = isBlockNameHidden});
@@ -463,22 +443,20 @@ namespace Scripts.Specials.LCDScripts
             var isBarCubeOn = false;
             var isSeparate = false;
             var Type = ShowType.Default;
-
-            foreach (var str in strings)
+            
+            if (strings[0].Contains("Oxygen"))
             {
-                if (str.Contains("Oxygen"))
-                {
-                    var _str = str.ToLower().Replace("oxygen", "");
-                    if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
-                    if (_str.Contains(TagSeparate)) isSeparate = true;
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                    
-                    if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
-                    if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
-                    if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
-                    if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
-                }
+                var _str = strings[0].ToLower().Replace("oxygen", "");
+                if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
+                if (_str.Contains(TagSeparate)) isSeparate = true;
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
+
+                if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
+                if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
+                if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
+                if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             var name = RegexParse(nameRegex,text);
             OxygenSort.Add(line,new SortClass{Where = whereToSearch,Name = name,isGroup = isGroup,IsOnSameGrid = isOneGrid, IsSeparate = isSeparate, isProgBarCubeVisible = isBarCubeOn, SType = Type});
@@ -491,22 +469,20 @@ namespace Scripts.Specials.LCDScripts
             var isBarCubeOn = false;
             var isSeparate = false;
             var Type = ShowType.Default;
-
-            foreach (var str in strings)
+            
+            if (strings[0].Contains("Tanks"))
             {
-                if (str.Contains("Tanks"))
-                {
-                    var _str = str.ToLower().Replace("tanks", "");
-                    if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
-                    if (_str.Contains(TagSeparate)) isSeparate = true;
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                    
-                    if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
-                    if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
-                    if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
-                    if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
-                }
+                var _str = strings[0].ToLower().Replace("tanks", "");
+                if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
+                if (_str.Contains(TagSeparate)) isSeparate = true;
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
+
+                if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
+                if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
+                if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
+                if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             var name = RegexParse(nameRegex,text);
             TanksSort.Add(line,new SortClass{Where = whereToSearch, Name = name, isGroup = isGroup, IsOnSameGrid = isOneGrid, IsSeparate = isSeparate, isProgBarCubeVisible = isBarCubeOn, SType = Type});
@@ -553,21 +529,18 @@ namespace Scripts.Specials.LCDScripts
             var strings = text.Split(' ');
             var isCentered = false;
             var Offset = 0;
-
-            foreach (var str in strings)
+            
+            if (strings[0].StartsWith("Time"))
             {
-                if (str.Contains("Time"))
+                var _str = strings[0].ToLower().Replace("time", "");
+                if (_str.Contains("c"))
                 {
-                    var _str = str.ToLower().Replace("time", "");
-                    if (_str.Contains("c"))
-                    {
-                        _str = _str.Replace("c", "");
-                        isCentered = true;
-                    }
-
-                    int.TryParse(_str, out Offset);
+                    _str = _str.Replace("c", "");
+                    isCentered = true;
                 }
+                int.TryParse(_str, out Offset);
             }
+
             TimeSort.Add(line,new Pair<int, bool>(Offset,isCentered));
         }
         public void ParseDateCommand(string text, int line)
@@ -575,44 +548,40 @@ namespace Scripts.Specials.LCDScripts
             var strings = text.Split(' ');
             var isCentered = false;
             var Offset = 0;
-
-            foreach (var str in strings)
+            
+            if (strings[0].StartsWith("Date"))
             {
-                if (str.Contains("Date"))
+                var _str = strings[0].ToLower().Replace("date", "");
+                if (_str.Contains("c"))
                 {
-                    var _str = str.ToLower().Replace("date", "");
-                    if (_str.Contains("c"))
-                    {
-                        _str = _str.Replace("c", "");
-                        isCentered = true;
-                    }
-                    int.TryParse(_str, out Offset);
+                    _str = _str.Replace("c", "");
+                    isCentered = true;
                 }
+                int.TryParse(_str, out Offset);
             }
+
             DateSort.Add(line,new Pair<int, bool>(Offset,isCentered));
         }
-        public void ParseDateTimeCommand(string text, int line)
+        public void ParseDateTimeCommand(string text, int line) // todo edit
         {
             var strings = text.Split(' ');
             var isCentered = false;
             var format = "";
             var Offset = 0;
 
-            foreach (var str in strings)
+            if (strings[0].StartsWith("DateTime"))
             {
-                if (str.Contains("DateTime"))
+                var _str = strings[0].ToLower().Replace("datetime", "");
+                if (_str.Contains("c"))
                 {
-                    var _str = str.ToLower().Replace("datetime", "");
-                    if (_str.Contains("c"))
-                    {
-                        _str = _str.Replace("c", "");
-                        isCentered = true;
-                    }
-                    int.TryParse(_str, out Offset);
-                    continue;
+                    _str = _str.Replace("c", "");
+                    isCentered = true;
                 }
-                format += str + " ";
+                int.TryParse(_str, out Offset);
             }
+
+            foreach (var str in strings) format += str + " ";
+            
             DateTimeSort.Add(line,new Pair<Pair<int, bool>, string>(new Pair<int, bool>(Offset,isCentered), format));
         }
         public void ParseCountDownCommand(string text, int line)
@@ -621,16 +590,15 @@ namespace Scripts.Specials.LCDScripts
             var AlignmentType = 0;
             int Day = 1, Month = 1, Year = 1, Hour = 0, Min = 0;
 
+            if (strings[0].StartsWith("Countdown"))
+            {
+                var _str = strings[0].ToLower().Replace("countdown", "");
+                if (_str.Contains("c")) AlignmentType = 1;
+                if (_str.Contains("r")) AlignmentType = 2;
+            }
+            
             foreach (var str in strings)
             {
-                if (str.Contains("Countdown"))
-                {
-                    var _str = str.ToLower().Replace("countdown", "");
-                    if (_str.Contains("c")) AlignmentType = 1;
-                    if (_str.Contains("r")) AlignmentType = 2;
-                    continue;
-                }
-
                 if (str.Contains(":"))
                 {
                     var _Time = str.Split(':');
@@ -660,19 +628,18 @@ namespace Scripts.Specials.LCDScripts
             var strings = text.Split(' ');
             var Type = 0;
             bool isGroup;
-            foreach (var str in strings)
+
+            if (strings[0].StartsWith("Pos"))
             {
-                if (str.Contains("Pos"))
+                var _str = strings[0].ToLower().Replace("pos", "");
+                switch (_str)
                 {
-                    var _str = str.ToLower().Replace("pos", "");
-                    switch (_str)
-                    {
-                        case "xyz": Type = 1; break;
-                        case "gps": Type = 2; break;
-                        default: Type = 0; break;
-                    }
+                    case "xyz": Type = 1; break;
+                    case "gps": Type = 2; break;
+                    default: Type = 0; break;
                 }
             }
+
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             PosSort.Add(line,new Pair<int, string>(Type,whereToSearch));
         }
@@ -685,21 +652,20 @@ namespace Scripts.Specials.LCDScripts
             var strings = text.Split(' ');
             var Type = 0;
             var Limit = 0d;
-            foreach (var str in strings)
+            
+            if (strings[0].StartsWith("Speed"))
             {
-                if (str.Contains("Speed"))
+                var _str = strings[0].ToLower().Replace("speed", "");
+                switch (_str)
                 {
-                    var _str = str.ToLower().Replace("speed", "");
-                    switch (_str)
-                    {
-                        case "kmh": Type = 1; break;
-                        case "mph": Type = 2; break;
-                        default: Type = 0; break;
-                    }
-                    continue;
+                    case "kmh": Type = 1; break;
+                    case "mph": Type = 2; break;
+                    default: Type = 0; break;
                 }
-                double.TryParse(str, out Limit);
             }
+            
+            foreach (var str in strings) double.TryParse(str, out Limit);
+            
             SpeedSort.Add(line,new Pair<int, double>(Type,Limit));
         }
         public void ParseAccelCommand(string text, int line)
@@ -712,11 +678,10 @@ namespace Scripts.Specials.LCDScripts
         {
             var strings = text.Split(' ');
             var Type = 0;
-            foreach (var str in strings)
-            {
-                if (str.Contains("Gravity"))
+
+                if (strings[0].StartsWith("Gravity"))
                 {
-                    var _str = str.ToLower().Replace("gravity", "");
+                    var _str = strings[0].ToLower().Replace("gravity", "");
                     switch (_str)
                     {
                         case "natural": Type = 1; break;
@@ -725,7 +690,7 @@ namespace Scripts.Specials.LCDScripts
                         default: Type = 0; break;
                     }
                 }
-            }
+            
             GravitySort.Add(line,Type);
         }
         public void ParseStopCommand(string text, int line)
@@ -739,14 +704,15 @@ namespace Scripts.Specials.LCDScripts
             var isBase = false;
             var Limit = 0d;
 
+            if (strings[0].StartsWith("ShipMass"))
+            {
+                var _str = strings[0].ToLower().Replace("shipmass", "");
+                if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
+                if (_str.Contains("base")) isBase = true;
+            }
+            
             foreach (var str in strings)
             {
-                if (str.Contains("ShipMass"))
-                {
-                    var _str = str.ToLower().Replace("shipmass", "");
-                    if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
-                    if (_str.Contains("base")) isBase = true;
-                }
                 double.TryParse(str, out Limit);
             }
             ShipMassSort.Add(line,new Pair<double, bool[]>(Limit,new []{isBase,isBarCubeOn}));
@@ -760,19 +726,20 @@ namespace Scripts.Specials.LCDScripts
             var isBarCubeOn = false;
             var Limit = 0d;
 
+            if (strings[0].StartsWith("Mass"))
+            {
+                var _str = strings[0].ToLower().Replace("mass", "");
+                if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
+                    
+                if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
+                if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
+                if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
+                if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
+            }
+            
             foreach (var str in strings)
             {
-                if (str.Contains("Mass"))
-                {
-                    var _str = str.ToLower().Replace("mass", "");
-                    if (_str.Contains(TagBarCubeOn)) isBarCubeOn = true;
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                    
-                    if (_str.Contains(TagNoExactVolume)) Type = ShowType.NoExactVolume;
-                    if (_str.Contains(TagOnlyPercentage)) Type = ShowType.OnlyPercentage;
-                    if (_str.Contains(TagOnlyExactVolume)) Type = ShowType.OnlyExactVolume;
-                    if (_str.Contains(TagOnlyProgressBar)) Type = ShowType.OnlyProgressBar;
-                }
                 double.TryParse(str, out Limit);
             }
             
@@ -790,15 +757,14 @@ namespace Scripts.Specials.LCDScripts
             var isMerge = true;
             var isOneGrid = false;
 
-            foreach (var str in strings)
-            {
-                if (str.Contains("Occupied"))
+
+                if (strings[0].StartsWith("Occupied"))
                 {
-                    var _str = str.ToLower().Replace("occupied", "");
+                    var _str = strings[0].ToLower().Replace("occupied", "");
                     if (_str.Contains(TagSeparate)) isMerge = false;
                     if (_str.Contains(TagSameGrid)) isOneGrid = true;
                 }
-            }
+            
             var whereToSearch = RegexParse(locationRegex,text,out isGroup);
             
             OccupiedSort.Add(line, new SortClass{Where = whereToSearch,isGroup = isGroup, IsSeparate = isMerge, IsOnSameGrid = isOneGrid});
@@ -833,14 +799,12 @@ namespace Scripts.Specials.LCDScripts
             bool isGroup;
             var isOneGrid = false;
 
-            foreach (var str in strings)
+            if (strings[0].StartsWith("Garages"))
             {
-                if (str.Contains("Garages"))
-                {
-                    var _str = str.ToLower().Replace("garages", "");
-                    if (_str.Contains(TagSameGrid)) isOneGrid = true;
-                }
+                var _str = strings[0].ToLower().Replace("garages", "");
+                if (_str.Contains(TagSameGrid)) isOneGrid = true;
             }
+
             var whereToSearch = RegexParse(locationRegex,text, out isGroup);
             GarageSort.Add(line,new SortClass{Where = whereToSearch,isGroup = isGroup,IsOnSameGrid = isOneGrid});
         }

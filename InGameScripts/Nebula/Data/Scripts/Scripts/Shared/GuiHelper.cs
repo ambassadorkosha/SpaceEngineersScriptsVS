@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VRage.Game.Components;
 using VRage.Utils;
+using VRageMath;
 
 namespace Scripts.Shared
 {
@@ -71,6 +72,34 @@ namespace Scripts.Shared
 
 
             XControl.Action = (b) => action(b.GetAs<T>());
+
+            system.AddControl<Z>(XControl);
+
+            return XControl;
+        }
+
+        public static IMyTerminalControlColor CreateColorPicker<T, Z>(this IMyTerminalControls system, string id, string name, string tooltip, Func<T, Color> getter, Action<T, Color> setter, Func<T, bool> enabled = null, Func<T, bool> visible = null) where T : MyGameLogicComponent
+        {
+            var XControl = system.CreateControl<IMyTerminalControlColor, Z>(typeof(T).Name + "_" + id);
+            XControl.Title = MyStringId.GetOrCompute(name);
+            XControl.Tooltip = MyStringId.GetOrCompute(tooltip);
+            XControl.Enabled = (b) =>
+            {
+                var bb = b.GetAs<T>();
+                if (bb == null) return false;
+                return visible == null ? true : enabled(bb);
+            };
+
+            XControl.Visible = (b) =>
+            {
+                var bb = b.GetAs<T>();
+                if (bb == null) return false;
+                return visible == null ? true : visible(bb);
+            };
+
+
+            XControl.Getter = (b) => getter(b.GetAs<T>());
+            XControl.Setter = (b, v) => setter(b.GetAs<T>(), v);
 
             system.AddControl<Z>(XControl);
 

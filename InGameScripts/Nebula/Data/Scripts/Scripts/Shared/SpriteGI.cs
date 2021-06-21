@@ -231,10 +231,10 @@ namespace DrawSprites
 				{
 					InFrame.DrawText(item.k + ":", InLeftOffset * 2, line, InColor, InTextSize * TextHeight, InFontId: "Debug");
 
-					var Value1 = inALIT != AutoLCDInfoType.Volume ? inALIT != AutoLCDInfoType.PowerUsing ? item.v[0].toHumanQuantityEnergy() + "h" : item.v[0].toHumanQuantityEnergy() : item.v[0].toHumanQuantityVolume();
-					var Value2 = inALIT != AutoLCDInfoType.Volume ? inALIT != AutoLCDInfoType.PowerUsing ? item.v[1].toHumanQuantityEnergy() + "h" : item.v[1].toHumanQuantityEnergy() : item.v[1].toHumanQuantityVolume();
+					var Value1 = inALIT != AutoLCDInfoType.Volume ? inALIT != AutoLCDInfoType.PowerUsing ? inALIT != AutoLCDInfoType.Weight ? item.v[0].toHumanQuantityEnergy() + "h" : item.v[0].toHumanWeight() : item.v[0].toHumanQuantityEnergy() : item.v[0].toHumanQuantityVolume();
+					var Value2 = inALIT != AutoLCDInfoType.Volume ? inALIT != AutoLCDInfoType.PowerUsing ? inALIT != AutoLCDInfoType.Weight ? item.v[1].toHumanQuantityEnergy() + "h" : item.v[1].toHumanWeight() : item.v[1].toHumanQuantityEnergy() : item.v[1].toHumanQuantityVolume();
 
-					var txt = inALIT != AutoLCDInfoType.Time ? Value1 + "  /  " + Value2 : ((int)item.v[2]).toHumanTime2();
+					var txt = inALIT != AutoLCDInfoType.Time ? inALIT != AutoLCDInfoType.Weight && item.v[1] > 0 ?  Value1 + "  /  " + Value2 : Value1 : ((int)item.v[2]).toHumanTime2();
 					if (inALIT == AutoLCDInfoType.Time && (int) item.v[2] <= 0) txt = "-";
 
 					if (InType == ShowType.Default || InType == ShowType.OnlyExactVolume) InFrame.DrawText(txt, InPos.X - InLeftOffset, line, InColor, InTextSize * TextHeight, TextAlignment.RIGHT, "Debug");

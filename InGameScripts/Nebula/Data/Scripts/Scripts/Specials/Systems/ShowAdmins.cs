@@ -1,4 +1,4 @@
-﻿using Sandbox.Game.Entities;
+using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using ServerMod;
 using System;
@@ -45,7 +45,7 @@ namespace Scripts.Specials {
                 var sp = new BoundingSphereD(ch.WorldMatrix.Translation, 200);
                 var ents = MyEntities.GetTopMostEntitiesInSphere(ref sp);
                 ents.Remove(ch as MyEntity);
-                
+
                 foreach (var x in ents) {
                     var d = (x as IMyCharacter);
                     if (d == null) continue;
@@ -57,6 +57,8 @@ namespace Scripts.Specials {
                         messages.Add(player.IdentityId, m);
                     }
                 }
+
+                ents.Clear();
             } catch (Exception e) {
                 Log.Error(e);
             }

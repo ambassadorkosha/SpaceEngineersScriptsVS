@@ -13,7 +13,6 @@ namespace Scripts.Specials.Safezones
     {
         public static void CreateControls()
         {
-            Log.Error("CustomSaveZoneControls.CreateControls() start.");
             var vanilaControls = new List<IMyTerminalControl>();
             MyAPIGateway.TerminalControls.GetControls<IMySafeZoneBlock>(out vanilaControls);
             var AutoEnableChkBox = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMySafeZoneBlock>("Safezones.AutoEnable");
