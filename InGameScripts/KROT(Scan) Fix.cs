@@ -64,7 +64,7 @@ namespace KROT_Scan_Fix
         public Program()
         {
             TempList = new List<IMyTerminalBlock>();
-            GridTerminalSystem.GetBlocksOfType<IMyCockpit>(TempList, (b) => (b.IsSameConstructAs(Me) && b.CustomName.Contains("Industrial Cockpit [Kopalko]")));
+            GridTerminalSystem.GetBlocksOfType<IMyCockpit>(TempList, (b) => (b.IsSameConstructAs(Me) && b.CustomName.Contains("Industrial Cockpit")));
             if (TempList.Count > 0)
             {
                 Controller = TempList[0] as IMyCockpit;
